@@ -1,0 +1,22 @@
+[
+  {
+    "id": "38fe7420-f1f5-4865-9b0a-60a6cc1f4436",
+    "recipient_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "giver_id": "1afdf98c-9467-4417-b170-f90d9b2b625d",
+    "reason": "Keep DOING THE work.",
+    "source_id": "0764139f-b056-4894-826c-f80625121710",
+    "source_type": "revision",
+    "created_at": "2026-04-06T17:32:16.784795+00:00",
+    "category": null
+  },
+  {
+    "id": "4094de6e-afad-42ea-888a-831578b7811c",
+    "recipient_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "giver_id": "1afdf98c-9467-4417-b170-f90d9b2b625d",
+    "reason": "Good Addition thanks",
+    "source_id": "44650ca3-f102-4721-b63d-942c20e3558f",
+    "source_type": "revision",
+    "created_at": "2026-04-08T13:05:20.351014+00:00",
+    "category": null
+  }
+]

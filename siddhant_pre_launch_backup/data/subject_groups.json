@@ -1,0 +1,50 @@
+[
+  {
+    "id": "35a64291-14f0-4980-8a2d-7277ff4c9464",
+    "slug": "constitutional-law",
+    "name": "Constitutional Law",
+    "description": "Fundamental rights, directive principles, constitutional interpretation, landmark Supreme Court judgments, and the evolving architecture of Indian constitutional governance.",
+    "icon": "⚖️",
+    "created_at": "2026-03-30T16:44:14.301674+00:00"
+  },
+  {
+    "id": "dbb8b003-d854-4e76-a39c-33befb620a2d",
+    "slug": "criminal-law",
+    "name": "Criminal Law",
+    "description": "BNS/IPC offences, criminal procedure (BNSS/CrPC), evidence law (BSA), criminal jurisprudence, and landmark criminal justice decisions.",
+    "icon": "🔒",
+    "created_at": "2026-03-30T16:44:14.301674+00:00"
+  },
+  {
+    "id": "05a88d96-14df-404a-a7a3-bdb8659cc327",
+    "slug": "labour-industrial-law",
+    "name": "Labour & Industrial Law",
+    "description": "Industrial relations, labour codes, trade union law, social security legislation, and worker protection jurisprudence.",
+    "icon": "🏭",
+    "created_at": "2026-03-30T16:44:14.301674+00:00"
+  },
+  {
+    "id": "0c837a89-8275-4ae2-9513-4f4660ebd4f2",
+    "slug": "family-personal-law",
+    "name": "Family Law & Personal Laws",
+    "description": "Marriage, divorce, maintenance, succession, adoption, and guardianship under Hindu, Muslim, Christian, and secular personal law frameworks.",
+    "icon": "👨‍👩‍👧",
+    "created_at": "2026-03-30T16:44:14.301674+00:00"
+  },
+  {
+    "id": "3f6cc386-2d3c-4e01-9ec0-2f8d6a28ae8c",
+    "slug": "contract-commercial-law",
+    "name": "Contract & Commercial Law",
+    "description": "Indian Contract Act, Sale of Goods, Negotiable Instruments, Partnership, Company Law, and commercial dispute principles.",
+    "icon": "📜",
+    "created_at": "2026-03-30T16:44:14.301674+00:00"
+  },
+  {
+    "id": "7bcb1ef3-1bba-4e5d-948a-394a14b52b4e",
+    "slug": "administrative-service-law",
+    "name": "Administrative & Service Law",
+    "description": "Judicial review, administrative tribunals, natural justice, delegated legislation, and service jurisprudence.",
+    "icon": "🏛️",
+    "created_at": "2026-03-30T16:44:14.301674+00:00"
+  }
+]

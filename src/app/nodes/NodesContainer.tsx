@@ -195,7 +195,7 @@ export default function NodesContainer({ nodes, edges, revMap, summaryMap, isLog
         {/* Empty state overlay — only show if no data present per user request */}
         {nodes.length === 0 && (
           <div className="graph-empty-overlay">
-            <div className="graph-empty-text">Select a node to explore the network</div>
+            <div className="graph-empty-text">Awaiting the first curated topic</div>
           </div>
         )}
 

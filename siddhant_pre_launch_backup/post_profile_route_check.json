@@ -1,0 +1,140 @@
+{
+  "createdAt": "2026-05-05T08:56:22.599Z",
+  "results": [
+    {
+      "route": "/",
+      "finalUrl": "http://localhost:3000/",
+      "headings": [
+        "1:The Living Memory of Indian Law",
+        "2:How Article 21 Expanded Across Decades",
+        "3:Article 21",
+        "3:Procedure Must Be Fair, Just, and Reasonable"
+      ],
+      "failure": false,
+      "consoleErrors": [],
+      "hasInitializing": false
+    },
+    {
+      "route": "/explore",
+      "finalUrl": "http://localhost:3000/explore",
+      "headings": [
+        "1:Begin Exploring Jurisprudence",
+        "2:Article 21 Evolution",
+        "2:Scholarly Chronicle",
+        "2:Follow a doctrinal relationship"
+      ],
+      "failure": false,
+      "consoleErrors": [],
+      "hasInitializing": false
+    },
+    {
+      "route": "/nodes",
+      "finalUrl": "http://localhost:3000/nodes",
+      "headings": [],
+      "failure": false,
+      "consoleErrors": [],
+      "hasInitializing": true
+    },
+    {
+      "route": "/recent-changes",
+      "finalUrl": "http://localhost:3000/recent-changes",
+      "headings": [
+        "3:Filter Chronicle",
+        "3:Navigation",
+        "1:Scholarly Chronicle"
+      ],
+      "failure": false,
+      "consoleErrors": [],
+      "hasInitializing": false
+    },
+    {
+      "route": "/recognition",
+      "finalUrl": "http://localhost:3000/recognition",
+      "headings": [
+        "3:Recognition Feed",
+        "3:Scholarly Ledger",
+        "3:Navigation",
+        "1:Community Recognition"
+      ],
+      "failure": false,
+      "consoleErrors": [],
+      "hasInitializing": false
+    },
+    {
+      "route": "/groups",
+      "finalUrl": "http://localhost:3000/groups",
+      "headings": [
+        "1:Scholarly Communities"
+      ],
+      "failure": false,
+      "consoleErrors": [],
+      "hasInitializing": false
+    },
+    {
+      "route": "/welcome",
+      "finalUrl": "http://localhost:3000/login",
+      "headings": [
+        "2:Welcome to Siddhant"
+      ],
+      "failure": false,
+      "consoleErrors": [],
+      "hasInitializing": false
+    },
+    {
+      "route": "/login",
+      "finalUrl": "http://localhost:3000/login",
+      "headings": [
+        "2:Welcome to Siddhant"
+      ],
+      "failure": false,
+      "consoleErrors": [],
+      "hasInitializing": false
+    },
+    {
+      "route": "/topic/nonexistent",
+      "finalUrl": "http://localhost:3000/topic/nonexistent",
+      "headings": [
+        "2:Topic Not Found"
+      ],
+      "failure": false,
+      "consoleErrors": [],
+      "hasInitializing": false
+    },
+    {
+      "route": "/topic/nonexistent/history",
+      "finalUrl": "http://localhost:3000/topic/nonexistent/history",
+      "headings": [],
+      "failure": false,
+      "consoleErrors": [],
+      "hasInitializing": false
+    },
+    {
+      "route": "/topic/nonexistent/compare",
+      "finalUrl": "http://localhost:3000/topic/nonexistent/compare",
+      "headings": [
+        "2:Selection Required"
+      ],
+      "failure": false,
+      "consoleErrors": [],
+      "hasInitializing": false
+    },
+    {
+      "route": "/topic/nonexistent/edges",
+      "finalUrl": "http://localhost:3000/login",
+      "headings": [
+        "2:Welcome to Siddhant"
+      ],
+      "failure": false,
+      "consoleErrors": [],
+      "hasInitializing": false
+    },
+    {
+      "route": "/topic/nonexistent/discussion",
+      "finalUrl": "http://localhost:3000/topic/nonexistent/discussion",
+      "headings": [],
+      "failure": false,
+      "consoleErrors": [],
+      "hasInitializing": false
+    }
+  ]
+}

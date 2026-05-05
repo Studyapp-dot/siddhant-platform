@@ -1,0 +1,197 @@
+{
+  "createdAt": "2026-05-05T08:37:29.846Z",
+  "supabaseUrl": "https://zqpvecgsovujywrtjekn.supabase.co",
+  "schemaFiles": [
+    "community_schema_migration.sql",
+    "contribution_intelligence_migration.sql",
+    "discussion_types_migration.sql",
+    "evidence_feed_migration.sql",
+    "group_ecosystem_migration.sql",
+    "group_endorsement_migration.sql",
+    "knowledge_graph_migration.sql",
+    "mentoring_migration.sql",
+    "peer_review_migration.sql",
+    "peer_review_patch.sql",
+    "phase3_discussion_migration.sql",
+    "quality_and_acceptance_migration.sql",
+    "quality_governance_migration.sql",
+    "quality_governance_patch.sql",
+    "recent_changes_view.sql",
+    "recognition_feed_migration.sql",
+    "reputation_rpc_fix.sql",
+    "reputation_system_migration.sql",
+    "revert_rpc_fix.sql",
+    "revert_system_migration.sql",
+    "revision_history_migration.sql",
+    "siddhant_schema.sql"
+  ],
+  "results": [
+    {
+      "table": "activity_comments",
+      "ok": true,
+      "rows": 0
+    },
+    {
+      "table": "categories",
+      "ok": true,
+      "rows": 15
+    },
+    {
+      "table": "consensus_votes",
+      "ok": true,
+      "rows": 0
+    },
+    {
+      "table": "contribution_votes",
+      "ok": true,
+      "rows": 2
+    },
+    {
+      "table": "cross_references",
+      "ok": true,
+      "rows": 2
+    },
+    {
+      "table": "discussions",
+      "ok": true,
+      "rows": 12
+    },
+    {
+      "table": "endorsements",
+      "ok": true,
+      "rows": 2
+    },
+    {
+      "table": "group_discussion_endorsements",
+      "ok": true,
+      "rows": 0
+    },
+    {
+      "table": "group_discussion_votes",
+      "ok": true,
+      "rows": 0
+    },
+    {
+      "table": "group_discussions",
+      "ok": true,
+      "rows": 1
+    },
+    {
+      "table": "group_node_associations",
+      "ok": true,
+      "rows": 0
+    },
+    {
+      "table": "inline_tags",
+      "ok": true,
+      "rows": 2
+    },
+    {
+      "table": "learning_path_nodes",
+      "ok": true,
+      "rows": 0
+    },
+    {
+      "table": "learning_paths",
+      "ok": true,
+      "rows": 0
+    },
+    {
+      "table": "mentor_requests",
+      "ok": true,
+      "rows": 0
+    },
+    {
+      "table": "mentorships",
+      "ok": true,
+      "rows": 0
+    },
+    {
+      "table": "node_categories",
+      "ok": true,
+      "rows": 0
+    },
+    {
+      "table": "nodes",
+      "ok": true,
+      "rows": 4
+    },
+    {
+      "table": "notifications",
+      "ok": true,
+      "rows": 0
+    },
+    {
+      "table": "peer_reviews",
+      "ok": true,
+      "rows": 1
+    },
+    {
+      "table": "profiles",
+      "ok": true,
+      "rows": 7
+    },
+    {
+      "table": "quality_assessments",
+      "ok": true,
+      "rows": 5
+    },
+    {
+      "table": "quality_votes",
+      "ok": true,
+      "rows": 2
+    },
+    {
+      "table": "reputation_events",
+      "ok": true,
+      "rows": 24
+    },
+    {
+      "table": "review_cycles",
+      "ok": true,
+      "rows": 2
+    },
+    {
+      "table": "revision_semantics",
+      "ok": false,
+      "status": 404,
+      "error": "{\"code\":\"PGRST205\",\"details\":null,\"hint\":\"Perhaps you meant the table 'public.revisions'\",\"message\":\"Could not find the table 'public.revision_semantics' in the schema cache\"}",
+      "rows": null
+    },
+    {
+      "table": "revisions",
+      "ok": true,
+      "rows": 18
+    },
+    {
+      "table": "scholar_stars",
+      "ok": true,
+      "rows": 2
+    },
+    {
+      "table": "subject_group_members",
+      "ok": true,
+      "rows": 5
+    },
+    {
+      "table": "subject_groups",
+      "ok": true,
+      "rows": 6
+    },
+    {
+      "table": "thread_follows",
+      "ok": true,
+      "rows": 0
+    },
+    {
+      "table": "user_discussions",
+      "ok": true,
+      "rows": 1
+    },
+    {
+      "table": "watchlist",
+      "ok": true,
+      "rows": 0
+    }
+  ]
+}

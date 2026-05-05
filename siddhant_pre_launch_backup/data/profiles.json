@@ -1,0 +1,93 @@
+[
+  {
+    "id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "username": "Vipin",
+    "role": "recognized",
+    "reputation_score": 100,
+    "created_at": "2026-03-30T13:37:42.776717+00:00",
+    "accepted_edits_count": 17,
+    "total_edits_count": 18,
+    "endorsements_received": 3,
+    "peer_reviews_completed": 0,
+    "scholar_stars_received": 2,
+    "last_visit_at": null
+  },
+  {
+    "id": "8a8aa6b0-6e61-490f-93cb-cbb86085f65b",
+    "username": "vipinguptayoulm",
+    "role": "contributor",
+    "reputation_score": 0,
+    "created_at": "2026-03-25T16:36:01.939979+00:00",
+    "accepted_edits_count": 0,
+    "total_edits_count": 0,
+    "endorsements_received": 0,
+    "peer_reviews_completed": 0,
+    "scholar_stars_received": 0,
+    "last_visit_at": null
+  },
+  {
+    "id": "b013fa87-114c-4c6e-95ee-a777c8e8c731",
+    "username": "scholar_test",
+    "role": "contributor",
+    "reputation_score": 0,
+    "created_at": "2026-03-28T03:38:06.280688+00:00",
+    "accepted_edits_count": 0,
+    "total_edits_count": 0,
+    "endorsements_received": 0,
+    "peer_reviews_completed": 0,
+    "scholar_stars_received": 0,
+    "last_visit_at": null
+  },
+  {
+    "id": "f1db2ee9-3d96-4a08-89c7-fd17347b968a",
+    "username": "llm",
+    "role": "contributor",
+    "reputation_score": 0,
+    "created_at": "2026-03-29T15:59:23.553787+00:00",
+    "accepted_edits_count": 0,
+    "total_edits_count": 0,
+    "endorsements_received": 0,
+    "peer_reviews_completed": 0,
+    "scholar_stars_received": 0,
+    "last_visit_at": null
+  },
+  {
+    "id": "26c9eebc-da19-468c-a22a-2db408b4e894",
+    "username": "tester",
+    "role": "contributor",
+    "reputation_score": 0,
+    "created_at": "2026-04-26T17:21:32.023257+00:00",
+    "accepted_edits_count": 0,
+    "total_edits_count": 0,
+    "endorsements_received": 0,
+    "peer_reviews_completed": 0,
+    "scholar_stars_received": 0,
+    "last_visit_at": "2026-05-01T08:36:14.095+00:00"
+  },
+  {
+    "id": "1afdf98c-9467-4417-b170-f90d9b2b625d",
+    "username": "Vipin2",
+    "role": "contributor",
+    "reputation_score": 72,
+    "created_at": "2026-04-06T14:49:02.033755+00:00",
+    "accepted_edits_count": 2,
+    "total_edits_count": 3,
+    "endorsements_received": 1,
+    "peer_reviews_completed": 0,
+    "scholar_stars_received": 0,
+    "last_visit_at": null
+  },
+  {
+    "id": "9fe4f1ed-5295-4730-9e20-816fe1817267",
+    "username": "vipin3",
+    "role": "senior_scholar",
+    "reputation_score": 510,
+    "created_at": "2026-04-08T17:05:34.867459+00:00",
+    "accepted_edits_count": 81,
+    "total_edits_count": 1,
+    "endorsements_received": 0,
+    "peer_reviews_completed": 1,
+    "scholar_stars_received": 0,
+    "last_visit_at": "2026-05-04T16:55:47.885+00:00"
+  }
+]

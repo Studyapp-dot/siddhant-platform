@@ -1,0 +1,41 @@
+[
+  {
+    "id": "23727b90-5a28-4aed-8963-d6e5492c5f02",
+    "cycle_id": "b191442a-c914-4e3e-aed5-12d50fe49b88",
+    "node_id": "618e0a05-796e-4e09-aeaf-e0acb9f68a49",
+    "reviewer_id": "9fe4f1ed-5295-4730-9e20-816fe1817267",
+    "recommendation": "meets_standard",
+    "confidence": "medium",
+    "overall_comment": "Peer Review Mechanism",
+    "criteria_scores": {
+      "clarity": {
+        "score": 4,
+        "comment": ""
+      },
+      "currency": {
+        "score": 4,
+        "comment": ""
+      },
+      "completeness": {
+        "score": 3,
+        "comment": ""
+      },
+      "legal_accuracy": {
+        "score": 4,
+        "comment": ""
+      },
+      "citation_quality": {
+        "score": 4,
+        "comment": ""
+      },
+      "settled_vs_contested": {
+        "score": 3,
+        "comment": ""
+      }
+    },
+    "rubric_version": "v1",
+    "aligned_with_outcome": true,
+    "created_at": "2026-04-12T11:08:42.526412+00:00",
+    "reviewed_revision_id": null
+  }
+]

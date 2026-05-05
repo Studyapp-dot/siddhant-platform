@@ -1,0 +1,22 @@
+[
+  {
+    "id": "878211e0-d4ff-497a-a8df-b1a5a5e46ca5",
+    "node_id": "f2afef43-0cca-40a1-bbe1-bc3c9bf61328",
+    "voter_id": "1afdf98c-9467-4417-b170-f90d9b2b625d",
+    "voted_tier": "stub",
+    "justification": null,
+    "revision_id": "cc70572f-c1de-4f88-bcd3-8dc51c9622ef",
+    "created_at": "2026-04-14T12:59:18.583342+00:00",
+    "updated_at": "2026-04-14T12:59:18.583342+00:00"
+  },
+  {
+    "id": "b598a0a9-ebd2-4886-9424-baadd5d6ff52",
+    "node_id": "f2afef43-0cca-40a1-bbe1-bc3c9bf61328",
+    "voter_id": "9fe4f1ed-5295-4730-9e20-816fe1817267",
+    "voted_tier": "start",
+    "justification": "Its better now",
+    "revision_id": "cc70572f-c1de-4f88-bcd3-8dc51c9622ef",
+    "created_at": "2026-04-14T13:03:56.192335+00:00",
+    "updated_at": "2026-04-21T05:56:34.092893+00:00"
+  }
+]

@@ -382,6 +382,18 @@ export default function GraphVisualizer({ nodes, edges, selectedNodeId, onSelect
     );
   }
 
+  if (nodes.length === 0) {
+    return (
+      <div ref={containerRef} className="gv-viewport gv-viewport-empty">
+        <div className="gv-empty-state">
+          <span className="gv-empty-kicker">Knowledge Archive</span>
+          <span className="gv-empty-title">No topics have been curated yet.</span>
+          <span className="gv-empty-copy">The archive is ready for its first constitutional entries.</span>
+        </div>
+      </div>
+    );
+  }
+
   const nodeRadius = (type: string) => NODE_TYPE_SIZES[type] || 12;
 
   return (

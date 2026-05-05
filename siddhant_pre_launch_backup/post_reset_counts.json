@@ -1,0 +1,129 @@
+{
+  "createdAt": "2026-05-05T08:38:45.857Z",
+  "results": [
+    {
+      "table": "consensus_votes",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0,
+      "sampleKeys": []
+    },
+    {
+      "table": "group_discussion_endorsements",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0,
+      "sampleKeys": []
+    },
+    {
+      "table": "learning_path_nodes",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0,
+      "sampleKeys": []
+    },
+    {
+      "table": "learning_paths",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0,
+      "sampleKeys": []
+    },
+    {
+      "table": "group_discussion_votes",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0,
+      "sampleKeys": []
+    },
+    {
+      "table": "thread_follows",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0,
+      "sampleKeys": []
+    },
+    {
+      "table": "watchlist",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0,
+      "sampleKeys": []
+    },
+    {
+      "table": "node_categories",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0,
+      "sampleKeys": []
+    },
+    {
+      "table": "group_node_associations",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0,
+      "sampleKeys": []
+    },
+    {
+      "table": "profiles",
+      "ok": true,
+      "countRange": "0-6/7",
+      "rowsReturned": 7,
+      "sampleKeys": [
+        "id",
+        "username",
+        "role",
+        "reputation_score",
+        "created_at",
+        "accepted_edits_count",
+        "total_edits_count",
+        "endorsements_received",
+        "peer_reviews_completed",
+        "scholar_stars_received",
+        "last_visit_at"
+      ]
+    },
+    {
+      "table": "categories",
+      "ok": true,
+      "countRange": "0-14/15",
+      "rowsReturned": 15,
+      "sampleKeys": [
+        "id",
+        "name",
+        "slug",
+        "parent_id",
+        "depth_level",
+        "description",
+        "display_order",
+        "created_at"
+      ]
+    },
+    {
+      "table": "subject_groups",
+      "ok": true,
+      "countRange": "0-5/6",
+      "rowsReturned": 6,
+      "sampleKeys": [
+        "id",
+        "slug",
+        "name",
+        "description",
+        "icon",
+        "created_at"
+      ]
+    },
+    {
+      "table": "subject_group_members",
+      "ok": true,
+      "countRange": "0-4/5",
+      "rowsReturned": 5,
+      "sampleKeys": [
+        "user_id",
+        "group_id",
+        "role",
+        "joined_at"
+      ]
+    }
+  ]
+}

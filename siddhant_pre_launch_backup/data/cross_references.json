@@ -1,0 +1,22 @@
+[
+  {
+    "id": "0b861cc2-deba-4190-b856-6a857440f052",
+    "source_node_id": "f2afef43-0cca-40a1-bbe1-bc3c9bf61328",
+    "target_node_id": "c4057209-656d-4253-b373-b6ab2d6e9637",
+    "relationship_type": "part_of",
+    "created_by": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "created_at": "2026-04-08T16:54:26.338407+00:00",
+    "description": null,
+    "signal": null
+  },
+  {
+    "id": "6138caec-dcd1-4828-9e08-c8b42febda7c",
+    "source_node_id": "618e0a05-796e-4e09-aeaf-e0acb9f68a49",
+    "target_node_id": "c4057209-656d-4253-b373-b6ab2d6e9637",
+    "relationship_type": "part_of",
+    "created_by": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "created_at": "2026-04-08T16:56:17.726513+00:00",
+    "description": null,
+    "signal": null
+  }
+]

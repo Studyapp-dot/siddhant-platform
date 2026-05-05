@@ -1,0 +1,52 @@
+[
+  {
+    "id": "170a0d43-e2ca-4535-955b-2bae20929b38",
+    "node_id": "f2afef43-0cca-40a1-bbe1-bc3c9bf61328",
+    "assessor_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "previous_tier": "stub",
+    "new_tier": "start",
+    "justification": "Meet the standards",
+    "confidence": "high",
+    "created_at": "2026-04-08T13:00:11.309107+00:00"
+  },
+  {
+    "id": "11bf1d93-3e2c-4ccf-890b-7c6390931c04",
+    "node_id": "f2afef43-0cca-40a1-bbe1-bc3c9bf61328",
+    "assessor_id": "1afdf98c-9467-4417-b170-f90d9b2b625d",
+    "previous_tier": "start",
+    "new_tier": "stub",
+    "justification": "Is this a joke",
+    "confidence": "high",
+    "created_at": "2026-04-08T13:06:25.348751+00:00"
+  },
+  {
+    "id": "c1c48836-c39c-42c5-9c03-6d3dcd166162",
+    "node_id": "618e0a05-796e-4e09-aeaf-e0acb9f68a49",
+    "assessor_id": "1afdf98c-9467-4417-b170-f90d9b2b625d",
+    "previous_tier": "stub",
+    "new_tier": "c_class",
+    "justification": "It has Good content Now",
+    "confidence": "medium",
+    "created_at": "2026-04-12T11:02:52.188518+00:00"
+  },
+  {
+    "id": "b3294bed-1342-432d-ad60-6b4738f68993",
+    "node_id": "618e0a05-796e-4e09-aeaf-e0acb9f68a49",
+    "assessor_id": "9fe4f1ed-5295-4730-9e20-816fe1817267",
+    "previous_tier": "c_class",
+    "new_tier": "b_class",
+    "justification": "Checking Peer Review Mechanism",
+    "confidence": "medium",
+    "created_at": "2026-04-12T11:06:12.856136+00:00"
+  },
+  {
+    "id": "e3bf002e-b3cf-4993-af56-20ad3893c914",
+    "node_id": "618e0a05-796e-4e09-aeaf-e0acb9f68a49",
+    "assessor_id": "9fe4f1ed-5295-4730-9e20-816fe1817267",
+    "previous_tier": "b_class",
+    "new_tier": "good_article",
+    "justification": "Advanced via peer review cycle: All reviewers recommend advancement. No criterion scored below 3.",
+    "confidence": "high",
+    "created_at": "2026-04-12T11:08:42.789379+00:00"
+  }
+]

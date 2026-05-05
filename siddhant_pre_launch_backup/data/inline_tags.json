@@ -1,0 +1,22 @@
+[
+  {
+    "id": "b4ba095a-317d-4579-9129-12df94c2ed66",
+    "node_id": "c4057209-656d-4253-b373-b6ab2d6e9637",
+    "tier": 1,
+    "tag_type": "outdated",
+    "context_quote": null,
+    "author_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "resolved": false,
+    "created_at": "2026-04-06T13:29:34.111497+00:00"
+  },
+  {
+    "id": "395e5f4b-8ace-4fdb-a3b6-3cf534846175",
+    "node_id": "f2afef43-0cca-40a1-bbe1-bc3c9bf61328",
+    "tier": 1,
+    "tag_type": "outdated",
+    "context_quote": null,
+    "author_id": "1afdf98c-9467-4417-b170-f90d9b2b625d",
+    "resolved": true,
+    "created_at": "2026-04-08T13:06:46.455306+00:00"
+  }
+]

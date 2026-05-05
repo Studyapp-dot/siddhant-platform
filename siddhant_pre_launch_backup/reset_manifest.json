@@ -1,0 +1,329 @@
+{
+  "createdAt": "2026-05-05T08:38:30.368Z",
+  "operations": [
+    {
+      "table": "nodes",
+      "method": "PATCH",
+      "ok": true,
+      "status": 200,
+      "affected": 4
+    },
+    {
+      "table": "activity_comments",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 0
+    },
+    {
+      "table": "consensus_votes",
+      "method": "DELETE",
+      "ok": false,
+      "status": 400,
+      "error": {
+        "code": "42703",
+        "details": null,
+        "hint": null,
+        "message": "column consensus_votes.id does not exist"
+      }
+    },
+    {
+      "table": "contribution_votes",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 2
+    },
+    {
+      "table": "endorsements",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 2
+    },
+    {
+      "table": "scholar_stars",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 2
+    },
+    {
+      "table": "quality_votes",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 2
+    },
+    {
+      "table": "quality_assessments",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 5
+    },
+    {
+      "table": "peer_reviews",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 1
+    },
+    {
+      "table": "review_cycles",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 2
+    },
+    {
+      "table": "group_discussion_endorsements",
+      "method": "DELETE",
+      "ok": false,
+      "status": 400,
+      "error": {
+        "code": "42703",
+        "details": null,
+        "hint": null,
+        "message": "column group_discussion_endorsements.user_id does not exist"
+      }
+    },
+    {
+      "table": "group_discussion_votes",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 0
+    },
+    {
+      "table": "thread_follows",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 0
+    },
+    {
+      "table": "watchlist",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 0
+    },
+    {
+      "table": "inline_tags",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 2
+    },
+    {
+      "table": "cross_references",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 2
+    },
+    {
+      "table": "discussions",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 12
+    },
+    {
+      "table": "group_discussions",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 1
+    },
+    {
+      "table": "user_discussions",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 1
+    },
+    {
+      "table": "notifications",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 0
+    },
+    {
+      "table": "reputation_events",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 24
+    },
+    {
+      "table": "learning_path_nodes",
+      "method": "DELETE",
+      "ok": false,
+      "status": 400,
+      "error": {
+        "code": "42703",
+        "details": null,
+        "hint": null,
+        "message": "column learning_path_nodes.learning_path_id does not exist"
+      }
+    },
+    {
+      "table": "learning_paths",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 0
+    },
+    {
+      "table": "node_categories",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 0
+    },
+    {
+      "table": "group_node_associations",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 0
+    },
+    {
+      "table": "revisions",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 18
+    },
+    {
+      "table": "nodes",
+      "method": "DELETE",
+      "ok": true,
+      "status": 200,
+      "affected": 4
+    },
+    {
+      "table": "profiles",
+      "method": "PATCH",
+      "ok": true,
+      "status": 200,
+      "affected": 7
+    }
+  ],
+  "verification": [
+    {
+      "table": "nodes",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "revisions",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "cross_references",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "discussions",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "group_discussions",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "user_discussions",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "endorsements",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "scholar_stars",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "peer_reviews",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "quality_assessments",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "quality_votes",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "reputation_events",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "review_cycles",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "inline_tags",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "contribution_votes",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "activity_comments",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "notifications",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    }
+  ],
+  "preserved": [
+    "profiles identities/roles/last_visit_at",
+    "categories",
+    "subject_groups",
+    "subject_group_members",
+    "schema",
+    "RLS/auth policies",
+    "storage buckets"
+  ]
+}

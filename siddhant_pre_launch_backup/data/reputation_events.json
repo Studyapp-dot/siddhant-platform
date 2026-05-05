@@ -1,0 +1,242 @@
+[
+  {
+    "id": "01e4b0c5-8440-428f-bcde-38019fa662ce",
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "event_type": "upvote_received",
+    "points": 1,
+    "source_id": "be411360-788c-4af4-a88e-90897dbb0b51",
+    "source_type": "revision",
+    "description": "Received community upvote on contribution",
+    "created_at": "2026-04-06T17:03:29.893676+00:00"
+  },
+  {
+    "id": "e3bedcfd-823e-4da4-9a63-4e49f4fbca0e",
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "event_type": "endorsement_received",
+    "points": 10,
+    "source_id": "be411360-788c-4af4-a88e-90897dbb0b51",
+    "source_type": "revision",
+    "description": "\"This Helped Me\" endorsement received",
+    "created_at": "2026-04-06T17:03:32.394692+00:00"
+  },
+  {
+    "id": "de20f249-8617-4199-ad10-e9b41101942b",
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "event_type": "scholar_star_received",
+    "points": 15,
+    "source_id": "0764139f-b056-4894-826c-f80625121710",
+    "source_type": "revision",
+    "description": "Scholar Star: \"Keep DOING THE work....\"",
+    "created_at": "2026-04-06T17:32:17.075751+00:00"
+  },
+  {
+    "id": "e6653fe2-db02-44ae-87a7-0a6ba8844ed6",
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "event_type": "tier_advancement_bonus",
+    "points": 10,
+    "source_id": "f2afef43-0cca-40a1-bbe1-bc3c9bf61328",
+    "source_type": "node",
+    "description": "Node advanced from Draft to Developing",
+    "created_at": "2026-04-08T13:00:11.691289+00:00"
+  },
+  {
+    "id": "7f9e82b6-8580-4574-b3b0-56ffb9aa85dd",
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "event_type": "scholar_star_received",
+    "points": 15,
+    "source_id": "44650ca3-f102-4721-b63d-942c20e3558f",
+    "source_type": "revision",
+    "description": "Scholar Star: \"Good Addition thanks...\"",
+    "created_at": "2026-04-08T13:05:20.75103+00:00"
+  },
+  {
+    "id": "8c54d76b-4f43-4ae3-a251-28b73f4a9b85",
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "event_type": "endorsement_received",
+    "points": 10,
+    "source_id": "44650ca3-f102-4721-b63d-942c20e3558f",
+    "source_type": "revision",
+    "description": "\"This Helped Me\" endorsement received",
+    "created_at": "2026-04-08T13:05:29.424013+00:00"
+  },
+  {
+    "id": "85a60512-47eb-4d0d-8517-92c7170f6810",
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "event_type": "upvote_received",
+    "points": 1,
+    "source_id": "44650ca3-f102-4721-b63d-942c20e3558f",
+    "source_type": "revision",
+    "description": "Received community upvote on contribution",
+    "created_at": "2026-04-08T13:05:44.645994+00:00"
+  },
+  {
+    "id": "5d1ce38a-ac2f-4ce0-a25d-4848df6578a0",
+    "user_id": "1afdf98c-9467-4417-b170-f90d9b2b625d",
+    "event_type": "flag_resolved",
+    "points": 2,
+    "source_id": "395e5f4b-8ace-4fdb-a3b6-3cf534846175",
+    "source_type": "inline_tag",
+    "description": "Flagged issue was subsequently resolved by a reviewer",
+    "created_at": "2026-04-08T13:11:47.711625+00:00"
+  },
+  {
+    "id": "26df2d82-6d45-4926-98a6-026fc0475f8c",
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "event_type": "edit_accepted_substantive",
+    "points": 5,
+    "source_id": "aadf642b-a676-446c-8d72-7aa6aac739bb",
+    "source_type": "revision",
+    "description": "Edit (substantive) accepted after community review window",
+    "created_at": "2026-04-08T13:25:10.217363+00:00"
+  },
+  {
+    "id": "4bf4a002-64bb-4074-b574-357de21486b4",
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "event_type": "discussion_cited",
+    "points": 5,
+    "source_id": "5b2d4c8a-a926-474a-a913-f8cb76bc5ab0",
+    "source_type": "discussion",
+    "description": "Discussion contribution cited in closing consensus summary",
+    "created_at": "2026-04-10T06:55:14.758892+00:00"
+  },
+  {
+    "id": "5af4f601-2123-4ab7-95f3-40100ff2cee5",
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "event_type": "edit_accepted_substantive",
+    "points": 5,
+    "source_id": "cc70572f-c1de-4f88-bcd3-8dc51c9622ef",
+    "source_type": "revision",
+    "description": "Edit (substantive) accepted after community review window",
+    "created_at": "2026-04-12T10:57:23.984359+00:00"
+  },
+  {
+    "id": "bef46cce-653e-4930-bc76-54411601cfc1",
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "event_type": "tier_advancement_bonus",
+    "points": 1,
+    "source_id": "618e0a05-796e-4e09-aeaf-e0acb9f68a49",
+    "source_type": "node",
+    "description": "Node advanced from Draft to Useful",
+    "created_at": "2026-04-12T11:02:52.786246+00:00"
+  },
+  {
+    "id": "7329f164-ac47-47b0-8e59-a58422785f00",
+    "user_id": "1afdf98c-9467-4417-b170-f90d9b2b625d",
+    "event_type": "tier_advancement_bonus",
+    "points": 20,
+    "source_id": "618e0a05-796e-4e09-aeaf-e0acb9f68a49",
+    "source_type": "node",
+    "description": "Node advanced from Draft to Useful",
+    "created_at": "2026-04-12T11:02:53.289744+00:00"
+  },
+  {
+    "id": "9d73a794-eb96-4af3-942b-d29e6a4f6909",
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "event_type": "tier_advancement_bonus",
+    "points": 1,
+    "source_id": "618e0a05-796e-4e09-aeaf-e0acb9f68a49",
+    "source_type": "node",
+    "description": "Node advanced from Useful to Solid",
+    "created_at": "2026-04-12T11:06:13.604211+00:00"
+  },
+  {
+    "id": "26d8fd37-757f-45c7-b2e1-1886e421b579",
+    "user_id": "1afdf98c-9467-4417-b170-f90d9b2b625d",
+    "event_type": "tier_advancement_bonus",
+    "points": 10,
+    "source_id": "618e0a05-796e-4e09-aeaf-e0acb9f68a49",
+    "source_type": "node",
+    "description": "Node advanced from Useful to Solid",
+    "created_at": "2026-04-12T11:06:14.182169+00:00"
+  },
+  {
+    "id": "b6016050-1d96-4558-ac57-2fa3e02535ad",
+    "user_id": "9fe4f1ed-5295-4730-9e20-816fe1817267",
+    "event_type": "peer_review_completed",
+    "points": 3,
+    "source_id": "23727b90-5a28-4aed-8963-d6e5492c5f02",
+    "source_type": "peer_review",
+    "description": "Completed structured peer review",
+    "created_at": "2026-04-12T11:08:42.526412+00:00"
+  },
+  {
+    "id": "903db976-8da1-4f83-bfdb-66bc7e66dce3",
+    "user_id": "9fe4f1ed-5295-4730-9e20-816fe1817267",
+    "event_type": "peer_review_aligned",
+    "points": 2,
+    "source_id": "23727b90-5a28-4aed-8963-d6e5492c5f02",
+    "source_type": "peer_review",
+    "description": "Review aligned with consensus outcome",
+    "created_at": "2026-04-12T11:08:42.789379+00:00"
+  },
+  {
+    "id": "30659e9c-10e5-4f80-9266-537834691cd5",
+    "user_id": "1afdf98c-9467-4417-b170-f90d9b2b625d",
+    "event_type": "tier_advancement_bonus",
+    "points": 10,
+    "source_id": "618e0a05-796e-4e09-aeaf-e0acb9f68a49",
+    "source_type": "node",
+    "description": "Node advanced to good_article via peer review",
+    "created_at": "2026-04-12T11:08:42.789379+00:00"
+  },
+  {
+    "id": "d92c8b60-44cf-43cc-9fbe-c42c43114f74",
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "event_type": "tier_advancement_bonus",
+    "points": 1,
+    "source_id": "618e0a05-796e-4e09-aeaf-e0acb9f68a49",
+    "source_type": "node",
+    "description": "Node advanced to good_article via peer review",
+    "created_at": "2026-04-12T11:08:42.789379+00:00"
+  },
+  {
+    "id": "9ab6a5c6-4303-4e83-b968-19671e245b63",
+    "user_id": "1afdf98c-9467-4417-b170-f90d9b2b625d",
+    "event_type": "edit_accepted_substantive",
+    "points": 5,
+    "source_id": "26580bdd-9d41-422e-a9ea-3948335d68da",
+    "source_type": "revision",
+    "description": "Edit (substantive) accepted after community review window",
+    "created_at": "2026-04-16T04:10:51.509464+00:00"
+  },
+  {
+    "id": "a2286e51-6ed1-4c4d-a0ea-da5845917877",
+    "user_id": "9fe4f1ed-5295-4730-9e20-816fe1817267",
+    "event_type": "edit_accepted_substantive",
+    "points": 5,
+    "source_id": "a99e79df-bec6-4419-a7bf-df21ce65c217",
+    "source_type": "revision",
+    "description": "Edit (substantive) accepted after community review window",
+    "created_at": "2026-04-16T04:10:51.509464+00:00"
+  },
+  {
+    "id": "df76a377-41b1-413b-8478-da6c361e3eec",
+    "user_id": "1afdf98c-9467-4417-b170-f90d9b2b625d",
+    "event_type": "edit_accepted_substantive",
+    "points": 5,
+    "source_id": "5e7c6c9b-c119-41ba-bfc7-9f7983b856b0",
+    "source_type": "revision",
+    "description": "Edit (substantive) accepted after community review window",
+    "created_at": "2026-04-16T04:10:51.509464+00:00"
+  },
+  {
+    "id": "d14af82c-8f2c-46be-afef-76acb5e4dbcf",
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "event_type": "endorsement_received",
+    "points": 20,
+    "source_id": "cc70572f-c1de-4f88-bcd3-8dc51c9622ef",
+    "source_type": "revision",
+    "description": "Insightful endorsement from 9fe4f1ed-5295-4730-9e20-816fe1817267",
+    "created_at": "2026-04-28T12:25:08.82945+00:00"
+  },
+  {
+    "id": "d21ecccb-ab51-433f-901a-6788d1f0847b",
+    "user_id": "1afdf98c-9467-4417-b170-f90d9b2b625d",
+    "event_type": "endorsement_received",
+    "points": 20,
+    "source_id": "5e7c6c9b-c119-41ba-bfc7-9f7983b856b0",
+    "source_type": "revision",
+    "description": "Insightful endorsement from 9fe4f1ed-5295-4730-9e20-816fe1817267",
+    "created_at": "2026-05-03T10:13:30.358622+00:00"
+  }
+]

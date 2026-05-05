@@ -1,0 +1,147 @@
+[
+  {
+    "id": "f2afef43-0cca-40a1-bbe1-bc3c9bf61328",
+    "slug": "section-3-of-the-competition-act",
+    "title": "Section 3 of the Competition Act",
+    "created_at": "2026-04-01T18:53:34.379653+00:00",
+    "node_type": "section",
+    "metadata": {
+      "essentials": [
+        "agreements between enterprises, persons, or associations",
+        "cause or are likely to cause an appreciable adverse effect on competition (AAEC) in India"
+      ],
+      "_extracted_at": "2026-04-08T16:52:12.800Z",
+      "parent_statute": "Competition Act, 2002",
+      "section_number": "3",
+      "_suggested_edges": [
+        {
+          "reason": "Section 3 is part of the Competition Act, 2002.",
+          "target_title": "Competition Act, 2002",
+          "relationship_type": "governed_by"
+        },
+        {
+          "reason": "Section 3 covers horizontal agreements.",
+          "target_title": "Horizontal Agreements",
+          "relationship_type": "related_to"
+        },
+        {
+          "reason": "Section 3 covers vertical agreements.",
+          "target_title": "Vertical Agreements",
+          "relationship_type": "related_to"
+        },
+        {
+          "reason": "Reasonable conditions for protecting IPR are exempt under Section 3.",
+          "target_title": "Intellectual Property Rights",
+          "relationship_type": "exception_to"
+        },
+        {
+          "reason": "Export-related agreements are exempt under Section 3.",
+          "target_title": "Export-related Agreements",
+          "relationship_type": "exception_to"
+        }
+      ],
+      "_extraction_model": "google/gemini-2.5-flash"
+    },
+    "parent_node_id": null,
+    "quality_tier": "stub",
+    "quality_reviewed_revision_id": null
+  },
+  {
+    "id": "c4057209-656d-4253-b373-b6ab2d6e9637",
+    "slug": "competition-act-2002",
+    "title": "Competition Act, 2002",
+    "created_at": "2026-04-01T19:13:03.476878+00:00",
+    "node_type": "statute",
+    "metadata": {
+      "full_title": "Competition Act, 2002",
+      "short_title": "Competition Act",
+      "_extracted_at": "2026-04-01T19:12:47.582Z",
+      "_suggested_edges": [
+        {
+          "reason": "The Competition Act, 2002 was enacted to replace the MRTP Act, 1969 and establish a modern competition regulatory framework in India.",
+          "target_title": "Monopolies and Restrictive Trade Practices Act, 1969",
+          "relationship_type": "replaces"
+        }
+      ],
+      "_extraction_model": "qwen/qwen3.6-plus-preview:free"
+    },
+    "parent_node_id": null,
+    "quality_tier": "stub",
+    "quality_reviewed_revision_id": null
+  },
+  {
+    "id": "d1308711-841a-4736-bc39-bd1933472101",
+    "slug": "maneka-gandhi-v-union-of-india",
+    "title": "Maneka Gandhi v. Union of India",
+    "created_at": "2026-04-01T19:27:36.522513+00:00",
+    "node_type": "judgment",
+    "metadata": {
+      "court": "Supreme Court of India",
+      "case_name": "Maneka Gandhi v. Union of India",
+      "citations": [
+        "(1978) 1 SCC 248"
+      ],
+      "bench_type": "Constitution Bench",
+      "significance": "This judgment significantly expanded the scope of fundamental rights under the Constitution.",
+      "_extracted_at": "2026-04-08T14:20:57.233Z",
+      "bench_strength": 7,
+      "ratio_decidendi": "The judgment expanded the interpretation of personal liberty to a broader, more substantive due process approach, strengthening the protection of individual rights against arbitrary state action.",
+      "_suggested_edges": [
+        {
+          "reason": "The case involved a challenge based on Article 14.",
+          "target_title": "Article 14 of the Constitution of India",
+          "relationship_type": "interprets"
+        },
+        {
+          "reason": "The case involved a challenge based on Article 19.",
+          "target_title": "Article 19 of the Constitution of India",
+          "relationship_type": "interprets"
+        },
+        {
+          "reason": "The case involved a challenge based on Article 21.",
+          "target_title": "Article 21 of the Constitution of India",
+          "relationship_type": "interprets"
+        }
+      ],
+      "_extraction_model": "google/gemini-2.5-flash"
+    },
+    "parent_node_id": null,
+    "quality_tier": "start",
+    "quality_reviewed_revision_id": null
+  },
+  {
+    "id": "618e0a05-796e-4e09-aeaf-e0acb9f68a49",
+    "slug": "section-4-abuse-of-dominant-position",
+    "title": "Section 4 – Abuse of Dominant Position",
+    "created_at": "2026-04-08T16:55:55.404392+00:00",
+    "node_type": "section",
+    "metadata": {
+      "essentials": [
+        "Exploitative/Discriminatory Practices: Imposing unfair/discriminatory conditions or prices (including predatory pricing) in the sale or purchase of goods/services.",
+        "Limiting Production/Technical Development: Restricting production, markets, or technical/scientific development to the prejudice of consumers.",
+        "Market Access Denial: Engaging in practices resulting in denial of market access, such as exclusive dealing or tying.",
+        "Leveraging: Using a dominant position in one market to enter or protect another relevant market.",
+        "Supplementary Obligations: Making contracts subject to acceptance of additional, unrelated obligations."
+      ],
+      "_extracted_at": "2026-04-12T17:57:21.956Z",
+      "parent_statute": "Competition Act, 2002",
+      "section_number": "4",
+      "_suggested_edges": [
+        {
+          "reason": "Case discussed in relation to market access denial.",
+          "target_title": "Harshita Chawla v. WhatsApp",
+          "relationship_type": "applied"
+        },
+        {
+          "reason": "Case discussed in relation to supplementary obligations.",
+          "target_title": "Kshitij Arya v. Google LLC",
+          "relationship_type": "applied"
+        }
+      ],
+      "_extraction_model": "google/gemini-2.5-flash"
+    },
+    "parent_node_id": null,
+    "quality_tier": "good_article",
+    "quality_reviewed_revision_id": null
+  }
+]

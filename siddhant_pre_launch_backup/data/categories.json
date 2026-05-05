@@ -1,0 +1,152 @@
+[
+  {
+    "id": "f5729e7a-2932-41f2-82f2-b2b229cc780d",
+    "name": "Constitutional Law",
+    "slug": "constitutional-law",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "The supreme law of India — Articles, Parts, Schedules, Fundamental Rights, Directive Principles, and constitutional doctrines.",
+    "display_order": 1,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  },
+  {
+    "id": "28881d75-482d-4084-956f-971c92449114",
+    "name": "Criminal Law (Substantive)",
+    "slug": "criminal-law-substantive",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "Offences and punishments — Bharatiya Nyaya Sanhita (BNS), formerly Indian Penal Code (IPC).",
+    "display_order": 2,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  },
+  {
+    "id": "da638a09-8f82-44ef-9a98-ffb8832ad590",
+    "name": "Criminal Procedure",
+    "slug": "criminal-procedure",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "Procedure for criminal cases — Bharatiya Nagarik Suraksha Sanhita (BNSS), formerly Code of Criminal Procedure (CrPC).",
+    "display_order": 3,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  },
+  {
+    "id": "c69e7d28-9fd5-4998-b37d-aaf644abab17",
+    "name": "Civil Law",
+    "slug": "civil-law",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "Law of Contracts, Torts, Property, and related civil matters.",
+    "display_order": 4,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  },
+  {
+    "id": "9cce4510-f268-4ba3-85aa-28aed994074c",
+    "name": "Family & Personal Law",
+    "slug": "family-personal-law",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "Hindu Law, Muslim Personal Law, Christian Law, Special Marriage Act, and related personal matters.",
+    "display_order": 5,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  },
+  {
+    "id": "324697ae-2933-4214-9d1b-4de11f9ac3d1",
+    "name": "Law of Evidence",
+    "slug": "law-of-evidence",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "Bharatiya Sakshya Adhiniyam (BSA), formerly Indian Evidence Act — rules governing proof in court.",
+    "display_order": 6,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  },
+  {
+    "id": "06d4eaad-8e25-4bc1-9675-322d94e66c2e",
+    "name": "Civil Procedure",
+    "slug": "civil-procedure",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "Code of Civil Procedure (CPC) — procedure for civil cases, suits, appeals, and execution.",
+    "display_order": 7,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  },
+  {
+    "id": "9adfd188-f199-4bea-856e-cef4a67ec08d",
+    "name": "Administrative Law",
+    "slug": "administrative-law",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "Government accountability, judicial review of administrative action, natural justice, and delegated legislation.",
+    "display_order": 8,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  },
+  {
+    "id": "4a887ea2-ad60-41ba-8824-d8a23cd75ffa",
+    "name": "Commercial & Corporate Law",
+    "slug": "commercial-corporate-law",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "Companies Act, Banking Law, Insurance Law, Intellectual Property, and commercial transactions.",
+    "display_order": 9,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  },
+  {
+    "id": "0c1ceac1-004a-4f20-9b10-f23277d871a1",
+    "name": "Labour & Industrial Law",
+    "slug": "labour-industrial-law",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "Labour codes, industrial disputes, social security, wages, and workplace regulation.",
+    "display_order": 10,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  },
+  {
+    "id": "25ec04a9-8abb-41ba-ae8d-6f026ed05ec0",
+    "name": "Environmental Law",
+    "slug": "environmental-law",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "Environmental protection, pollution control, wildlife, and sustainability laws.",
+    "display_order": 11,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  },
+  {
+    "id": "be4e5874-d114-4f96-ace8-abd9766263ed",
+    "name": "Cyber Law & IT",
+    "slug": "cyber-law-it",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "Information Technology Act, data protection, digital privacy, and cyber crimes.",
+    "display_order": 12,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  },
+  {
+    "id": "f33cce76-3c23-44b8-ad21-8499c92286bb",
+    "name": "Tax Law",
+    "slug": "tax-law",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "Income Tax, GST, customs, and fiscal legislation.",
+    "display_order": 13,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  },
+  {
+    "id": "79a60ccc-b0f2-400b-ad4b-4819fea5aa80",
+    "name": "International Law",
+    "slug": "international-law",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "Public International Law, treaties, private international law, and conflict of laws.",
+    "display_order": 14,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  },
+  {
+    "id": "675bf8a2-816e-44ed-8acb-b1bffac6ab33",
+    "name": "Jurisprudence & Legal Theory",
+    "slug": "jurisprudence-legal-theory",
+    "parent_id": null,
+    "depth_level": 1,
+    "description": "Schools of legal thought, philosophy of law, legal reasoning, and interpretation.",
+    "display_order": 15,
+    "created_at": "2026-04-01T16:05:33.27211+00:00"
+  }
+]

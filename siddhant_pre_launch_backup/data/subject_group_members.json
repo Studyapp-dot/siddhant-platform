@@ -1,0 +1,32 @@
+[
+  {
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "group_id": "05a88d96-14df-404a-a7a3-bdb8659cc327",
+    "role": "member",
+    "joined_at": "2026-03-31T06:12:25.105201+00:00"
+  },
+  {
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "group_id": "35a64291-14f0-4980-8a2d-7277ff4c9464",
+    "role": "member",
+    "joined_at": "2026-03-31T10:45:15.451705+00:00"
+  },
+  {
+    "user_id": "1ff907fd-ac72-483b-ad7a-aedc18a1b196",
+    "group_id": "7bcb1ef3-1bba-4e5d-948a-394a14b52b4e",
+    "role": "member",
+    "joined_at": "2026-03-31T11:03:26.01225+00:00"
+  },
+  {
+    "user_id": "26c9eebc-da19-468c-a22a-2db408b4e894",
+    "group_id": "35a64291-14f0-4980-8a2d-7277ff4c9464",
+    "role": "member",
+    "joined_at": "2026-04-29T05:10:09.903663+00:00"
+  },
+  {
+    "user_id": "9fe4f1ed-5295-4730-9e20-816fe1817267",
+    "group_id": "7bcb1ef3-1bba-4e5d-948a-394a14b52b4e",
+    "role": "member",
+    "joined_at": "2026-04-30T17:17:39.683323+00:00"
+  }
+]

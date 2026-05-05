@@ -1,0 +1,47 @@
+{
+  "createdAt": "2026-05-05T08:54:51.574Z",
+  "phase": "phase_4_profiles_only",
+  "operations": [
+    {
+      "table": "subject_group_members",
+      "ok": true,
+      "status": 200,
+      "affected": 5
+    },
+    {
+      "table": "profiles",
+      "ok": true,
+      "status": 200,
+      "affected": 7
+    }
+  ],
+  "verification": [
+    {
+      "table": "profiles",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "subject_group_members",
+      "ok": true,
+      "countRange": "*/0",
+      "rowsReturned": 0
+    },
+    {
+      "table": "subject_groups",
+      "ok": true,
+      "countRange": "0-5/6",
+      "rowsReturned": 6
+    },
+    {
+      "table": "categories",
+      "ok": true,
+      "countRange": "0-14/15",
+      "rowsReturned": 15
+    }
+  ],
+  "preserved": [
+    "Supabase auth.users and auth infrastructure were not touched"
+  ]
+}
