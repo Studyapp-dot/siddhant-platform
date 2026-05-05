@@ -1,0 +1,323 @@
+/* ========================================
+   SIDDHANT — SCHOLAR'S DRAFTING TABLE (EDIT)
+   Premium, document-centric authoring environment
+   ======================================== */
+
+.edit-layout {
+  min-height: 100vh;
+  padding: 40px 0;
+  background: var(--bg-base);
+  display: flex;
+  justify-content: center;
+}
+
+.edit-container {
+  max-width: 1200px;
+  width: 95%;
+  display: grid;
+  grid-template-columns: 1fr 340px; /* Main Canvas vs Guidance Sidebar */
+  gap: 48px;
+  align-items: start;
+}
+
+/* --- MAIN CANVAS AREA --- */
+.authoring-canvas {
+  background: var(--bg-surface);
+  padding: 80px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--card-shadow);
+  min-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Integrated Header Block */
+.canvas-header {
+  margin-bottom: 60px;
+  border-bottom: 2px double var(--border-subtle);
+  padding-bottom: 40px;
+}
+
+.drafting-title-static {
+  font-family: var(--font-serif);
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+  display: block;
+}
+
+.workbench-badge {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-gold);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.slug-meta {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slug-badge {
+  background: var(--bg-panel);
+  padding: 2px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Drafting Area */
+.drafting-area {
+  flex: 1;
+}
+
+.workbench-textarea {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  line-height: 1.9;
+  color: var(--text-primary);
+  resize: vertical;
+  min-height: 500px;
+  outline: none;
+  padding: 0;
+}
+
+.workbench-textarea::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 1.1rem;
+}
+
+/* Custom Scholarly Scrollbar */
+.workbench-textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.workbench-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.workbench-textarea::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 10px;
+}
+
+.workbench-textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-soft);
+}
+
+/* --- STICKY SIDEBAR (AI SCAFFOLD) --- */
+.guidance-sidebar {
+  position: sticky;
+  top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sidebar-card {
+  background: var(--card-bg);
+  padding: 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+}
+
+.sidebar-card.gold-scaffold {
+  background: var(--color-gold-soft);
+  border-color: rgba(197, 160, 89, 0.2);
+}
+
+.sidebar-card h3 {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-gold);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-card p {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.structure-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.structure-item {
+  display: flex;
+  gap: 12px;
+}
+
+.item-num {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  color: var(--color-gold);
+  font-size: 0.75rem;
+}
+
+.item-text {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.item-label {
+  font-weight: 700;
+  display: block;
+}
+
+/* --- ACTION FOOTER --- */
+.drafting-footer {
+  margin-top: 60px;
+  padding-top: 40px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.commit-box {
+  flex: 1;
+  max-width: 500px;
+}
+
+.structured-commit-box {
+  max-width: 680px;
+}
+
+.commit-label {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.commit-input {
+  width: 100%;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.commit-input:focus {
+  border-color: var(--color-gold);
+  background: var(--bg-surface);
+}
+
+.commit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.commit-sublabel {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.drafting-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.submit-revision-btn {
+  background: var(--color-gold);
+  color: white;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all var(--transition);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #b38e4a;
+}
+
+.submit-revision-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #b38e4a;
+}
+
+.submit-revision-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #b38e4a;
+}
+
+.cancel-btn {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+/* Sidebar Responsive */
+@media (max-width: 1024px) {
+  .edit-container {
+    grid-template-columns: 1fr;
+    padding: 24px;
+  }
+  .guidance-sidebar {
+    position: static;
+    order: -1;
+  }
+  .authoring-canvas {
+    padding: 40px;
+  }
+  .drafting-title-static {
+    font-size: 2rem;
+  }
+  .drafting-footer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .commit-grid {
+    grid-template-columns: 1fr;
+  }
+}

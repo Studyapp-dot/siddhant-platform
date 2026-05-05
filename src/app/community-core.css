@@ -1,0 +1,520 @@
+/* ========================================
+   SIDDHANT COMMUNITY INFRASTRUCTURE
+   "The Scholarly Haven" Design System
+   ======================================== */
+
+.community-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 3rem;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 3rem 2.5rem;
+  animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  --color-gold-gradient: linear-gradient(135deg, #c5a059 0%, #e2c08d 50%, #c5a059 100%);
+  --color-gold-glow: 0 0 15px rgba(197, 160, 89, 0.15);
+  --shadow-premium: 0 12px 32px rgba(0, 0, 0, 0.06);
+  --transition-slow: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (max-width: 1024px) {
+  .community-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Premium Glass Panels --- */
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition);
+}
+
+.glass-card:hover {
+  box-shadow: var(--shadow-elevated);
+  border-color: var(--color-gold-soft);
+  transform: translateY(-1px);
+}
+
+/* Subtle glow for accent */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -20%;
+  width: 140%;
+  height: 140%;
+  background: radial-gradient(circle at center, var(--color-gold-soft) 0%, transparent 60%);
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glass-card-content {
+  position: relative;
+  z-index: 1;
+  padding: 1.5rem;
+}
+
+/* --- Typography System --- */
+
+.scholarly-header {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 1.5rem;
+}
+
+.scholarly-title {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+  line-height: 1.1;
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.scholarly-subtitle {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.context-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-gold);
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+/* --- Threaded Discussion Logic --- */
+
+.thread-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.thread-node {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.thread-branch {
+  margin-left: 3.5rem;
+  padding-left: 2rem;
+  border-left: 2px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  margin-top: 0.5rem;
+}
+
+/* Jurisprudential Line (Argumentation connector) */
+.thread-branch::before {
+  content: '';
+  position: absolute;
+  top: -1.5rem;
+  left: -2px;
+  width: 2rem;
+  height: 3rem;
+  border-left: 2px solid var(--border-subtle);
+  border-bottom: 2px solid var(--border-subtle);
+  border-bottom-left-radius: 16px;
+  pointer-events: none;
+}
+
+/* --- Statements & Contributions (Manuscript Nodes) --- */
+
+.statement-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--border-medium);
+  border-radius: 8px;
+  padding: 1.5rem 2rem;
+  transition: all var(--transition);
+  position: relative;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+}
+
+.statement-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border: 1px solid transparent;
+  pointer-events: none;
+  transition: border-color 0.3s ease;
+}
+
+.statement-card:hover {
+  border-left-color: var(--color-gold);
+  box-shadow: 0 4px 24px rgba(197, 160, 89, 0.08);
+}
+
+.statement-card:hover::before {
+  border: 1px solid var(--color-gold-soft);
+  background: radial-gradient(circle at top right, var(--color-gold-soft), transparent 70%);
+}
+
+.statement-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.scholar-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  border: 1.5px solid var(--border-medium);
+  color: var(--color-gold);
+  flex-shrink: 0;
+}
+
+.scholar-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.scholar-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.scholar-rank {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  letter-spacing: 0.05em;
+}
+
+/* --- Formal Record States --- */
+
+.consensus-board-header {
+  background: linear-gradient(to right, var(--bg-panel), transparent);
+  border-left: 4px solid var(--color-gold);
+  padding: 2.5rem;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  margin-bottom: 3rem;
+  box-shadow: inset 10px 0 20px -10px rgba(197, 160, 89, 0.1);
+}
+
+.formal-decree {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin: 1.5rem 0;
+  position: relative;
+  padding: 0 2rem;
+}
+
+.formal-decree::before,
+.formal-decree::after {
+  content: '"';
+  position: absolute;
+  font-size: 4rem;
+  opacity: 0.1;
+  color: var(--color-gold);
+}
+
+.formal-decree::before { top: -1.5rem; left: -0.5rem; }
+.formal-decree::after { bottom: -3rem; right: -0.5rem; }
+
+/* --- Sidebar Navigation --- */
+
+.community-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Sidebar visual recession — content should dominate */
+.community-sidebar > .glass-card {
+  background: var(--bg-sidebar);
+  border-color: var(--sidebar-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.community-sidebar > .glass-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: none;
+}
+
+.nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nav-heading {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+  padding-left: 1rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.nav-link:hover {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  padding-left: 1.25rem;
+}
+
+.nav-link.active {
+  background: var(--color-gold-soft);
+  color: var(--color-gold);
+  box-shadow: inset 0 0 0 1px rgba(197, 160, 89, 0.1);
+}
+
+.nav-link-icon {
+  font-size: 1.1rem;
+  opacity: 0.7;
+}
+
+/* --- Stats & Indicators --- */
+
+.stats-ledger {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.stats-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.stats-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.stats-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* --- Scholarly Drafting Table (Input) --- */
+
+.comm-input-wrapper {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  position: relative;
+}
+
+.comm-input-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 4px; left: 4px; right: 4px; bottom: 4px;
+  border: 1px solid var(--border-subtle);
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.drafting-header {
+  background: var(--bg-panel);
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border-medium);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.comm-textarea {
+  width: 100%;
+  min-height: 140px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  padding: 1.5rem;
+  resize: vertical;
+  outline: none;
+  position: relative;
+  z-index: 1;
+}
+
+.comm-textarea::placeholder {
+  font-family: var(--font-sans);
+  font-style: italic;
+  opacity: 0.4;
+}
+
+.comm-input-footer {
+  padding: 1rem 1.25rem;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-medium);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Institutional Registry (Guild Directory) --- */
+
+.registry-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.registry-entry {
+  display: grid;
+  grid-template-columns: 80px 1fr 200px;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  position: relative;
+  text-decoration: none;
+}
+
+.registry-entry:hover {
+  transform: translateX(12px) scale(1.01);
+  border-color: var(--color-gold);
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-premium);
+}
+
+.registry-seal {
+  width: 64px;
+  height: 64px;
+  background: var(--color-gold-soft);
+  border: 2px double var(--color-gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  color: var(--color-gold);
+}
+
+.registry-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.registry-name {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.registry-desc {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  max-width: 800px;
+}
+
+.registry-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: right;
+  border-left: 1px solid var(--border-subtle);
+  padding-left: 2rem;
+}
+
+.registry-stat {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.registry-stat strong {
+  color: var(--color-gold);
+  font-size: 1rem;
+  margin-right: 4px;
+}
+
+@media (max-width: 768px) {
+  .registry-entry {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    text-align: center;
+  }
+  .registry-meta {
+    border-left: none;
+    border-top: 1px solid var(--border-subtle);
+    padding-left: 0;
+    padding-top: 1rem;
+    text-align: center;
+  }
+  .registry-seal { margin: 0 auto; }
+}

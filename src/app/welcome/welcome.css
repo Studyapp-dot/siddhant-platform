@@ -1,0 +1,625 @@
+/* ===== INSTITUTIONAL ONBOARDING ===== */
+/* Philosophy: Calm, scholarly, invitational. NOT startup onboarding. */
+/* Visual continuity with landing page, compare page, chronicle. */
+
+/* ===== CONTAINER ===== */
+.welcome-container {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 3rem 2rem 4rem;
+  min-height: calc(100vh - 72px); /* Account for navbar */
+}
+
+/* ===== LAYER TRANSITIONS ===== */
+.welcome-layer {
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.welcome-layer-enter {
+  animation: welcomeFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.welcome-layer-exit {
+  animation: welcomeFadeOut 0.35s ease both;
+}
+
+@keyframes welcomeFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes welcomeFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* ===== LAYER 1 — INSTITUTIONAL WELCOME ===== */
+.welcome-institutional {
+  text-align: center;
+  padding: 4rem 0 2rem;
+}
+
+.welcome-emblem {
+  width: 64px;
+  height: 64px;
+  background: var(--color-gold);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  font-size: 2rem;
+  font-weight: 900;
+  margin: 0 auto 2.5rem;
+  box-shadow: 0 4px 16px rgba(184, 150, 62, 0.25);
+}
+
+.welcome-title {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
+  margin-bottom: 2.5rem;
+  line-height: 1.2;
+}
+
+.welcome-philosophy {
+  max-width: 520px;
+  margin: 0 auto 3rem;
+}
+
+.welcome-philosophy p {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 0.75rem;
+}
+
+.welcome-philosophy-emphasis {
+  color: var(--text-primary) !important;
+  font-weight: 500;
+  margin-top: 1.5rem !important;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ===== PRIMARY CTA ===== */
+.welcome-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--text-heading);
+  color: var(--bg-base);
+  border: none;
+  padding: 14px 32px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.9rem;
+  font-family: var(--font-sans);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-md);
+}
+
+.welcome-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  opacity: 0.9;
+}
+
+.welcome-cta:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  transform: none;
+}
+
+.welcome-cta-arrow {
+  font-size: 1.1rem;
+  transition: transform 0.2s ease;
+}
+
+.welcome-cta:hover .welcome-cta-arrow {
+  transform: translateX(3px);
+}
+
+/* Skip / secondary action */
+.welcome-skip {
+  display: inline-block;
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s;
+  font-family: var(--font-sans);
+}
+
+.welcome-skip:hover {
+  color: var(--text-primary);
+}
+
+/* ===== LAYER 2 — JURISPRUDENTIAL NARRATIVE ===== */
+.welcome-narrative {
+  padding: 1rem 0 2rem;
+}
+
+.welcome-narrative-header {
+  margin-bottom: 3rem;
+}
+
+.welcome-section-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-gold);
+  margin-bottom: 1rem;
+}
+
+.welcome-narrative-intro {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  max-width: 600px;
+}
+
+/* Constitutional Moments */
+.welcome-moment {
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.welcome-moment:last-of-type {
+  border-bottom: none;
+}
+
+.welcome-moment-era {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+
+.welcome-moment-title {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.welcome-moment-quote {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  padding: 1.25rem 1.5rem;
+  background: var(--color-gold-soft);
+  border-left: 3px solid var(--color-gold);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: 1rem;
+}
+
+.welcome-moment-note {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* Diff Preview — Siddhant's signature visual */
+.welcome-diff {
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.welcome-diff-label {
+  font-family: var(--font-sans);
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.welcome-diff-line {
+  display: block;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  margin-bottom: 4px;
+  white-space: pre-wrap;
+}
+
+.welcome-diff-line.removed {
+  background: rgba(239, 68, 68, 0.06);
+  color: #b91c1c;
+  border-left: 3px solid rgba(239, 68, 68, 0.4);
+}
+
+.welcome-diff-line.added {
+  background: rgba(34, 197, 94, 0.06);
+  color: #15803d;
+  border-left: 3px solid rgba(34, 197, 94, 0.4);
+}
+
+:root.dark .welcome-diff-line.removed,
+:root:not(.light) .welcome-diff-line.removed {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+:root.dark .welcome-diff-line.added,
+:root:not(.light) .welcome-diff-line.added {
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .welcome-diff-line.removed {
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.08);
+  }
+  :root:not(.light) .welcome-diff-line.added {
+    color: #86efac;
+    background: rgba(34, 197, 94, 0.08);
+  }
+}
+
+.welcome-diff-annotation {
+  font-family: var(--font-serif);
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--text-muted);
+  margin-top: 1rem;
+  line-height: 1.6;
+}
+
+/* ===== DOCTRINAL CARTOGRAPHY ===== */
+.welcome-cartography {
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.welcome-cartography-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin: 1.5rem 0;
+}
+
+.welcome-cartography-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.welcome-cartography-node.primary {
+  border-color: var(--color-gold);
+  background: var(--color-gold-soft);
+}
+
+.welcome-cartography-icon {
+  font-size: 1rem;
+}
+
+.welcome-cartography-edge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.welcome-cartography-line {
+  width: 1px;
+  height: 18px;
+  background: var(--border-medium);
+}
+
+.welcome-cartography-branches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.welcome-cartography-connector {
+  padding: 0 12px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.welcome-cartography-explanation {
+  font-family: var(--font-serif);
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-top: 1.5rem;
+  text-align: center;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ===== CONTRIBUTION CULTURE ===== */
+.welcome-contribution-culture {
+  padding: 2rem 0;
+}
+
+.welcome-culture-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.welcome-culture-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.25rem 1.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.welcome-culture-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-panel);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.welcome-culture-item strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 4px;
+}
+
+.welcome-culture-item p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Narrative Actions */
+.welcome-narrative-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ===== LAYER 3 — IDENTITY FORMATION ===== */
+.welcome-identity {
+  padding: 2rem 0;
+}
+
+.welcome-identity-title {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.welcome-identity-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+}
+
+/* Role Selection */
+.welcome-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 2rem;
+}
+
+.welcome-role-btn {
+  padding: 10px 20px;
+  background: var(--card-bg);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-sans);
+}
+
+.welcome-role-btn:hover {
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
+.welcome-role-btn.selected {
+  background: var(--color-gold-soft);
+  border-color: var(--color-gold);
+  color: var(--text-heading);
+}
+
+/* Institution Field */
+.welcome-field {
+  margin-bottom: 2rem;
+}
+
+.welcome-field-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.welcome-field-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  font-family: var(--font-sans);
+  transition: all 0.2s ease;
+}
+
+.welcome-field-input:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px var(--color-gold-soft);
+}
+
+/* Interest Chips */
+.welcome-interests {
+  margin-bottom: 2.5rem;
+}
+
+.welcome-interest-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.welcome-interest-chip {
+  padding: 8px 16px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-sans);
+}
+
+.welcome-interest-chip:hover {
+  border-color: var(--border-medium);
+  color: var(--text-secondary);
+}
+
+.welcome-interest-chip.selected {
+  background: var(--color-gold-soft);
+  border-color: var(--color-gold);
+  color: var(--text-heading);
+}
+
+/* Identity Actions */
+.welcome-identity-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+  .welcome-container {
+    padding: 2rem 1.25rem 3rem;
+  }
+
+  .welcome-title {
+    font-size: 2rem;
+  }
+
+  .welcome-institutional {
+    padding: 2rem 0 1rem;
+  }
+
+  .welcome-philosophy p {
+    font-size: 1rem;
+  }
+
+  .welcome-moment-title {
+    font-size: 1.15rem;
+  }
+
+  .welcome-cartography-branches {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .welcome-cartography-connector {
+    padding: 8px 0;
+  }
+
+  .welcome-narrative-actions,
+  .welcome-identity-actions {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .welcome-identity-title {
+    font-size: 1.35rem;
+  }
+}

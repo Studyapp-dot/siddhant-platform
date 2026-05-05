@@ -1,0 +1,18 @@
+Read me ( Updates and Clarifications )
+
+1. On Platform Mission — Who This Is For
+
+Siddhant is not an NLU vs. non-NLU platform. That framing is a misreading of the access-gap problem we're solving. The access gap is real, but the platform is designed for every Indian law student — regardless of institution. Competence, relatedness, and recognition are universal human needs, not needs specific to students outside elite institutions. A student at NLSIU and a student at a state university college both benefit from a living, community-owned legal knowledge commons. The mission is not to compensate for disadvantage — it is to build something that didn't exist for anyone.
+
+ 
+2. On the Philosophy of AI
+
+The AI agent on Siddhant serves exactly one function in the ARCS framework: Confidence. It exists to lower the activation energy for contribution — to help a student who has something to say but doesn't know where to start, find the sources, cases, and structure that let them begin writing. Nothing more.
+AI does not author content. AI does not verify content. AI does not improve content after publication. The community is the author, the reviewer, and the steward of everything on this platform. Human writing and human judgment are supreme. The agent is a private research scaffold — it is never visible in the published output, and its role ends the moment the student begins writing.
+The AI agent is one tool among many. Siddhant will add whatever helps students contribute with confidence — AI or non-AI — as that need becomes clear. The criterion is not whether something is technologically sophisticated; it is whether it removes a real barrier to contribution. The agent happens to be the first such tool. It will not be the last.
+
+3. Content Depth Tiers — Reconsidered
+The three-tier content depth model (Quick Summary / Standard Study / Deep Dive & Jurisprudence) is deferred. The overlap problem is structural and unsolvable by design — Tier 2 and Tier 3 would either duplicate content or collapse into a length gradient, neither of which justifies maintaining three separate content objects per topic.
+The underlying intent (students at different stages need different entry points) is valid but is a navigation and onboarding problem, not a content architecture problem. It should be solved through good internal Report structure — a strong lead section, progressive depth within sections, a jurisprudence appendix where relevant — rather than by tripling content production overhead.
+The Quick Summary concept survives as a structural element within a single Report, not as a separate tier.
+This decision will be revisited once actual Reports are built and real editorial seams emerge. It is not locked before build.

@@ -1,0 +1,236 @@
+# Peer Review Rubric System — Implementation Plan
+
+Peer review is the most important community input into quality tier advancement. The research (Section 18, Gyamfi et al.) is specific: data-informed rubrics with structured rating scales, open-ended comment fields, and confidence signals produce consistent, aggregable quality signals. Simple category lists and unstructured review produce noise.
+
+This plan implements a structured peer review system that feeds directly into the existing quality tier infrastructure.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Rubric Criteria Design**: The rubric below is grounded in the research's legal-content-specific recommendations. The 6 criteria are drawn directly from Section 18's design implications for Indian legal education content. Please review whether these are the right dimensions — this is the most consequential design decision in this plan, because rubric design directly determines review quality.
+
+> [!IMPORTANT]
+> **Review Cycle Model**: Reviews are collected independently (no anchoring bias — reviewers cannot see others' ratings until the cycle closes). After a minimum threshold of reviews, the cycle closes and results become visible. The plan proposes **3 reviews minimum** to close a cycle. Should this be different?
+
+> [!IMPORTANT]
+> **Reputation Integration**: The plan awards `+3 rep` for completing a review and `+2 rep` when your review aligns with community consensus (both already defined in `reputation-constants.ts` as `peer_review_completed` and `peer_review_aligned`). Does this feel right?
+
+---
+
+## Design Principles (from Research)
+
+1. **Structured, not open-ended** — Reviewers work through a defined checklist, not free-form opinion. Produces aggregable data.
+2. **Data-informed rubric** — 6 criteria designed for Indian legal content quality, not 4 generic categories.
+3. **Guide, don't constrain** — Open-ended comment fields alongside structured ratings. Comments are where the most valuable signal appears.
+4. **Confidence signal** — Every review includes a confidence rating (high/medium/low). Low-confidence reviews trigger second review cycles rather than forcing binary decisions.
+5. **Independence after review** — Ratings are hidden during review to prevent anchoring bias. Shown after cycle closes to build reviewer confidence and identify divergent judgment.
+6. **Legal reasoning criteria** — Include dimensions that require genuine engagement with content: "Does this correctly state the current legal position?" and "Does this distinguish settled law from contested interpretation?"
+
+---
+
+## Proposed Changes
+
+### Database Layer
+
+#### [NEW] `peer_review_migration.sql`
+
+SQL migration file to run in Supabase SQL Editor. Creates:
+
+**`peer_reviews` table:**
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid PK | Unique review ID |
+| `node_id` | uuid FK → nodes | Which node was reviewed |
+| `reviewer_id` | uuid FK → profiles | Who reviewed it |
+| `target_tier` | text | Which tier is being assessed for |
+| `overall_recommendation` | text | `meets_standard` / `needs_work` / `not_ready` |
+| `confidence` | text | `high` / `medium` / `low` |
+| `overall_comment` | text | Open-ended comment (where the best signal lives) |
+| `criteria_scores` | jsonb | `{ criterion_key: { score: 1-5, comment?: string } }` |
+| `cycle_id` | uuid FK → review_cycles | Groups reviews into cycles |
+| `created_at` | timestamptz | When submitted |
+
+**`review_cycles` table:**
+| Column | Type | Purpose |
+|--------|------|---------|
+| `id` | uuid PK | Cycle identifier |
+| `node_id` | uuid FK → nodes | Which node |
+| `target_tier` | text | Tier being assessed for |
+| `initiated_by` | uuid FK → profiles | Who started the review |
+| `status` | text | `open` / `closed` / `consensus` / `split` |
+| `min_reviews` | int | Minimum reviews to close (default 3) |
+| `result_tier` | text | Final tier after cycle closes (null while open) |
+| `result_summary` | text | Generated summary of review consensus |
+| `created_at` | timestamptz | Cycle opened |
+| `closed_at` | timestamptz | Cycle closed |
+
+**RPC `submit_peer_review`** — SECURITY DEFINER function that:
+1. Inserts review into `peer_reviews`
+2. Checks if the cycle has enough reviews to auto-close
+3. If so, calculates consensus and updates cycle status
+4. Awards reputation to reviewer
+
+**RLS Policies:**
+- Everyone can read reviews (radical transparency)
+- Reviews cannot be read by other reviewers while cycle is `open` (prevents anchoring)
+- Authenticated users can insert reviews
+
+---
+
+### Rubric Constants
+
+#### [NEW] [peer-review-constants.ts](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/app/actions/peer-review-constants.ts)
+
+Defines the 6 review criteria, grounded in the research's legal-content recommendations:
+
+| # | Criterion Key | Label | Description | Requires Legal Reasoning |
+|---|--------------|-------|-------------|--------------------------|
+| 1 | `legal_accuracy` | Legal Accuracy | Does this correctly state the current legal position? Are judgments and statutes cited accurately? | ✅ |
+| 2 | `settled_vs_contested` | Settled vs. Contested Law | Does this distinguish between settled legal doctrine and contested/evolving interpretation? | ✅ |
+| 3 | `citation_quality` | Citation Quality & Sourcing | Are sources reliable, correctly cited, and sufficiently comprehensive for the claims made? | |
+| 4 | `completeness` | Completeness of Coverage | Does this cover the topic adequately for the target tier? Are there significant gaps? | |
+| 5 | `clarity` | Clarity & Accessibility | Is the content clearly written and accessible to the target audience (law students)? | |
+| 6 | `currency` | Currency & Timeliness | Is this up-to-date with recent legislative amendments, judicial developments, and doctrinal shifts? | ✅ |
+
+Each criterion scored 1–5:
+- **1** — Fails to meet minimum standard
+- **2** — Below expectations, significant issues
+- **3** — Meets basic standard, room for improvement
+- **4** — Good quality, minor issues only
+- **5** — Excellent, no meaningful improvement needed
+
+Also defines `MIN_REVIEWS_PER_CYCLE = 3` and `AUTO_ADVANCE_THRESHOLD` (average score ≥ 3.5 with ≥ 2/3 "meets_standard" recommendations).
+
+---
+
+### Server Actions
+
+#### [NEW] [peer-review.ts](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/app/actions/peer-review.ts)
+
+Server actions:
+
+1. **`initiateReviewCycle(nodeId, targetTier, slug)`**
+   - Creates a new review cycle for a node  
+   - Level gate: L3+ can initiate for b_class+, L2+ for lower tiers
+   - Cannot initiate if an open cycle already exists for this node
+
+2. **`submitPeerReview(cycleId, criteriaScores, recommendation, confidence, comment)`**
+   - Submit a structured review against the rubric
+   - Independence check: reviewer must not have contributed to the node (for b_class+)
+   - Cannot review the same node twice in the same cycle
+   - Calls `submit_peer_review` RPC
+   - Awards `+3 rep` (`peer_review_completed`)
+
+3. **`closeReviewCycle(cycleId)`**
+   - Manually close a cycle (L4+ only, or auto-triggered when min reviews met)
+   - Calculates consensus from reviews
+   - If consensus: advances/maintains tier via existing `assess_quality_tier` RPC
+   - Awards `+2 rep` to reviewers whose ratings aligned with consensus (`peer_review_aligned`)
+
+4. **`getReviewCycles(nodeId)`**
+   - Fetch review cycle history for a node
+   - Returns cycles with review count and status
+
+5. **`getReviewDetails(cycleId, currentUserId)`**
+   - Returns full review details
+   - If cycle is `open`: only returns current user's review (prevents anchoring)
+   - If cycle is `closed`: returns all reviews with alignment feedback
+
+---
+
+### UI Components
+
+#### [NEW] [PeerReviewPanel.tsx](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/app/components/PeerReviewPanel.tsx)
+
+The main peer review interface. Three states:
+
+**State 1: No active cycle** → Shows "Initiate Peer Review" button (L3+) with target tier selector.
+
+**State 2: Active cycle, user hasn't reviewed** → Shows the structured review form:
+- 6 criteria, each with a 1–5 rating scale (visual dots/stars, not a dropdown) and an optional comment field
+- Overall recommendation: `Meets Standard` / `Needs Work` / `Not Ready`
+- Confidence: `High` / `Medium` / `Low`
+- Open-ended overall comment (required, min 20 chars) — "the comments are where the most valuable quality signal often appears"
+- Submit button
+
+**State 3: Active cycle, user already reviewed** → Shows confirmation + "Waiting for more reviews" status with review count (e.g. "2 of 3 reviews submitted").
+
+**State 4: Closed cycle** → Shows results:
+- Consensus/split badge
+- Aggregated scores per criterion (average + distribution)
+- Reviewer alignment feedback: "Your assessment aligned with X of Y reviewers" (post-hoc, per research)
+- All individual reviews visible (reviewers identified by username + role badge)
+- Result: whether tier was advanced or maintained
+
+This component renders on the **topic page** below the content, visible to L2+ users.
+
+---
+
+#### [MODIFY] [page.tsx](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/app/topic/%5Bslug%5D/page.tsx)
+
+- Import and render `PeerReviewPanel` below the article content
+- Pass `nodeId`, `slug`, `currentTier`, `userRole`, `userId`
+
+---
+
+#### [MODIFY] [reputation-constants.ts](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/app/actions/reputation-constants.ts)
+
+No changes needed — `peer_review_completed: 3` and `peer_review_aligned: 2` are already defined.
+
+---
+
+### CSS
+
+#### [MODIFY] [page.css](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/app/topic/%5Bslug%5D/page.css)
+
+Add styles for the peer review panel section — consistent with existing glass-panel design language.
+
+---
+
+## How Peer Review Connects to Quality Tiers
+
+```mermaid
+flowchart TD
+    A[Contributor initiates review cycle] --> B[Cycle opens for target tier]
+    B --> C[L3+ reviewers submit structured reviews]
+    C --> D{Min reviews reached?}
+    D -->|No| C
+    D -->|Yes| E[Auto-close cycle + calculate consensus]
+    E --> F{Consensus?}
+    F -->|Yes - meets standard| G[Auto-advance tier via assess_quality_tier RPC]
+    F -->|Split / Needs work| H[Tier stays, feedback visible]
+    G --> I[+rep to reviewers aligned with consensus]
+    H --> I
+    I --> J[Reviewers see alignment feedback]
+```
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> **Who can initiate a review cycle?** The plan currently allows L3+ for b_class+ and L2+ for lower tiers. Should anyone be able to nominate a node for review, or only contributors or group members?
+
+> [!NOTE]
+> **Self-nomination**: Should the contributor who wrote the content be able to nominate their own node for review? The research doesn't address this directly. My recommendation: yes, allow it — the rubric and independence requirements handle the objectivity concern.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+- `npm run build` — verify no TypeScript errors
+- SQL migration runs cleanly in Supabase SQL Editor
+
+### Manual Verification
+- Start dev server and navigate to a topic page
+- Verify L3+ user can initiate a review cycle
+- Submit a structured review with all 6 criteria
+- Verify review is submitted and visible only to the reviewer while cycle is open
+- Submit 2 more reviews (need 3 total) and verify cycle auto-closes
+- Verify consensus calculation and tier advancement
+- Verify reviewer alignment feedback appears after close
+- Verify L1 user cannot see the "Initiate Review" button
+- Verify independence check prevents contributor from reviewing their own node (for b_class+)

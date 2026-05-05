@@ -1,0 +1,115 @@
+# Implementation Plan: Quality System, Edit Acceptance & Permission Gates
+
+## Goal
+
+Complete the critical missing infrastructure identified in the audit:
+1. **72h Edit Acceptance Timer** — unblock level advancement
+2. **Content-Based Quality Tiers** — replace activity-based proxy with honest, assessed tiers
+3. **Permission Gates** — make user levels functionally meaningful
+4. **Flag Resolution → Reputation** — wire the existing flag_resolved trigger
+
+---
+
+## Proposed Changes
+
+### Component 1: Edit Acceptance System
+
+The `acceptEdit()` function exists but nothing calls it. Rather than requiring a cron job (Supabase Pro), we use **lazy evaluation**: every time a page loads that involves revisions, we check for un-accepted edits older than 72h and auto-accept them.
+
+#### [NEW] `src/app/actions/edit-acceptance.ts`
+- `processEditAcceptance()` — server action that queries for revisions older than 72h that haven't been processed, auto-accepts them, awards reputation (+2 or +5 based on char delta), increments `accepted_edits_count`
+- Also adds `acceptance_status` column tracking via a new `revision_acceptance` table (or a column on revisions)
+
+#### [MODIFY] `src/app/topic/[slug]/page.tsx`
+- Call `processEditAcceptance()` on topic page load (fire-and-forget, non-blocking)
+
+#### [NEW] SQL migration: `quality_and_acceptance_migration.sql`
+- Add `acceptance_processed` boolean column to `revisions` table (default false)
+- Add `quality_tier` column to `nodes` table
+- Add `quality_assessments` table for assessment audit trail
+
+---
+
+### Component 2: Content-Based Quality Tiers
+
+Replace the `getQualityTier(revisionCount)` function with a database-backed system. The tier is **assessed by humans**, not computed from activity metrics.
+
+#### Tier Structure (from Wikipedia research + legal context)
+
+| Tier Value | Display Name | Honest Description | Who Assesses |
+|-----------|-------------|-------------------|-------------|
+| `stub` | Draft | Recently published, community review pending | Auto on creation |
+| `start` | Developing | Contains meaningful content, requires improvement | Any editor |
+| `c_class` | Useful | Useful to casual reader, significant gaps remain | Any editor |
+| `b_class` | Solid | Mostly complete, well-referenced | Level 3+ editor |
+| `good_article` | Good Article ✓ | Meets editorial standards, independently reviewed | Independent Level 3+ reviewer |
+| `featured` | Featured ★ | Definitive, comprehensive, scholarly | Multi-editor consensus (Level 4+) |
+
+#### [MODIFY] `src/app/topic/[slug]/page.tsx`
+- Replace `getQualityTier(revisionCount)` with database read from `nodes.quality_tier`
+- Quality badge is now **prominent, next to the title** with an honest description
+- E.g., "⚠ Draft — Recently published, community review pending" or "✓ Good Article — Independently reviewed, meets editorial standards"
+
+#### [NEW] `src/app/components/QualityAssessment.tsx`
+- Client component showing current tier + "Assess Quality" button (for eligible users)
+- Level-gated: anyone can suggest Stub→C, only L3+ can advance to B/Good, only L4+ can advance to Featured
+- Requires a short justification for the assessment change
+- Shows assessment history
+
+#### [NEW] `src/app/actions/quality.ts`
+- `assessQualityTier()` — server action to change a node's quality tier
+- Level checks enforced
+- Logs assessment in `quality_assessments` table
+- Awards reputation to contributors when tier advances
+
+---
+
+### Component 3: Permission Gates
+
+Make Level 3+ status functionally meaningful for the two most immediate powers.
+
+#### [MODIFY] `src/app/topic/[slug]/inline-tags/` or flag resolution action
+- **Resolve flags**: Only Level 3+ can mark a flagged issue as resolved
+- Award +2 reputation to the original flagger when their flag gets resolved
+
+#### [MODIFY] `src/app/topic/[slug]/history/page.tsx`
+- Show a "Revert" button on revisions — only visible to Level 3+ users
+- One-click revert creates a new revision with the previous content
+
+---
+
+### Component 4: Wire Remaining Reputation Triggers
+
+#### Flag Resolution (+2 rep)
+- When a flag is marked resolved, award +2 to the user who originally raised it
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> **Quality tier display language**: Your research says the tier should describe *what has happened to the content*, not just a quality word. For example:
+> - "Draft — Recently published, community review pending"  
+> - "Developing — 3 edits accepted, no independent review"
+> - "Good Article — Independently reviewed by @username, meets editorial standards"
+>
+> Should we include this level of detail, or keep it simpler?
+
+> [!IMPORTANT]
+> **72h acceptance window**: The `acceptEdit()` function with lazy evaluation will process old edits when pages load. This means edits might not be marked "accepted" at exactly 72h — it could be 73h or 80h depending on when someone visits the page. Is this acceptable, or do you need precise timing?
+
+---
+
+## Verification Plan
+
+### Automated
+1. Build passes (`npx next build`)
+2. Submit an edit, wait, verify acceptance processing
+3. Verify quality tier displays correctly on topic pages
+
+### Manual
+1. Change a quality tier as a Level 3+ user — verify it persists
+2. Verify Level 2 users cannot advance to Good/Featured tiers
+3. Verify flag resolution awards +2 rep to the flagger
+4. Verify accepted edits increment `accepted_edits_count`
+5. Verify level advancement triggers after sufficient accepted edits

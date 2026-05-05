@@ -1,0 +1,254 @@
+# Peer Review System — Implementation Plan
+
+## Design Context
+
+This system is designed for the Siddhant platform — an Indian legal education platform serving a small, growing community of law students. Every design decision below is grounded in our platform's context, not imported from another platform's model.
+
+Our quality tiers, in order: **Draft → Developing → Useful → Solid → Good Article → Featured**
+
+Our user levels: **Reader (L1) → Contributor (L2) → Recognized Contributor (L3) → Senior Scholar (L4) → Steward (L5) → Governance Council (L6)**
+
+---
+
+## The Two-Track Quality System
+
+Quality assessment on our platform works differently depending on which tier is being assessed. The underlying principle is: **the higher the tier, the stronger the verification required**, because higher-tier labels carry a trust promise to students reading the content.
+
+### Track 1: Individual Assessment (Already Built)
+**Tiers: Draft → Developing → Useful → Solid**
+
+Any qualified editor looks at the content and changes the tier. One person's judgment, based on what the content actually is — its accuracy, completeness, and sourcing — not how many edits it has. Our existing `QualityAssessment.tsx` handles this.
+
+- **Draft / Developing / Useful:** Any Contributor (L2+) can assess
+- **Solid:** Any Recognized Contributor (L3+) can assess
+
+If someone disagrees, they change it back with their own justification. The `quality_assessments` audit table records every change. No formal process needed — these are working tiers, not quality seals.
+
+### Track 2: Formal Peer Review (This Plan)
+**Tiers: Good Article and Featured only**
+
+These two tiers carry a specific promise: "this content has been independently reviewed and verified." A legal education platform cannot make that promise based on one person clicking a dropdown. Students relying on the content for exam preparation or legal understanding need to trust that "Good Article" means someone knowledgeable actually checked the work against defined standards.
+
+This is where structured peer review enters. The review uses a rubric designed specifically for Indian legal content, producing consistent signals that the existing individual assessment cannot provide.
+
+---
+
+## Why Structured Review Matters for Our Platform Specifically
+
+Our users are law students studying legal doctrine that has real consequences. When a node says "Good Article" or "Featured," a student might rely on it for:
+- Moot court preparation
+- Understanding a doctrine for their exams
+- Citing legal positions in assignments
+
+This means the quality seal must be earned through genuine verification, not just one person's opinion. The structured rubric ensures reviewers check the specific dimensions that matter for legal content — not generic "is this good?" but "does this correctly state the current legal position?" and "does this distinguish settled law from contested interpretation?"
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Review requirements for our community size**: Good Article needs 1 independent L3+ reviewer. Featured needs 2 independent L4+ Senior Scholars (not 3 — at early scale, finding 3 L4+ users who haven't contributed to a node may be impossible). We can increase these numbers as the community grows. Does this feel right?
+
+> [!IMPORTANT]
+> **Who can nominate?** Any Contributor (L2+) can nominate a Solid node for Good Article review. Any Recognized Contributor (L3+) can nominate a Good Article for Featured review. Self-nomination is allowed — the rubric and independence requirement handle objectivity.
+
+---
+
+## The Rubric: 6 Criteria for Indian Legal Content (v1)
+
+The rubric is versioned (`v1`). It starts as research-grounded and will be revised after 3-6 months based on how our community actually uses it — which criteria produce disagreement, which get the most comments, what patterns emerge. Every review stores its rubric version so historical reviews remain valid under the version they used.
+
+Each criterion scored **Pass / Needs Work / Fail**:
+
+| # | Criterion | What the Reviewer Checks |
+|---|-----------|-------------------------|
+| 1 | **Legal Accuracy** | Does this correctly state the current legal position? Are judgments and statutes cited accurately? Are holdings described correctly? |
+| 2 | **Settled vs. Contested** | Does this clearly distinguish between settled doctrine and areas where the law is evolving, contested, or subject to multiple interpretations? |
+| 3 | **Citation Quality** | Are sources reliable and correctly cited? Are primary sources (judgments, statutes) used where available? Are claims adequately supported? |
+| 4 | **Completeness** | Does this cover the topic adequately for a law student? Are there significant gaps a student would need to know about? |
+| 5 | **Clarity** | Is the content clearly written and well-organized? Would a law student be able to follow the reasoning? |
+| 6 | **Currency** | Is this up-to-date with recent judicial developments, legislative amendments, and doctrinal shifts? |
+
+**Plus:** Required open-ended comment (minimum 20 characters) — the research shows this is where the most valuable quality signal often appears, and where reviewers deepen their own understanding through articulating their judgment.
+
+**Plus:** Confidence rating (High / Medium / Low) — low confidence flags the review for additional attention rather than forcing a binary decision on uncertain cases.
+
+---
+
+## How Each Review Process Works
+
+### Good Article Review
+
+**Who can nominate:** Any L2+ user  
+**Requirement:** Node must currently be at **Solid** tier  
+**Reviewer:** 1 independent Recognized Contributor (L3+) who has NOT contributed to the node  
+
+**Process:**
+1. Someone nominates a Solid node for Good Article review → cycle opens
+2. An independent L3+ reviewer submits a structured review (6 criteria + comment + confidence)
+3. Outcome determined:
+
+| Criteria Result | Confidence | Outcome |
+|----------------|------------|---------|
+| All 6 Pass | High or Medium | **Advance to Good Article** ✅ |
+| All 6 Pass | Low | Second reviewer requested — cycle stays open |
+| Any Needs Work or Fail | Any | **Stay at Solid** — feedback made visible to contributors |
+
+When a second reviewer is triggered (low confidence), both reviews must agree for advancement. If they disagree, the node stays at Solid with both reviewers' feedback visible.
+
+**Reputation:**
+- Reviewer gets **+3 rep** (`peer_review_completed`) for completing the review, regardless of outcome — the work of reviewing has value
+- If node advances, all node contributors get proportional `tier_advancement_bonus` rep (already implemented in `quality.ts`)
+
+---
+
+### Featured Review
+
+**Who can nominate:** Any L3+ user  
+**Requirement:** Node must currently be at **Good Article** tier  
+**Reviewers:** 2 independent Senior Scholars (L4+) who have NOT contributed to the node  
+
+**Process:**
+1. Someone nominates a Good Article for Featured review → cycle opens
+2. Independent L4+ reviewers submit structured reviews
+3. After 2+ reviews are submitted, consensus is calculated:
+
+| Condition | Outcome |
+|-----------|---------|
+| Both reviewers recommend "Meets Standard" AND every criterion has majority Pass | **Advance to Featured** ✅ |
+| Reviewers disagree on recommendation | **Stay at Good Article** — both reviews visible, flagged as "split" |
+| Both recommend "Needs Work" or "Not Ready" | **Stay at Good Article** — clear feedback for contributors |
+
+**Why 2 reviewers, not 3:** Our community is small. Requiring 3 Senior Scholars (L4+) who haven't contributed to a specific node may be impossible at early scale. 2 is the minimum for meaningful agreement. As the community grows and more users reach L4+, we can increase this threshold.
+
+**Reputation:**
+- Each reviewer gets **+3 rep** (`peer_review_completed`)
+- After cycle closes, each reviewer's recommendation is compared to the outcome:
+  - If your recommendation matches the outcome → **+2 rep** (`peer_review_aligned`)
+  - If it doesn't match → no penalty, but you see "Your assessment diverged from the other reviewer(s)" — this builds reviewer self-awareness over time per the research
+
+---
+
+## Review Cycle Statuses
+
+| Status | Meaning |
+|--------|---------|
+| `open` | Cycle is accepting reviews. Other reviewers' submissions are hidden (prevents anchoring bias). |
+| `closed` | Cycle is complete. All reviews are now publicly visible (radical transparency). |
+
+| Outcome | Meaning |
+|---------|---------|
+| `advanced` | Consensus reached — node tier was advanced |
+| `maintained` | Reviewers agreed the node isn't ready yet — tier unchanged, feedback visible |
+| `split` | Reviewers disagreed — tier unchanged, flagged for community attention |
+
+---
+
+## Proposed Changes
+
+### Database
+
+#### [NEW] `peer_review_migration.sql`
+
+Creates `review_cycles` and `peer_reviews` tables, RPC for submitting reviews, and updates `recent_changes_view` to include peer review activity.
+
+Key columns:
+- `peer_reviews.rubric_version` — stores `'v1'` so historical reviews stay valid when rubric is revised
+- `peer_reviews.aligned_with_outcome` — set to `true`/`false` after cycle closes, drives alignment feedback
+- `peer_reviews.criteria_scores` — JSONB: `{ "legal_accuracy": "pass", "clarity": "needs_work", ... }`
+- `review_cycles.target_tier` — only `'good_article'` or `'featured'`
+- `review_cycles.outcome` — `'advanced'` / `'maintained'` / `'split'` / null (while open)
+
+RLS:
+- `peer_reviews` readable by everyone AFTER cycle closes (prevents anchoring during open cycles)
+- While cycle is open, reviewers can only see their own review
+- Authenticated users can insert
+
+---
+
+### Application Code
+
+#### [NEW] [peer-review-constants.ts](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/app/actions/peer-review-constants.ts)
+
+Rubric criteria, review configuration per tier, rubric version identifier.
+
+#### [NEW] [peer-review.ts](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/app/actions/peer-review.ts)
+
+Server actions:
+1. `initiateReviewCycle(nodeId, targetTier, slug)` — opens a cycle
+2. `submitPeerReview(cycleId, criteriaScores, recommendation, confidence, comment)` — submit structured review, handles auto-close
+3. `getReviewCycles(nodeId)` — fetch cycle history
+4. `getReviewDetails(cycleId, currentUserId)` — returns details with anchoring-safe visibility
+
+#### [NEW] [PeerReviewPanel.tsx](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/app/components/PeerReviewPanel.tsx)
+
+Client component. Only renders on nodes at **Solid** or **Good Article** tier. Shows:
+- Nomination button when no active cycle
+- Structured review form when cycle is open and user is eligible
+- Results with alignment feedback when cycle is closed
+- Past review cycle history
+
+#### [MODIFY] [page.tsx](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/app/topic/%5Bslug%5D/page.tsx)
+
+Import and render `PeerReviewPanel` below article content.
+
+---
+
+### Incidental Changes
+
+#### [MODIFY] `recent_changes_view` (in migration SQL)
+
+Add `peer_review` activity type so peer reviews appear in the community's quality monitoring heartbeat:
+
+```
+"submitted peer review for Good Article assessment (cycle: advanced)"
+```
+
+#### [MODIFY] [profile page](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/app/profile/%5Busername%5D/page.tsx)
+
+- Display `peer_reviews_completed` in the sidebar stats grid (the column already exists in the database and is already fetched — just not displayed prominently)
+- Add "Peer Reviews" section in Portfolio tab showing completed reviews with node name, target tier, outcome, and alignment status
+
+---
+
+## Flow
+
+```mermaid
+flowchart TD
+    subgraph "Individual Assessment (Existing)"
+        D[Draft] -->|"L2+ editor assesses"| DV[Developing]
+        DV -->|"L2+ editor assesses"| U[Useful]
+        U -->|"L3+ editor assesses"| S[Solid]
+    end
+    
+    subgraph "Formal Peer Review (New)"
+        S -->|"L2+ nominates"| GA_C[Good Article Review Cycle]
+        GA_C -->|"1 independent L3+ reviewer"| GA_D{All criteria pass?}
+        GA_D -->|"Yes"| GA[Good Article ✅]
+        GA_D -->|"No"| S2[Stay at Solid + feedback]
+        
+        GA -->|"L3+ nominates"| F_C[Featured Review Cycle]
+        F_C -->|"2 independent L4+ reviewers"| F_D{Both agree?}
+        F_D -->|"Yes"| F[Featured ★]
+        F_D -->|"No"| GA2[Stay at Good Article + feedback]
+    end
+```
+
+---
+
+## Verification Plan
+
+### Automated Tests
+- `npm run build` — no TypeScript errors
+- SQL migration runs cleanly
+
+### Manual Verification
+- Navigate to a Solid node → see "Nominate for Good Article Review"
+- Nominate → verify cycle created
+- As independent L3+ user → submit structured review
+- Verify auto-advance when all criteria pass
+- Verify review appears in Recent Changes
+- Verify reviewer's profile shows the peer review
+- Navigate to a Good Article node → see "Nominate for Featured Review"
+- Submit 2 reviews → verify outcome calculation
+- Verify alignment feedback for each reviewer

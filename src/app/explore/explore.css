@@ -1,0 +1,281 @@
+.first-exploration {
+  min-height: 100vh;
+  padding: 58px 7% 76px;
+  background:
+    linear-gradient(90deg, rgba(184, 150, 62, 0.045) 1px, transparent 1px),
+    linear-gradient(180deg, var(--bg-base), var(--bg-surface));
+  background-size: 72px 72px, auto;
+}
+
+.first-exploration-hero {
+  max-width: 830px;
+  margin: 0 auto 42px;
+  text-align: center;
+}
+
+.first-exploration-kicker,
+.exploration-label {
+  font-family: var(--font-sans);
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-gold);
+}
+
+.first-exploration-hero h1 {
+  margin: 12px 0 16px;
+  font-family: var(--font-serif);
+  font-size: clamp(2.3rem, 5.5vw, 4.7rem);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  color: var(--text-heading);
+}
+
+.first-exploration-hero p {
+  max-width: 680px;
+  margin: 0 auto;
+  font-family: var(--font-serif);
+  font-size: 1.06rem;
+  line-height: 1.78;
+  color: var(--text-secondary);
+}
+
+.reading-room {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.75fr);
+  gap: 22px;
+  align-items: stretch;
+}
+
+.constitutional-path {
+  position: relative;
+  min-height: 560px;
+  padding: clamp(30px, 5vw, 52px);
+  border: 1px solid rgba(184, 150, 62, 0.18);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(184, 150, 62, 0.14), transparent 18rem),
+    linear-gradient(135deg, var(--bg-panel), var(--bg-surface));
+  box-shadow: var(--shadow-elevated);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+.constitutional-path::after {
+  content: 'SIDDHANT';
+  position: absolute;
+  right: -24px;
+  top: 34px;
+  font-family: var(--font-serif);
+  font-size: clamp(4rem, 10vw, 8rem);
+  font-weight: 800;
+  letter-spacing: -0.08em;
+  color: var(--text-muted);
+  opacity: 0.035;
+  pointer-events: none;
+}
+
+.path-index {
+  position: absolute;
+  top: 30px;
+  left: 34px;
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-gold);
+}
+
+.constitutional-path h2 {
+  max-width: 720px;
+  margin: 10px 0 18px;
+  font-family: var(--font-serif);
+  font-size: clamp(2.2rem, 4vw, 3.9rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: var(--text-heading);
+}
+
+.path-thesis {
+  max-width: 640px;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.16rem;
+  line-height: 1.75;
+  color: var(--text-secondary);
+}
+
+.path-stages {
+  margin: 32px 0 26px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.path-stages span {
+  padding: 7px 11px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.32);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.editorial-traces {
+  display: grid;
+  grid-template-rows: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.trace-panel {
+  padding: 26px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--bg-panel) 92%, transparent);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.trace-panel h2,
+.participation-invitation h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.34rem;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.trace-panel p,
+.participation-invitation p {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 0.98rem;
+  line-height: 1.68;
+  color: var(--text-secondary);
+}
+
+.exploration-meta {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.exploration-actions,
+.participation-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.exploration-actions a,
+.participation-links a {
+  padding: 9px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.primary-actions a:first-child {
+  background: var(--text-heading);
+  color: var(--bg-base);
+  border-color: var(--text-heading);
+}
+
+.exploration-actions a:hover,
+.participation-links a:hover {
+  border-color: var(--color-gold);
+  transform: translateY(-1px);
+}
+
+.text-link {
+  align-self: flex-start;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(184, 150, 62, 0.45);
+  transition: color 0.2s ease;
+}
+
+.text-link:hover {
+  color: var(--color-gold);
+}
+
+.participation-invitation {
+  max-width: 1120px;
+  margin: 22px auto 0;
+  padding: 20px 24px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  background: rgba(184, 150, 62, 0.035);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+}
+
+.participation-invitation h2 {
+  margin: 5px 0 6px;
+  font-size: 1.18rem;
+}
+
+.participation-invitation p {
+  max-width: 690px;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 920px) {
+  .first-exploration {
+    padding: 38px 5% 58px;
+  }
+
+  .reading-room {
+    grid-template-columns: 1fr;
+  }
+
+  .constitutional-path {
+    min-height: 460px;
+  }
+
+  .editorial-traces {
+    grid-template-rows: auto;
+  }
+
+  .participation-invitation {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .constitutional-path {
+    min-height: auto;
+    padding: 92px 24px 28px;
+  }
+
+  .constitutional-path h2 {
+    font-size: 2.2rem;
+  }
+
+  .path-thesis {
+    font-size: 1.02rem;
+  }
+
+  .trace-panel,
+  .participation-invitation {
+    padding: 20px;
+  }
+}

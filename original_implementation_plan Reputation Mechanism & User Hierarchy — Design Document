@@ -1,0 +1,250 @@
+# Reputation Mechanism & User Hierarchy — Design Document
+
+## Context
+
+The reputation mechanism and user hierarchy are the soul of the Siddhant platform. They serve three functions simultaneously:
+1. **Quality signal** — Reputation tells readers and contributors that this platform has standards
+2. **Trust architecture** — User levels determine who can perform which governance actions  
+3. **Professional record** — A contributor's reputation and level become a verifiable credential
+
+This document proposes the complete design, adapted from the research to fit Siddhant's specific context as a legal education knowledge graph.
+
+---
+
+## Part 1: User Levels — Names & Identity
+
+The research defines 6 levels. I'm proposing Siddhant-specific names that feel natural in the context of Indian legal scholarship, avoiding generic labels like "Level 1" or the Wikipedia-style "autoconfirmed."
+
+| Level | Research Name | Proposed Siddhant Name | Rationale |
+|-------|--------------|----------------------|-----------|
+| 1 | Unregistered Users | **Reader** | Clean, honest. They are reading. |
+| 2 | Registered Users | **Contributor** | The default state. You contribute. |
+| 3 | Established Contributors | **Recognized Contributor** | You've been *recognized* by the community through accepted work. |
+| 4 | Senior Contributors | **Senior Scholar** | Carries weight. Implies both experience and trust. |
+| 5 | Administrators | **Steward** | Wikipedia uses "steward" but at a higher level. For Siddhant it fits perfectly — stewards of the platform, not rulers of it. |
+| 6 | Governance Council | **Governance Council** | Keep this as-is. It's clear, honest, and self-explanatory. |
+
+> [!IMPORTANT]
+> **Open Question**: Do these names feel right for the platform? The names should feel earned but not elitist — accessible to a first-year student from a state university, not coded in NLU vocabulary. Alternative suggestions welcome.
+
+---
+
+## Part 2: What Each Level Can Do
+
+### Level 1 — Reader (Unregistered)
+- Read all content
+- View all discussion pages, revision histories, and contribution records
+- **Pending changes contribution**: Can submit edits, but they enter a pending-changes queue — visible to the reader themselves, but not shown to other users until approved by a Contributor (Level 2+)
+
+> [!NOTE]
+> **Design Decision — Pending Changes for Readers**: Your instinct is right. At early stage with low traffic, allowing pending-changes edits from unregistered users creates a wider contribution funnel without quality risk. As the platform scales and vandalism risk increases, this can be tightened to require registration for any editing. This is a reversible decision.
+
+### Level 2 — Contributor (Registered)
+- Everything Level 1 can do
+- Edits go **live immediately** — visible in the Recent Changes feed, subject to community review
+- Submit new notes/articles
+- Participate in all discussion spaces (Report discussions, User discussion pages, Subject Group forums)
+- Maintain a public user profile with contribution history
+- Follow/watch notes for notifications
+- Flag content issues (inline tags: citation needed, outdated, unclear, disputed)
+
+### Level 3 — Recognized Contributor
+- Everything Level 2 can do
+- **One-click revert** of edits identified as harmful (rollback equivalent), with automatic edit summary
+- **Mark flagged issues as resolved** (currently only senior_validator/admin can do this)
+- **Fast-track minor corrections** (typo fixes, broken citation fixes) that bypass the standard review scrutiny
+- Participate in **peer review** for note quality tier advancement
+- Bypass any pending-changes restrictions (their edits are always immediately visible)
+
+### Level 4 — Senior Scholar
+- Everything Level 3 can do
+- **Close content discussions** and record the consensus reached (with the non-participation rule: cannot close a discussion they contributed to)
+- **Advance notes to higher quality tiers** when criteria are met
+- Participate in **dispute resolution** as a neutral third party
+- **Mentor** subject-area contributor groups (formal mentor role within groups)
+- **Propose content structure changes** (merging notes, splitting notes, creating new topic nodes) for community discussion
+
+### Level 5 — Steward
+- Everything Level 4 can do
+- Apply and remove **page protection** (standard, extended, full, pending-changes)
+- **Block users** temporarily or permanently (following graduated response policy)
+- **Delete or restore content**
+- Resolve **escalated disputes** that community discussion hasn't resolved
+- **Grant specific tool access** to lower-level users when warranted
+- Manage platform content structure (adding/removing/merging content categories)
+
+*Steward appointment requires public nomination, community review period, community vote. Not permanent — reviewable through same process.*
+
+### Level 6 — Governance Council
+- Initiate formal review of Steward conduct
+- Execute community consensus decisions to appoint/remove Stewards
+- Maintain public record of governance decisions
+- Propose platform-wide policy changes for community discussion
+
+*Cannot unilaterally remove a Steward. 3-5 members, elected periodically by community.*
+
+---
+
+## Part 3: Reputation Points — How They Work
+
+### The Core Principle
+
+**Reputation points = the quality signal.** There is no separate "contribution quality" metric. Reputation IS the quality metric, but the way it's earned is what makes it quality-weighted rather than activity-weighted.
+
+### How Reputation Points are Earned
+
+Every action that earns reputation points is **quality-verified** — either through acceptance, peer review, or community endorsement. Raw activity (number of edits submitted) does NOT earn reputation.
+
+| Action | Points | Rationale |
+|--------|--------|-----------|
+| **Edit accepted** (basic — typo, formatting) | +2 | Baseline. Filters out bad-faith, but a typo fix should not earn the same as legal synthesis |
+| **Edit accepted** (substantive — new analysis, case synthesis, doctrinal explanation) | +5 | The substance of legal scholarship. Weighted higher. |
+| **"This Helped Me" endorsement received** | +10 | The favourite-vote equivalent from Stack Overflow research. Rare, deliberate, high-signal. A reader explicitly saying this contribution helped them understand something. |
+| **Peer review completed** (structured, rubric-based) | +3 | Rewarding curation and review work, not just creation |
+| **Peer review rating aligned with community consensus** | +2 bonus | Builds reviewer calibration over time (Gyamfi et al. finding) |
+| **Discussion contribution cited in a closing summary** | +5 | Your argument was persuasive enough that the closer referenced it |
+| **Flagged issue that was subsequently resolved** | +2 | Tagging is a genuine, low-barrier contribution |
+| **Mentoring recognition received** (peer-awarded, with written reason) | +8 | Hard-to-track but critical community-building behavior |
+| **First contribution by a newcomer you mentored** | +5 | Directly rewards the mentor pathway |
+| **Note you contributed to advances a quality tier** | Points proportional to contribution size | When a note moves from Tier 1 → Tier 2 through peer review, contributors earn points proportional to the content they authored in the scored sections |
+
+> [!IMPORTANT]
+> **These point values are starting calibrations, not final numbers.** They should be revised after the first 3-6 months of real community data. The *ratios* matter more than the absolute numbers — substantive edits worth more than typos, endorsements worth more than basic acceptance.
+
+### Distinguishing Substantive vs. Minor Edits
+
+How does the system know if an edit is a typo fix or a legal synthesis? Two mechanisms:
+
+1. **Character delta threshold**: Edits below a defined character change threshold (e.g., <50 characters changed) are automatically classified as minor. Edits above that threshold are classified as substantive. The contributor can also self-indicate "minor edit" when submitting.
+
+2. **Community reclassification**: If a reviewer sees a minor edit that was substantive (or vice versa), they can reclassify it. This is a lightweight action, not a formal review.
+
+### What Does NOT Earn Reputation
+
+- Submitting an edit (only acceptance earns points)
+- Number of edits submitted (volume alone)
+- Login streaks or daily visits
+- Raw discussion post count
+- Generic upvotes (if implemented — the platform should use the "This Helped Me" endorsement instead, not a generic upvote button)
+
+---
+
+## Part 4: Level Advancement — How Users Jump Between Levels
+
+### The Combined Threshold Model
+
+Level advancement requires **both** reputation points AND acceptance rate to be above set minimums. This prevents two gaming scenarios:
+
+1. **Volume gaming**: Someone doing hundreds of typo fixes (high acceptance rate, low reputation) — blocked because their reputation is too low
+2. **One-shot brilliance**: Someone with one amazing contribution but no sustained track record — blocked because their acceptance count is below threshold
+
+### Should Contribution Volume Be a Third Metric?
+
+> [!IMPORTANT]
+> **Your question answered**: Yes, I recommend contribution volume as a third metric, but framed differently. Instead of "number of edits," use **"number of accepted contributions"** — which is essentially the denominator of the acceptance rate. This solves the one-brilliant-contribution problem without rewarding raw activity. A user needs N accepted contributions minimum, plus a reputation score above M, plus an acceptance rate above P%.
+
+### Proposed Thresholds
+
+| Level | To Advance From → To | Accepted Contributions | Acceptance Rate | Reputation Score |
+|-------|---------------------|----------------------|----------------|-----------------|
+| 2 → 3 | Contributor → Recognized Contributor | ≥15 accepted edits | ≥70% | ≥50 points |
+| 3 → 4 | Recognized Contributor → Senior Scholar | ≥75 accepted edits | ≥80% | ≥400 points |
+| 4 → 5 | Senior Scholar → Steward | Community nomination + vote process | N/A | N/A |
+| 5 → 6 | Steward → Governance Council | Community election | N/A | N/A |
+
+> [!NOTE]
+> **Calibration Principle**: Level 3 should be reachable by any genuinely engaged student within **a few weeks** of active participation. If 15 accepted edits and 50 reputation points takes longer than 3-4 weeks for an engaged contributor, the thresholds are too high. Level 4 should take several months of sustained quality work.
+
+> [!WARNING]  
+> **These thresholds are placeholders.** They MUST be calibrated once real contribution patterns are observable. The principle matters more than the numbers.
+
+### Additional Requirement for Level 4
+
+Level 4 (Senior Scholar) adds a qualitative requirement beyond the numbers: **demonstrated constructive participation in discussions and dispute resolution.** This cannot be purely algorithmic — it requires the community to observe that this contributor engages constructively, not just quantitatively. This could be operationalized as:
+
+- A minimum number of discussion contributions in closed threads (showing they participate in governance)
+- Peer endorsements from multiple existing Level 4+ users
+- No active misconduct warnings on their record
+
+---
+
+## Part 5: What the Profile Displays
+
+On a contributor's public profile, the visible information should be:
+
+```
+@username
+── Recognized Contributor ──
+
+Reputation: 340
+Accepted Edits: 47 of 52 (90.4%)
+Peer Reviews Completed: 12
+Community Endorsements: 6 ("This Helped Me")
+Member Since: March 2026
+Subject Groups: Constitutional Law, Criminal Law
+
+[Full Contribution History below]
+```
+
+**Key display decisions:**
+- **Acceptance rate is displayed** but is NOT the primary number — reputation is
+- **Endorsement count** is separate from generic vote counts — this is the utility signal
+- **Peer reviews completed** — recognizes curation work, not just creation
+- **Level/title** is prominent — it signals trust to other community members
+
+---
+
+## Part 6: Current Database Gap Analysis
+
+### What exists now:
+- `profiles.role` — only 3 values: `'registered'`, `'senior_validator'`, `'admin'`
+- `profiles.reputation_score` — exists as integer, currently always 0
+- `revisions` — full edit history exists
+- `discussions` — with closing mechanism
+- `inline_tags` — with resolved flag
+
+### What needs to change:
+
+#### Database Changes
+1. **Expand `profiles.role`** from 3 values to 6 levels: `'reader'`, `'contributor'`, `'recognized'`, `'senior_scholar'`, `'steward'`, `'governance_council'`
+2. **Add profile columns**: `accepted_edits_count`, `total_edits_count`, `endorsements_received`, `peer_reviews_completed`
+3. **Create `endorsements` table** — the "This Helped Me" mechanism (user_id, revision_id, endorser_id, created_at)
+4. **Create `reputation_events` table** — audit trail of every reputation point earned (user_id, event_type, points, source_id, created_at) — this is the transparency mechanism
+5. **Update RLS policies** across all tables to use the new 6-level hierarchy instead of the current 3-level system
+6. **Update `recent_changes_view`** to include author level/role information
+
+#### UI Changes
+1. **Profile page** — display reputation, acceptance rate, endorsements, peer reviews, level badge
+2. **Recent Changes** — should be publicly prominent (not just in dashboard) — you noted this yourself
+3. **Level badge** visible on all contributions (in revision history, discussion posts, recent changes)
+4. **Endorsement button** ("This Helped Me") on individual revisions / contribution diffs
+
+---
+
+## Open Questions for Discussion
+
+1. **Level names** — Do Reader, Contributor, Recognized Contributor, Senior Scholar, Steward, Governance Council feel right?
+
+2. **Pending changes for Level 1** — You proposed this. I agree for early stage. Should we build it now, or start with registration-required editing and add pending changes later?
+
+3. **Recent Changes prominence** — You noted it should be publicly visible like Wikipedia, not buried in the dashboard. Should it be a top-level navigation item?
+
+4. **Endorsement mechanism ("This Helped Me")** — Should this be on individual edits (specific revisions), or on notes as a whole? The research strongly favors per-contribution endorsement, not per-article.
+
+5. **Scope of this implementation** — Should we implement the full database schema + profile display + endorsement system now? Or start with just the level hierarchy and reputation tracking, and add endorsements in the next phase?
+
+---
+
+## Verification Plan
+
+### After Implementation
+- Run database migration, verify new columns/tables exist
+- Verify profile page displays all new reputation data correctly  
+- Test level advancement logic with mock data
+- Verify RLS policies work correctly for all 6 levels
+- Check Recent Changes displays contributor level badges
+
+### Manual Verification
+- Visual review of profile page with reputation data
+- Test endorsement flow end-to-end
+- Verify level names appear correctly across all UI surfaces

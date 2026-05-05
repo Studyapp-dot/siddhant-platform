@@ -1,0 +1,185 @@
+# Reputation Mechanism & User Hierarchy — Final Design Document
+
+## Status: All Names & Structure Approved — Refinements Below
+
+---
+
+## Part 1: User Levels — Approved
+
+| Level | Siddhant Name | Status |
+|-------|--------------|--------|
+| 1 | **Reader** | ✅ Approved |
+| 2 | **Contributor** | ✅ Approved |
+| 3 | **Recognized Contributor** | ✅ Approved |
+| 4 | **Senior Scholar** | ✅ Approved |
+| 5 | **Steward** | ✅ Approved |
+| 6 | **Governance Council** | ✅ Approved |
+
+---
+
+## Part 2: What Each Level Can Do — Approved ✅
+
+*(See original document — all capabilities approved. Terminology corrected: "nodes" not "notes/articles" throughout.)*
+
+**Key clarifications from discussion:**
+- Level 1 (Reader) pending-changes contribution — approved for early stage, reversible later
+- Level 3's peer review participation references the detailed data-informed rubric research
+- Level 4's dispute resolution is noted but the mechanism is not yet built
+- Previous `role` values (`registered`, `senior_validator`, `admin`) were placeholders — being replaced entirely
+
+---
+
+## Part 3: Reputation Points — Refined
+
+### The Critical Question: What Does "Accepted Edit" Mean?
+
+This was unresolved. Here is the proposed definition:
+
+> [!IMPORTANT]
+> **An edit is "accepted" when it survives without being reverted or flagged for a defined period.**
+
+On Wikipedia, edit acceptance is implicit — an edit is accepted if nobody reverts it. There is no explicit "approve" button. This is the right model for Siddhant too, because:
+
+1. **Explicit approval creates a bottleneck.** Every edit would need a reviewer to click "approve," which doesn't scale and creates a pre-publication gate the research explicitly warns against.
+2. **Implicit acceptance through survival is self-correcting.** Good edits survive. Bad edits get reverted by Level 3+ users or flagged by the community.
+
+**Proposed acceptance criteria:**
+
+An edit transitions from "pending review" → "accepted" when **all** of the following are true:
+- **Time window passed**: A defined period (e.g., 72 hours) has elapsed since the edit was published
+- **Not reverted**: No Level 3+ user has used one-click revert on the edit during that window
+- **Not flagged**: No unresolved inline tag (disputed, unclear, outdated) has been placed on the specific content the edit touched during that window
+
+**What this means practically:**
+- The edit goes **live immediately** (for Level 2+ users) — preserving the open editing principle
+- It appears in the **Recent Changes feed** where the community can review it
+- After 72 hours of surviving community scrutiny, it is **automatically marked as accepted**
+- The contributor earns their reputation points at the moment of acceptance, not at submission
+
+**Reverted edits:**
+- An edit that is reverted within the window is marked "reverted" — it does NOT count against the contributor's acceptance rate unless it was clearly bad-faith
+- An edit that is reverted with a policy-citation reason (e.g., "reverted: factual claim requires primary source citation per Siddhant citation policy") counts as a learning feedback moment - no reputation penalty, but no reputation gain either
+- An edit that is reverted because of vandalism or bad faith — the contributor gets a misconduct warning following the graduated response policy
+
+> [!WARNING]
+> **Open question for you:** Is 72 hours the right window? At early stage with few reviewers, edits might go unreviewed for days. Should we start with a longer window (7 days) and shorten it as the community grows? Or is 72 hours sufficient given the small content volume initially?
+
+---
+
+### Reputation Point Table — Updated
+
+| Action | Points | Notes |
+|--------|--------|-------|
+| **Edit accepted — minor** (typo, formatting, <50 chars changed) | +2 | Auto-classified by character delta |
+| **Edit accepted — substantive** (new analysis, case synthesis, ≥50 chars) | +5 | The substance of legal scholarship |
+| **Generic upvote received on a contribution** | +1 | Shows community agreement. Low but non-zero. Prevents gaming through friends upvoting. |
+| **"This Helped Me" endorsement received** | +10 | Rare, deliberate utility signal. Much more valuable than a generic upvote. |
+| **Scholar Star received** (peer-awarded recognition) | +15 | See new section below |
+| **Peer review completed** (structured, rubric-based) | +3 | Rewards curation work |
+| **Peer review aligned with community consensus** | +2 bonus | Builds reviewer calibration |
+| **Discussion contribution cited in closing summary** | +5 | Your argument was persuasive |
+| **Flagged issue subsequently resolved** | +2 | Tagging is genuine contribution |
+| **First contribution by someone you mentored** | +5 | Rewards mentoring pathway |
+| **Node you contributed to advances a quality tier** | Proportional | Points based on authored content in scored sections |
+
+**Why generic upvotes get +1 (not zero):**
+
+You raised this point and you're right. A generic upvote means "I agree with this edit" or "this looks correct to me" — it's a form of community validation, just a weaker one than "This Helped Me." Giving it zero points dismisses it entirely; giving it +1 acknowledges the signal without making it a primary driver. A contributor would need 10 generic upvotes to equal one "This Helped Me" endorsement — that ratio feels right.
+
+**Key constraint**: A user can only upvote a specific contribution once. Self-upvoting is not possible. Upvote patterns from the same user-pair are monitored for voting ring detection (per the Mazloomzadeh fraud taxonomy research).
+
+---
+
+### Scholar Stars — Peer-Awarded Recognition (Barnstar Equivalent)
+
+The enculturation research (Beschastnikh et al., 2009) found that Wikipedia's barnstars function as a **socialization mechanism**, not just a motivational tool. They:
+- Signal that your contributions have been **noticed and valued** by someone who knows the community
+- Provide positive reinforcement for **specific behaviors** the community values
+- Indicate **successful socialization** into community norms
+- **Lose their value** entirely if given arbitrarily to friends
+
+**Siddhant's equivalent: Scholar Stars ⭐**
+
+How they work:
+1. **Any Contributor (Level 2+)** can award a Scholar Star to another contributor
+2. **Must be attached to a specific contribution** — a specific revision, a specific discussion post, a specific peer review
+3. **Requires a written reason** explaining what was valued — this is non-negotiable. The written reason is what makes it a socialization signal. Examples:
+   - *"Your analysis of the Maneka Gandhi judgment in the Article 21 node traced the doctrinal evolution through three subsequent cases — this is exactly the kind of synthesis that makes our platform valuable."*
+   - *"You spent time explaining the citation policy to a new contributor and helped them fix their first submission instead of just reverting it. This is what community building looks like."*
+4. **Rare and deliberate** — not a like button. The UI should make giving a Scholar Star a considered act (e.g., a modal with a text field, not a one-click button)
+5. **Earns +15 reputation** for the recipient — the highest single-action point value, reflecting genuine peer validation
+6. **Visible on the recipient's profile** with the written reason displayed — this is the public socialization signal that teaches the whole community what is valued
+7. **Awards given are visible on the giver's profile too** — showing that this contributor is engaged in community building
+
+> [!NOTE]
+> **Why "Scholar Star" and not "Barnstar"?** The name should feel natural to Indian law students. "Scholar Star" maps to the academic context — it's a peer recognizing scholarly contribution. Simple, clear, no jargon.
+
+---
+
+## Part 4: Level Advancement — Approved ✅
+
+| Level | Accepted Contributions | Acceptance Rate | Reputation Score |
+|-------|----------------------|----------------|-----------------|
+| 2 → 3 | ≥15 | ≥70% | ≥50 |
+| 3 → 4 | ≥75 | ≥80% | ≥400 + qualitative requirements |
+| 4 → 5 | Community nomination + vote | — | — |
+| 5 → 6 | Community election | — | — |
+
+Level 4 additional qualitative requirement (approved): demonstrated constructive discussion participation, peer endorsements from existing Level 4+ users, no active misconduct warnings.
+
+---
+
+## Part 5: Implementation Scope — My Recommendation
+
+### Phase 1 (Build Now) — Core Infrastructure
+This is what we implement in this conversation:
+
+1. **Database migration**:
+   - Expand `profiles.role` to 6 levels
+   - Add `accepted_edits_count`, `total_edits_count` columns to profiles
+   - Create `reputation_events` table (audit trail of every point earned)
+   - Create `endorsements` table ("This Helped Me")
+   - Create `scholar_stars` table (peer recognition with written reason)
+   - Create `contribution_votes` table (generic upvotes on revisions)
+   - Update RLS policies across all tables for the 6-level hierarchy
+
+2. **Profile page update**:
+   - Display reputation score, acceptance rate, peer reviews, endorsements, Scholar Stars received
+   - Show level badge prominently
+   - Display Scholar Stars with written reasons (the socialization signal)
+
+3. **Recent Changes — make it prominent**:
+   - Move from dashboard-only to a **top-level navigation item** accessible from everywhere
+   - Add contributor level badges to each entry
+   - This is the quality monitoring heartbeat — it should be as easy to find as the homepage
+
+4. **Reputation calculation engine**:
+   - Server action that awards points based on the table above
+   - Edit acceptance logic (72h / 7d window — pending your answer)
+   - Automatic level advancement check when reputation changes
+
+### Phase 2 (Next Conversation) — Interaction Layer
+Things that build on the core but can wait:
+
+- Pending changes queue for Level 1 users (the UI for reviewing pending edits)
+- "This Helped Me" endorsement button on revision diffs
+- Scholar Star awarding UI (the modal with written reason)
+- Generic upvote button on revisions
+- Edit revert mechanism (one-click revert for Level 3+)
+- Acceptance rate tracking with the time-window logic
+- Voting ring detection alerts
+
+> [!IMPORTANT]
+> **My recommendation is to build Phase 1 now.** It gives us the complete database schema, the profile display, and the reputation tracking backbone. Phase 2 adds the interaction buttons and workflows that earn those points. This sequencing means the infrastructure is ready before the interaction layer — we're not building buttons that point to nothing.
+
+---
+
+## Verification Plan
+
+### Phase 1 Verification
+1. Run migration — verify all new tables and columns exist
+2. Profile page displays level badge, reputation, acceptance stats, Scholar Stars
+3. Recent Changes is accessible as a top-level page with contributor level badges
+4. RLS policies correctly restrict actions by the 6 trust levels
+5. `reputation_events` table correctly logs point awards
+6. Level advancement triggers correctly when thresholds are met

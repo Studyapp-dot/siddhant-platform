@@ -1,0 +1,1017 @@
+/* ========================================
+   SIDDHANT — INSTITUTIONAL LANDING PAGE
+   Jurisprudential exhibition, not startup marketing.
+   Serif-dominant, archival, museological spacing.
+   ======================================== */
+
+.landing-page {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  overflow-x: hidden;
+  --lp-accent: var(--color-gold);
+  --lp-accent-glow: var(--color-gold-soft);
+  --lp-surface: var(--card-bg);
+  --lp-border: var(--border-subtle);
+  transition: background-color var(--transition), color var(--transition);
+}
+
+/* ===== SUBTLE REVEAL ANIMATION ===== */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-on-scroll.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== NAVBAR ===== */
+.lp-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 48px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.lp-nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lp-nav-logo-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--lp-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--bg-surface);
+}
+
+.lp-nav-logo-text {
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+.lp-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.lp-nav-link {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+  letter-spacing: 0.02em;
+}
+
+.lp-nav-link:hover {
+  color: var(--text-primary);
+}
+
+.lp-nav-cta {
+  padding: 8px 20px;
+  border-radius: 8px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.lp-nav-cta:hover {
+  background: var(--color-gold-soft);
+  border-color: var(--color-gold);
+}
+
+/* ===== HERO — INSTITUTIONAL, SERIF-DOMINANT ===== */
+.lp-hero {
+  min-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  padding: 160px 24px 100px;
+  overflow: hidden;
+}
+
+/* Subtle warm radial — archival warmth, not startup glow */
+.lp-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 100vh;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 20%, rgba(184, 150, 62, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.lp-hero-badge {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 100px;
+  border: 1px solid rgba(197, 160, 89, 0.2);
+  background: rgba(197, 160, 89, 0.05);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-gold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+  opacity: 0.8;
+}
+
+.lp-hero-badge-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  opacity: 0.7;
+}
+
+.lp-hero-title {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-serif);
+  font-size: clamp(2.8rem, 5.5vw, 4.2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text-heading);
+  margin-bottom: 28px;
+  max-width: 720px;
+}
+
+.lp-hero-sub {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  max-width: 580px;
+  line-height: 1.8;
+  margin-bottom: 48px;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.lp-hero-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+/* Hero anchor — institutional transition device */
+.lp-hero-anchor {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-serif);
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+  opacity: 0.6;
+  margin-top: 20px;
+}
+
+/* ===== NARRATIVE CONNECTORS ===== */
+/* Storytelling flow between sections */
+.lp-narrative-connector {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 48px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.lp-narrative-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+.lp-narrative-text {
+  font-family: var(--font-serif);
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--text-muted);
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+.lp-btn-primary {
+  padding: 14px 36px;
+  border-radius: 8px;
+  background: var(--text-heading);
+  color: var(--bg-base);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s;
+  box-shadow: var(--shadow-sm);
+}
+
+.lp-btn-primary:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.lp-btn-ghost {
+  padding: 14px 32px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid var(--border-medium);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.lp-btn-ghost:hover {
+  background: var(--bg-panel);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+/* ===== SHARED SECTION PRIMITIVES ===== */
+.lp-section {
+  padding: 100px 48px;
+  position: relative;
+}
+
+.lp-section-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-gold);
+  margin-bottom: 16px;
+  opacity: 0.9;
+}
+
+.lp-section-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-heading);
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+
+.lp-section-sub {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  max-width: 560px;
+  line-height: 1.75;
+}
+
+.lp-section-header-centered {
+  text-align: center;
+  margin-bottom: 72px;
+}
+
+/* Left-aligned headers — break center monotony, create directional reading flow */
+.lp-header-left {
+  text-align: left;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ===== JURISPRUDENTIAL EXHIBITION ===== */
+/* "Curated constitutional moments" — editorial, not infographic */
+
+.lp-exhibition {
+  background: var(--bg-base);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.lp-exhibition-header {
+  text-align: center;
+  margin-bottom: 80px;
+}
+
+.lp-exhibition-header .lp-section-sub {
+  margin: 0 auto;
+}
+
+/* The curated moments — editorial unfolding */
+.lp-moments {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.lp-moment {
+  position: relative;
+  padding: 40px 0 40px 48px;
+  border-left: 1px solid var(--border-subtle);
+}
+
+.lp-moment:first-child {
+  padding-top: 0;
+}
+
+.lp-moment:last-child {
+  border-left-color: transparent;
+}
+
+/* The subtle dot on the timeline line */
+.lp-moment::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 44px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  opacity: 0.6;
+}
+
+.lp-moment:first-child::before {
+  top: 4px;
+}
+
+.lp-moment-year {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-gold);
+  margin-bottom: 10px;
+  opacity: 0.85;
+}
+
+.lp-moment-title {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+
+.lp-moment-desc {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  font-style: italic;
+  max-width: 540px;
+}
+
+/* Diff preview — Siddhant's signature visual */
+.lp-diff-wrapper {
+  margin-top: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.lp-diff-preview {
+  flex: 1;
+  padding: 20px 24px;
+  border-radius: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--color-gold);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  line-height: 1.8;
+  overflow: hidden;
+}
+
+.lp-diff-annotation {
+  flex: 0 0 160px;
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.6;
+  padding-top: 8px;
+  opacity: 0.7;
+}
+
+.lp-diff-line {
+  padding: 2px 0;
+  display: block;
+}
+
+.lp-diff-line.removed {
+  color: #e57373;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.lp-diff-line.added {
+  color: #81c784;
+}
+
+.lp-diff-line.context {
+  color: var(--text-muted);
+}
+
+.lp-diff-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  display: block;
+}
+
+/* ===== DOCTRINAL CARTOGRAPHY ===== */
+/* Subtle relationship constellation — atlas, not tech demo */
+
+.lp-cartography {
+  margin-top: 72px;
+  padding: 48px;
+  border-radius: 16px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lp-cartography-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.lp-cartography-map {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.lp-cartography-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  transition: border-color 0.3s;
+}
+
+.lp-cartography-node:hover {
+  border-color: var(--color-gold);
+}
+
+.lp-cartography-node-icon {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.lp-cartography-edge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.lp-cartography-edge-line {
+  width: 1px;
+  height: 16px;
+  background: var(--border-medium);
+}
+
+/* Two-column relationship for wider displays */
+.lp-cartography-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.lp-cartography-connector {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  opacity: 0.6;
+  padding: 4px 12px;
+  border-radius: 100px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+  white-space: nowrap;
+}
+
+/* ===== LIVING ARCHIVE — REAL NODES ===== */
+
+.lp-archive {
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.lp-archive-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.lp-archive-header .lp-section-sub {
+  margin: 0 auto;
+}
+
+.lp-archive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.lp-archive-card {
+  padding: 28px 24px;
+  border-radius: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-decoration: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.lp-archive-card:hover {
+  border-color: var(--color-gold);
+  border-left-color: var(--color-gold);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.lp-archive-card-type {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  width: fit-content;
+}
+
+.lp-archive-card-title {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  line-height: 1.3;
+}
+
+.lp-archive-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.lp-archive-card-meta span {
+  display: inline;
+}
+
+.lp-archive-cta-row {
+  text-align: center;
+  margin-top: 48px;
+}
+
+/* ===== SCHOLARLY VITALITY STRIP ===== */
+/* Restrained livingness — real data, institutional tone */
+
+.lp-vitality-strip {
+  margin-top: 56px;
+  padding: 28px 32px;
+  border-radius: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--color-gold);
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lp-vitality-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+
+.lp-vitality-signals {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.lp-vitality-signal {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lp-vitality-signal + .lp-vitality-signal {
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.lp-vitality-signal-type {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-gold);
+  opacity: 0.85;
+}
+
+.lp-vitality-signal-content {
+  font-family: var(--font-serif);
+  font-size: 0.88rem;
+  font-style: italic;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.lp-vitality-signal-meta {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* ===== CONTRIBUTE — SCHOLARLY PATHWAY ===== */
+
+.lp-contribute {
+  background: var(--bg-base);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.lp-contribute-header {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.lp-contribute-header .lp-section-sub {
+  margin: 0 auto;
+}
+
+.lp-contribute-pathways {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.lp-pathway-card {
+  padding: 32px 28px;
+  border-radius: 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.3s;
+}
+
+.lp-pathway-card:hover {
+  border-color: var(--color-gold);
+}
+
+.lp-pathway-icon {
+  font-size: 1.3rem;
+  opacity: 0.8;
+}
+
+.lp-pathway-title {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.lp-pathway-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ===== FOOTER — INSTITUTIONAL ===== */
+
+.lp-footer {
+  padding: 80px 48px;
+  text-align: center;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+}
+
+.lp-footer-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.lp-footer-mission {
+  font-family: var(--font-serif);
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  max-width: 520px;
+  margin: 0 auto 32px;
+  font-style: italic;
+}
+
+.lp-footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.lp-footer-link {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.lp-footer-link:hover {
+  color: var(--text-primary);
+}
+
+.lp-footer-copy {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+/* Activity pulse — kept for navbar usage but removed from landing */
+.comm-pulse-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.comm-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  position: relative;
+}
+
+.comm-pulse-dot::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #10b981;
+  animation: comm-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes comm-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  70% { transform: scale(3); opacity: 0; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .lp-nav { padding: 16px 24px; }
+  .lp-section { padding: 72px 24px; }
+  .lp-hero { padding: 140px 24px 80px; min-height: 75vh; }
+  .lp-hero-title { font-size: clamp(2.2rem, 6vw, 3.2rem); }
+  .lp-cartography { padding: 32px 24px; }
+  .lp-archive-grid { grid-template-columns: 1fr; }
+  .lp-contribute-pathways { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .lp-nav-links { display: none; }
+  .lp-hero-actions { flex-direction: column; width: 100%; max-width: 300px; }
+  .lp-btn-primary, .lp-btn-ghost { width: 100%; text-align: center; }
+  .lp-footer-links { flex-wrap: wrap; gap: 16px; }
+  .lp-moment { padding-left: 32px; }
+  .lp-cartography-row { flex-direction: column; }
+  .lp-diff-wrapper { flex-direction: column; }
+  .lp-diff-annotation { flex: none; }
+}
+
+/* ===== USER MENU DROPDOWN ===== */
+.user-menu {
+  position: relative;
+}
+
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
+  border-radius: 100px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.user-menu-trigger:hover {
+  background: var(--bg-surface);
+  border-color: var(--color-gold-soft);
+}
+
+.user-menu-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  color: var(--color-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.user-menu-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-menu-chevron {
+  font-size: 0.75rem;
+  opacity: 0.5;
+  transition: transform 0.2s;
+}
+
+.user-menu-chevron.open {
+  transform: rotate(180deg);
+}
+
+.user-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-lg);
+  z-index: 2000;
+  user-select: none;
+  -webkit-user-select: none;
+  animation: menu-enter 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes menu-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.user-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.15s;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 100%;
+  font-family: inherit;
+  text-align: left;
+}
+
+.user-menu-item:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.user-menu-item-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.user-menu-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 4px 10px;
+}
+
+.user-menu-signout {
+  color: rgba(248, 113, 113, 0.8);
+}
+
+.user-menu-signout:hover {
+  background: rgba(248, 113, 113, 0.08);
+  color: #f87171;
+}
