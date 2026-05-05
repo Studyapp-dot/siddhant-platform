@@ -18,10 +18,20 @@ export interface RecognitionFeedItem {
   activity_type: 'revision' | 'scholar_star' | 'endorsement' | 'acknowledge' | 'quality_vote' | 'quality_assessment' | 'group_post' | 'mentorship_started';
   actor_id: string;
   actor_username: string;
+  actor_full_display_name?: string | null;
+  actor_institution_name?: string | null;
+  actor_scholarly_role?: string | null;
+  actor_areas_of_interest?: string[] | null;
+  actor_profile_photo?: string | null;
   actor_role: string;
   actor_reputation: number;
   recipient_id: string | null;
   recipient_username: string | null;
+  recipient_full_display_name?: string | null;
+  recipient_institution_name?: string | null;
+  recipient_scholarly_role?: string | null;
+  recipient_areas_of_interest?: string[] | null;
+  recipient_profile_photo?: string | null;
   node_id: string | null;
   node_title: string | null;
   node_slug: string | null;
@@ -64,6 +74,7 @@ interface RevisionIdRow {
 
 interface ProfileRelation {
   username?: string | null;
+  full_display_name?: string | null;
 }
 
 interface NodeRelation {
@@ -259,7 +270,7 @@ export async function getRevisionDiffContext(revisionId: string): Promise<{
     .select(`
       id, node_id, report_content, tier1_content, content_size,
       commit_message, created_at, author_id,
-      profiles!revisions_author_id_fkey (username),
+      profiles!revisions_author_id_fkey (username, full_display_name),
       nodes!revisions_node_id_fkey (slug)
     `)
     .eq('id', revisionId)
@@ -279,7 +290,7 @@ export async function getRevisionDiffContext(revisionId: string): Promise<{
     .from('revisions')
     .select(`
       id, report_content, tier1_content, created_at, author_id,
-      profiles!revisions_author_id_fkey (username)
+      profiles!revisions_author_id_fkey (username, full_display_name)
     `)
     .eq('node_id', revisionRow.node_id)
     .lt('created_at', revisionRow.created_at)
@@ -297,13 +308,13 @@ export async function getRevisionDiffContext(revisionId: string): Promise<{
   return {
     current: {
       content: currentContent,
-      authorName: profileData?.username || 'Unknown',
+      authorName: profileData?.full_display_name || profileData?.username || 'Unknown',
       date: revisionRow.created_at,
     },
     previous: prevRevision
       ? {
           content: prevContent,
-          authorName: prevProfileData?.username || 'Unknown',
+          authorName: prevProfileData?.full_display_name || prevProfileData?.username || 'Unknown',
           date: (prevRevision as unknown as RevisionDiffRow).created_at,
         }
       : null,

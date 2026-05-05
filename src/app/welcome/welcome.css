@@ -536,6 +536,23 @@
   box-shadow: 0 0 0 3px var(--color-gold-soft);
 }
 
+.welcome-field-textarea {
+  resize: vertical;
+  min-height: 110px;
+  line-height: 1.6;
+}
+
+.welcome-field-quiet {
+  opacity: 0.86;
+}
+
+.welcome-field-label span {
+  margin-left: 6px;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
 /* Interest Chips */
 .welcome-interests {
   margin-bottom: 2.5rem;

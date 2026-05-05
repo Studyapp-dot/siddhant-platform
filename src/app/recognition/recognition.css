@@ -72,6 +72,7 @@
 }
 .sidebar-leaderboard-item {
   display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap;
   padding: 0.5rem 0; font-size: 0.82rem;
 }
 .sidebar-leaderboard-rank {
@@ -180,6 +181,27 @@
   display: inline-flex; align-items: center; gap: 4px;
   padding: 2px 8px; border-radius: 6px;
   font-size: 0.68rem; font-weight: 700; letter-spacing: 0.03em;
+}
+
+.contributor-identity-line {
+  margin-top: 3px;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.contributor-identity-line.compact {
+  max-width: 260px;
+  font-size: 0.66rem;
+}
+
+.sidebar-leaderboard-identity {
+  flex-basis: 100%;
+  margin-left: 1.4rem;
+  margin-top: 2px;
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  line-height: 1.35;
 }
 
 /* ===== SHARED: IMPACT STATEMENT ===== */

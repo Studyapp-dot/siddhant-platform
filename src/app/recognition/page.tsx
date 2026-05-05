@@ -5,12 +5,14 @@ import { getRecognitionFeed, getUserEndorsementState, FeedFilter } from '@/app/a
 import { getReputationBreakdown } from '@/app/actions/reputation';
 import FeedCard from './FeedCard';
 import {
+  actorIdentityFor,
   aggregateEndorsements,
   AggregatedEndorsement,
   getContributionThesisFromSummary,
   getImportanceScore,
   getRoleMeta,
 } from './feedUtils';
+import { displayNameFor, identityLineFor } from '@/app/utils/scholarlyIdentity';
 import './recognition.css';
 
 interface RecognitionPageProps {
@@ -101,14 +103,21 @@ export default async function RecognitionPage({ searchParams }: RecognitionPageP
     .slice(0, 3);
 
   // Top contributors this week (from feed data)
-  const contributorMap = new Map<string, { username: string; role: string; points: number }>();
+  const contributorMap = new Map<string, { username: string; role: string; points: number; displayName: string; identityLine: string }>();
   for (const item of weekItems) {
     const existing = contributorMap.get(item.actor_id);
     const pts = getImportanceScore(item);
     if (existing) {
       existing.points += pts;
     } else {
-      contributorMap.set(item.actor_id, { username: item.actor_username, role: item.actor_role, points: pts });
+      const actorIdentity = actorIdentityFor(item);
+      contributorMap.set(item.actor_id, {
+        username: item.actor_username,
+        role: item.actor_role,
+        points: pts,
+        displayName: displayNameFor(actorIdentity),
+        identityLine: identityLineFor(actorIdentity),
+      });
     }
   }
   const topContributors = [...contributorMap.values()]
@@ -213,9 +222,12 @@ export default async function RecognitionPage({ searchParams }: RecognitionPageP
                 <div key={c.username} className="sidebar-leaderboard-item">
                   <span className="sidebar-leaderboard-rank">{idx + 1}.</span>
                   <Link href={`/profile/${c.username}`} className="sidebar-leaderboard-name" style={{ textDecoration: 'none' }}>
-                    {c.username}
+                    {c.displayName}
                   </Link>
                   <span className="sidebar-leaderboard-score">+{c.points}</span>
+                  {c.identityLine && (
+                    <span className="sidebar-leaderboard-identity">{c.identityLine}</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -383,6 +395,17 @@ export default async function RecognitionPage({ searchParams }: RecognitionPageP
 function AggregatedEndorsementCard({ agg }: { agg: AggregatedEndorsement }) {
   const topEndorsers = agg.endorsers.slice(0, 3);
   const remainingCount = agg.endorsers.length - topEndorsers.length;
+  const recipientDisplayName = displayNameFor({
+    username: agg.recipientUsername,
+    full_display_name: agg.recipientFullDisplayName,
+    institution_name: agg.recipientInstitutionName,
+    scholarly_role: agg.recipientScholarlyRole,
+    areas_of_interest: agg.recipientAreasOfInterest,
+  });
+  const recipientIdentityLine = identityLineFor({
+    institution_name: agg.recipientInstitutionName,
+    scholarly_role: agg.recipientScholarlyRole,
+  });
   const contributionThesis = agg.contributionThesis
     || getContributionThesisFromSummary(agg.sourceCommitMessage, agg.nodeTitle);
 
@@ -404,6 +427,13 @@ function AggregatedEndorsementCard({ agg }: { agg: AggregatedEndorsement }) {
         <div className="aec-avatar-stack">
           {topEndorsers.map((e, i) => {
             const role = getRoleMeta(e.role);
+            const endorserName = displayNameFor({
+              username: e.username,
+              full_display_name: e.fullDisplayName,
+              institution_name: e.institutionName,
+              scholarly_role: e.scholarlyRole,
+              areas_of_interest: e.areasOfInterest,
+            });
             return (
               <div
                 key={e.username}
@@ -411,7 +441,7 @@ function AggregatedEndorsementCard({ agg }: { agg: AggregatedEndorsement }) {
                 style={{ background: role.color, zIndex: 10 - i, marginLeft: i > 0 ? '-8px' : '0' }}
                 title={`@${e.username} • ${role.label}`}
               >
-                {e.username.charAt(0).toUpperCase()}
+                {endorserName.charAt(0).toUpperCase()}
               </div>
             );
           })}
@@ -427,12 +457,14 @@ function AggregatedEndorsementCard({ agg }: { agg: AggregatedEndorsement }) {
             <b>{agg.endorsers.length} scholars</b> endorsed{' '}
             {agg.recipientUsername && (
               <Link href={`/profile/${agg.recipientUsername}`} style={{ color: 'var(--color-gold)', textDecoration: 'none', fontWeight: 700 }}>
-                @{agg.recipientUsername}
+                {recipientDisplayName}
               </Link>
             )}
             {"'s contribution"}
           </div>
-          <div className="aec-role-breakdown">{roleBreakdown}</div>
+          <div className="aec-role-breakdown">
+            {recipientIdentityLine ? `${recipientIdentityLine} - ` : ''}{roleBreakdown}
+          </div>
         </div>
       </div>
 

@@ -3,6 +3,13 @@ import { createClient } from '@/utils/supabase/server';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { LEVEL_THRESHOLDS } from '@/app/actions/reputation-constants';
+import {
+  displayNameFor,
+  handleFor,
+  identityLineFor,
+  initialFor,
+  interestLineFor,
+} from '@/app/utils/scholarlyIdentity';
 import '@/app/community-core.css';
 import '../../topic/[slug]/page.css';
 import '../[username]/profile.css';
@@ -31,7 +38,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
   // Fetch the profile with all reputation columns
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, username, role, reputation_score, accepted_edits_count, total_edits_count, endorsements_received, peer_reviews_completed, scholar_stars_received, created_at')
+    .select('id, username, full_display_name, institution_name, scholarly_role, areas_of_interest, short_bio, profile_photo, linkedin_url, role, reputation_score, accepted_edits_count, total_edits_count, endorsements_received, peer_reviews_completed, scholar_stars_received, created_at')
     .eq('username', username)
     .single();
 
@@ -211,6 +218,11 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
   const acceptanceRate = profile.total_edits_count > 0
     ? Math.round((profile.accepted_edits_count / profile.total_edits_count) * 1000) / 10
     : 0;
+  const profileDisplayName = displayNameFor(profile);
+  const profileHandle = handleFor(profile);
+  const profileIdentityLine = identityLineFor(profile);
+  const profileInterestLine = interestLineFor(profile, 6);
+  const linkedinUrl = profile.linkedin_url?.trim();
 
   // Event type display labels
   const eventLabels: Record<string, string> = {
@@ -256,17 +268,36 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
           <div className="scholar-avatar" style={{
             width: '100px', height: '100px', fontSize: '2.5rem',
             margin: '0 auto 1.5rem',
-            background: 'var(--color-gold-gradient)', color: 'var(--bg-app)',
+            background: profile.profile_photo ? `url(${profile.profile_photo}) center / cover` : 'var(--color-gold-gradient)',
+            color: 'var(--bg-app)',
             border: 'none', boxShadow: 'var(--color-gold-glow)',
             borderRadius: '24px', transform: 'rotate(-3deg)',
           }}>
-            {profile.username.charAt(0).toUpperCase()}
+            {!profile.profile_photo && initialFor(profile)}
           </div>
 
-          {/* Username */}
+          {/* Scholarly identity */}
           <h2 className="scholar-name" style={{ fontSize: '1.6rem', marginBottom: '0.25rem', fontFamily: 'var(--font-serif)', letterSpacing: '-0.02em' }}>
-            {profile.username}
+            {profileDisplayName}
           </h2>
+          <div className="profile-handle">{profileHandle}</div>
+          {profileIdentityLine && (
+            <div className="profile-institution-line">{profileIdentityLine}</div>
+          )}
+          {profileInterestLine && (
+            <div className="profile-interest-line">{profileInterestLine}</div>
+          )}
+          {linkedinUrl && (
+            <a
+              href={linkedinUrl}
+              className="profile-external-link"
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`${profileDisplayName} LinkedIn profile`}
+            >
+              in
+            </a>
+          )}
 
           {/* Level Badge — Prominent */}
           <div style={{
@@ -319,6 +350,13 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
           )}
 
           {/* Reputation Stats — Primary Display */}
+          {profile.short_bio && (
+            <div className="profile-bio-record">
+              <span>Scholarly Note</span>
+              <p>{profile.short_bio}</p>
+            </div>
+          )}
+
           <div className="stats-ledger" style={{ marginTop: '2.5rem', textAlign: 'left', gap: '1rem' }}>
             <span className="nav-heading" style={{ paddingLeft: 0, color: 'var(--color-gold)' }}>Reputation</span>
 
@@ -471,8 +509,13 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <div>
               <span className="context-label">Contributor Profile</span>
-              <h1 className="scholarly-title" style={{ fontSize: '2.5rem' }}>{profile.username}</h1>
-              <p className="scholarly-subtitle">Member since {memberSince}</p>
+              <h1 className="scholarly-title" style={{ fontSize: '2.5rem' }}>{profileDisplayName}</h1>
+              <p className="scholarly-subtitle">
+                {profileIdentityLine || profileHandle} - Member since {memberSince}
+              </p>
+              {profileInterestLine && (
+                <div className="profile-header-interests">{profileInterestLine}</div>
+              )}
             </div>
             {/* Level Badge (Header) */}
             <div style={{
@@ -494,6 +537,32 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
           </div>
         </header>
 
+        <section className="profile-identity-record">
+          <div>
+            <span className="profile-record-label">Identity</span>
+            <h2>{profileDisplayName}</h2>
+            <p>{profileIdentityLine || 'Scholarly affiliation not yet supplied.'}</p>
+          </div>
+          <dl>
+            <div>
+              <dt>Siddhant Handle</dt>
+              <dd>{profileHandle}</dd>
+            </div>
+            <div>
+              <dt>Institution</dt>
+              <dd>{profile.institution_name || 'Not supplied'}</dd>
+            </div>
+            <div>
+              <dt>Role</dt>
+              <dd>{profile.scholarly_role || 'Not supplied'}</dd>
+            </div>
+            <div>
+              <dt>Constitutional Focus</dt>
+              <dd>{profileInterestLine || 'Not supplied'}</dd>
+            </div>
+          </dl>
+        </section>
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4rem' }}>
           {/* Tab Navigation */}
           <div style={{
@@ -508,7 +577,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
               borderBottom: activeTab === 'portfolio' ? '3px solid var(--color-gold)' : '3px solid transparent',
               marginBottom: '-0.5rem', transition: 'all 0.2s',
             }}>
-              Portfolio
+              Scholarly Record
             </Link>
             <Link href={`?tab=reputation`} style={{
               fontSize: '1.05rem', fontWeight: activeTab === 'reputation' ? 800 : 500,
@@ -517,7 +586,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
               borderBottom: activeTab === 'reputation' ? '3px solid var(--color-gold)' : '3px solid transparent',
               marginBottom: '-0.5rem', transition: 'all 0.2s',
             }}>
-              Reputation & Recognition
+              Recognition Record
             </Link>
             <Link href={`?tab=community`} style={{
               fontSize: '1.05rem', fontWeight: activeTab === 'community' ? 800 : 500,
@@ -526,7 +595,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
               borderBottom: activeTab === 'community' ? '3px solid var(--color-gold)' : '3px solid transparent',
               marginBottom: '-0.5rem', transition: 'all 0.2s',
             }}>
-              Community Activity
+              Review & Discussion
             </Link>
           </div>
 

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
+import { SCHOLARLY_ROLE_OPTIONS, normalizeOptionalUrl } from '@/app/utils/scholarlyIdentity';
 
 interface WelcomeFlowProps {
   username: string;
@@ -29,9 +30,12 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
   const [fadeClass, setFadeClass] = useState('welcome-layer-enter');
 
   // Layer 3 state
-  const [participationRole, setParticipationRole] = useState<string>('');
+  const [fullDisplayName, setFullDisplayName] = useState(username);
+  const [scholarlyRole, setScholarlyRole] = useState<string>('');
   const [institution, setInstitution] = useState('');
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [shortBio, setShortBio] = useState('');
+  const [linkedinUrl, setLinkedinUrl] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   const transitionTo = (nextLayer: 1 | 2 | 3) => {
@@ -50,13 +54,33 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
     setIsSaving(true);
     try {
       const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
       const metadata: Record<string, unknown> = {};
-      if (participationRole) metadata.participation_role = participationRole;
-      if (institution.trim()) metadata.institution = institution.trim();
+      const normalizedLinkedinUrl = normalizeOptionalUrl(linkedinUrl);
+
+      if (fullDisplayName.trim()) metadata.full_display_name = fullDisplayName.trim();
+      if (scholarlyRole) metadata.scholarly_role = scholarlyRole;
+      if (institution.trim()) metadata.institution_name = institution.trim();
       if (selectedInterests.length > 0) metadata.areas_of_interest = selectedInterests;
+      if (shortBio.trim()) metadata.short_bio = shortBio.trim();
+      if (normalizedLinkedinUrl) metadata.linkedin_url = normalizedLinkedinUrl;
       metadata.onboarding_completed = true;
 
       await supabase.auth.updateUser({ data: metadata });
+
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({
+            full_display_name: fullDisplayName.trim() || null,
+            institution_name: institution.trim() || null,
+            scholarly_role: scholarlyRole || null,
+            areas_of_interest: selectedInterests,
+            short_bio: shortBio.trim() || null,
+            linkedin_url: normalizedLinkedinUrl,
+          })
+          .eq('id', user.id);
+      }
     } catch {
       // Non-blocking — don't prevent entry
     }
@@ -271,42 +295,49 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
           <div className="welcome-identity">
             <div className="welcome-section-label">Scholarly Identity</div>
             <h2 className="welcome-identity-title">
-              How would you like to participate in Siddhant?
+              Introduce your scholarly interests and institutional background.
             </h2>
             <p className="welcome-identity-subtitle">
-              This helps us understand our scholarly community. 
-              All fields are optional — you can update these later.
+              These details form your Siddhant contributor record. You can leave
+              any field blank and complete it later.
             </p>
 
-            {/* Participation Role */}
+            {/* Full Name */}
+            <div className="welcome-field">
+              <label className="welcome-field-label">Full Name</label>
+              <input
+                type="text"
+                className="welcome-field-input"
+                placeholder="e.g. Vipin Gupta"
+                value={fullDisplayName}
+                onChange={e => setFullDisplayName(e.target.value)}
+              />
+            </div>
+
+            {/* Scholarly Role */}
+            <label className="welcome-field-label">Scholarly Role</label>
             <div className="welcome-roles">
-              {[
-                { value: 'law_student', label: 'Law Student' },
-                { value: 'advocate', label: 'Advocate' },
-                { value: 'academic', label: 'Academic / Professor' },
-                { value: 'researcher', label: 'Researcher' },
-                { value: 'public_contributor', label: 'Public Contributor' },
-              ].map(role => (
+              {SCHOLARLY_ROLE_OPTIONS.map(role => (
                 <button
-                  key={role.value}
-                  className={`welcome-role-btn ${participationRole === role.value ? 'selected' : ''}`}
-                  onClick={() => setParticipationRole(
-                    participationRole === role.value ? '' : role.value
+                  key={role}
+                  className={`welcome-role-btn ${scholarlyRole === role ? 'selected' : ''}`}
+                  onClick={() => setScholarlyRole(
+                    scholarlyRole === role ? '' : role
                   )}
                   type="button"
                 >
-                  {role.label}
+                  {role}
                 </button>
               ))}
             </div>
 
             {/* Institution */}
             <div className="welcome-field">
-              <label className="welcome-field-label">Your Institution</label>
+              <label className="welcome-field-label">Institution</label>
               <input
                 type="text"
                 className="welcome-field-input"
-                placeholder="e.g. National Law School, Bangalore"
+                placeholder="e.g. Faculty of Law, Delhi University"
                 value={institution}
                 onChange={e => setInstitution(e.target.value)}
               />
@@ -314,7 +345,7 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
 
             {/* Areas of Interest */}
             <div className="welcome-interests">
-              <label className="welcome-field-label">Areas of Interest</label>
+              <label className="welcome-field-label">Constitutional and Legal Interests</label>
               <div className="welcome-interest-grid">
                 {AREAS_OF_INTEREST.map(area => (
                   <button
@@ -327,6 +358,30 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Bio */}
+            <div className="welcome-field">
+              <label className="welcome-field-label">Short Scholarly Bio</label>
+              <textarea
+                className="welcome-field-input welcome-field-textarea"
+                placeholder="Briefly describe your scholarly orientation or current legal interests."
+                value={shortBio}
+                onChange={e => setShortBio(e.target.value)}
+                rows={4}
+              />
+            </div>
+
+            {/* LinkedIn */}
+            <div className="welcome-field welcome-field-quiet">
+              <label className="welcome-field-label">LinkedIn URL <span>Optional</span></label>
+              <input
+                type="text"
+                className="welcome-field-input"
+                placeholder="https://www.linkedin.com/in/..."
+                value={linkedinUrl}
+                onChange={e => setLinkedinUrl(e.target.value)}
+              />
             </div>
 
             {/* Actions */}

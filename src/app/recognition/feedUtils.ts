@@ -7,6 +7,7 @@
 // ============================================================================
 
 import { RecognitionFeedItem } from '@/app/actions/recognition-feed';
+import { displayNameFor, type ScholarlyIdentity } from '@/app/utils/scholarlyIdentity';
 import { diff_match_patch } from 'diff-match-patch';
 
 // ─── Role Metadata ───────────────────────────────────────────────────────────
@@ -35,6 +36,28 @@ export function getRoleMeta(role: string): RoleMeta {
 
 export function getRoleColor(role: string): string {
   return getRoleMeta(role).color;
+}
+
+export function actorIdentityFor(item: RecognitionFeedItem): ScholarlyIdentity {
+  return {
+    username: item.actor_username,
+    full_display_name: item.actor_full_display_name,
+    institution_name: item.actor_institution_name,
+    scholarly_role: item.actor_scholarly_role,
+    areas_of_interest: item.actor_areas_of_interest,
+    profile_photo: item.actor_profile_photo,
+  };
+}
+
+export function recipientIdentityFor(item: RecognitionFeedItem): ScholarlyIdentity {
+  return {
+    username: item.recipient_username,
+    full_display_name: item.recipient_full_display_name,
+    institution_name: item.recipient_institution_name,
+    scholarly_role: item.recipient_scholarly_role,
+    areas_of_interest: item.recipient_areas_of_interest,
+    profile_photo: item.recipient_profile_photo,
+  };
 }
 
 
@@ -308,8 +331,21 @@ export interface AggregatedEndorsement {
   nodeTitle: string | null;
   nodeSlug: string | null;
   recipientUsername: string | null;
+  recipientFullDisplayName: string | null;
+  recipientInstitutionName: string | null;
+  recipientScholarlyRole: string | null;
+  recipientAreasOfInterest: string[];
   recipientId: string | null;
-  endorsers: { username: string; role: string; reputation: number; createdAt: string }[];
+  endorsers: {
+    username: string;
+    fullDisplayName: string | null;
+    institutionName: string | null;
+    scholarlyRole: string | null;
+    areasOfInterest: string[];
+    role: string;
+    reputation: number;
+    createdAt: string;
+  }[];
   latestCreatedAt: string;
   // ── Evidence fields ──
   sourceRevisionId: string | null;
@@ -355,6 +391,10 @@ export function aggregateEndorsements(items: RecognitionFeedItem[]): {
       if (!uniqueEndorsersMap.has(item.actor_username)) {
         uniqueEndorsersMap.set(item.actor_username, {
           username: item.actor_username,
+          fullDisplayName: item.actor_full_display_name || null,
+          institutionName: item.actor_institution_name || null,
+          scholarlyRole: item.actor_scholarly_role || null,
+          areasOfInterest: item.actor_areas_of_interest || [],
           role: item.actor_role,
           reputation: item.actor_reputation,
           createdAt: item.created_at,
@@ -369,6 +409,10 @@ export function aggregateEndorsements(items: RecognitionFeedItem[]): {
         nodeTitle: sorted[0].node_title,
         nodeSlug: sorted[0].node_slug,
         recipientUsername: sorted[0].recipient_username,
+        recipientFullDisplayName: sorted[0].recipient_full_display_name || null,
+        recipientInstitutionName: sorted[0].recipient_institution_name || null,
+        recipientScholarlyRole: sorted[0].recipient_scholarly_role || null,
+        recipientAreasOfInterest: sorted[0].recipient_areas_of_interest || [],
         recipientId: sorted[0].recipient_id,
         endorsers: uniqueEndorsers,
         latestCreatedAt: sorted[0].created_at,
@@ -395,15 +439,16 @@ export function aggregateEndorsements(items: RecognitionFeedItem[]): {
 // ─── Render Action Text ──────────────────────────────────────────────────────
 
 export function renderActionText(item: RecognitionFeedItem): string {
+  const recipientName = displayNameFor(recipientIdentityFor(item));
   switch (item.activity_type) {
     case 'revision':
       return `committed an edit: ${item.detail_text}`;
     case 'scholar_star':
-      return `awarded a ⭐ Scholar Star to @${item.recipient_username}`;
+      return `awarded a Scholar Star to ${recipientName}`;
     case 'endorsement':
-      return `marked @${item.recipient_username}'s work as 💡 Insightful`;
+      return `marked ${recipientName}'s work as Insightful`;
     case 'acknowledge':
-      return `acknowledged @${item.recipient_username}'s contribution`;
+      return `acknowledged ${recipientName}'s contribution`;
     case 'quality_vote':
       return `voted for ${item.detail_category} tier assessment`;
     case 'quality_assessment':
@@ -411,7 +456,7 @@ export function renderActionText(item: RecognitionFeedItem): string {
     case 'group_post':
       return `posted in ${item.group_name || 'a subject forum'} · ${item.detail_category || 'general'}`;
     case 'mentorship_started':
-      return `began mentoring @${item.recipient_username} in ${item.group_name || 'a subject group'}`;
+      return `began mentoring ${recipientName} in ${item.group_name || 'a subject group'}`;
     default:
       return 'performed an action';
   }

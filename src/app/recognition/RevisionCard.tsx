@@ -6,10 +6,12 @@ import { RecognitionFeedItem, getRevisionDiffContext } from '@/app/actions/recog
 import { toggleAcknowledge, toggleInsightful } from '@/app/actions/contributions';
 import { diff_match_patch } from 'diff-match-patch';
 import {
+  actorIdentityFor,
   getRoleMeta, getReputationPoints, getImpactStatement,
   getContributionStatus, getContributionType,
   STATUS_META, TYPE_META,
 } from './feedUtils';
+import { displayNameFor, identityLineFor, initialFor, interestLineFor } from '@/app/utils/scholarlyIdentity';
 import FeedComments from './FeedComments';
 
 interface RevisionCardProps {
@@ -47,6 +49,10 @@ export default function RevisionCard({
   const typeMeta = TYPE_META[contribType];
   const points = getReputationPoints(item.activity_type, item.detail_size);
   const impact = getImpactStatement(item);
+  const actorIdentity = actorIdentityFor(item);
+  const actorDisplayName = displayNameFor(actorIdentity);
+  const actorIdentityLine = identityLineFor(actorIdentity);
+  const actorInterestLine = interestLineFor(actorIdentity);
 
   const toggleDiff = async () => {
     if (isExpanded) { setIsExpanded(false); return; }
@@ -100,16 +106,26 @@ export default function RevisionCard({
     <div className={`revision-card rc-status-${status}`} style={{ borderLeftColor: borderColor }}>
       {/* Header */}
       <div className="rc-header">
-        <div className="rc-avatar" style={{ background: actorRole.color }}>
-          {item.actor_username.charAt(0).toUpperCase()}
+        <div
+          className="rc-avatar"
+          style={{ background: item.actor_profile_photo ? `url(${item.actor_profile_photo}) center / cover` : actorRole.color }}
+        >
+          {!item.actor_profile_photo && initialFor(actorIdentity)}
         </div>
         <div className="rc-info">
           <div className="rc-title">
             <Link href={`/profile/${item.actor_username}`} className="rc-actor-name">
-              @{item.actor_username}
+              {actorDisplayName}
             </Link>
             <span className="rc-action-text"> ✍️ committed an edit</span>
           </div>
+          {(actorIdentityLine || actorInterestLine) && (
+            <div className="contributor-identity-line">
+              {actorIdentityLine}
+              {actorIdentityLine && actorInterestLine ? ' - ' : ''}
+              {actorInterestLine}
+            </div>
+          )}
           <div className="rc-meta">
             <span className="role-badge-pill" style={{ color: actorRole.color, background: actorRole.bgTint }}>
               {actorRole.icon} {actorRole.label}

@@ -4,12 +4,15 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { RecognitionFeedItem, getRevisionDiffContext } from '@/app/actions/recognition-feed';
 import {
+  actorIdentityFor,
   buildScholarlyEvidenceRecord,
   getContributionThesisFromSummary,
   getImpactStatement,
   getReputationPoints,
   getRoleMeta,
+  recipientIdentityFor,
 } from './feedUtils';
+import { displayNameFor, identityLineFor, initialFor, interestLineFor } from '@/app/utils/scholarlyIdentity';
 import { SCHOLAR_STAR_CATEGORIES } from '@/app/actions/reputation-constants';
 import FeedComments from './FeedComments';
 
@@ -36,6 +39,14 @@ export default function ScholarStarCard({ item, currentUser }: ScholarStarCardPr
   const impact = getImpactStatement(item);
   const fallbackThesis = item.contribution_thesis
     || getContributionThesisFromSummary(item.source_commit_message, item.node_title);
+  const giverIdentity = actorIdentityFor(item);
+  const recipientIdentity = recipientIdentityFor(item);
+  const giverDisplayName = displayNameFor(giverIdentity);
+  const recipientDisplayName = displayNameFor(recipientIdentity);
+  const giverIdentityLine = identityLineFor(giverIdentity);
+  const giverInterestLine = interestLineFor(giverIdentity);
+  const recipientIdentityLine = identityLineFor(recipientIdentity);
+  const recipientInterestLine = interestLineFor(recipientIdentity);
 
   const categoryKey = item.detail_category as keyof typeof SCHOLAR_STAR_CATEGORIES | null;
   const categoryInfo = categoryKey && SCHOLAR_STAR_CATEGORIES[categoryKey]
@@ -172,13 +183,23 @@ export default function ScholarStarCard({ item, currentUser }: ScholarStarCardPr
 
       <div className="ssc-participants">
         <div className="ssc-person">
-          <div className="ssc-avatar" style={{ background: giverRole.color }}>
-            {item.actor_username.charAt(0).toUpperCase()}
+          <div
+            className="ssc-avatar"
+            style={{ background: item.actor_profile_photo ? `url(${item.actor_profile_photo}) center / cover` : giverRole.color }}
+          >
+            {!item.actor_profile_photo && initialFor(giverIdentity)}
           </div>
           <div className="ssc-person-info">
             <Link href={`/profile/${item.actor_username}`} className="ssc-person-name">
-              @{item.actor_username}
+              {giverDisplayName}
             </Link>
+            {(giverIdentityLine || giverInterestLine) && (
+              <span className="contributor-identity-line compact">
+                {giverIdentityLine}
+                {giverIdentityLine && giverInterestLine ? ' - ' : ''}
+                {giverInterestLine}
+              </span>
+            )}
             <span className="ssc-role-badge" style={{ color: giverRole.color, background: giverRole.bgTint }}>
               {giverRole.icon} {giverRole.label}
             </span>
@@ -188,13 +209,23 @@ export default function ScholarStarCard({ item, currentUser }: ScholarStarCardPr
         <div className="ssc-arrow">to</div>
 
         <div className="ssc-person">
-          <div className="ssc-avatar ssc-avatar-recipient">
-            {item.recipient_username?.charAt(0).toUpperCase() || '?'}
+          <div
+            className="ssc-avatar ssc-avatar-recipient"
+            style={item.recipient_profile_photo ? { background: `url(${item.recipient_profile_photo}) center / cover` } : undefined}
+          >
+            {!item.recipient_profile_photo && initialFor(recipientIdentity)}
           </div>
           <div className="ssc-person-info">
             <Link href={`/profile/${item.recipient_username}`} className="ssc-person-name">
-              @{item.recipient_username}
+              {recipientDisplayName}
             </Link>
+            {(recipientIdentityLine || recipientInterestLine) && (
+              <span className="contributor-identity-line compact">
+                {recipientIdentityLine}
+                {recipientIdentityLine && recipientInterestLine ? ' - ' : ''}
+                {recipientInterestLine}
+              </span>
+            )}
             <span className="ssc-recipient-label">Recipient</span>
           </div>
         </div>

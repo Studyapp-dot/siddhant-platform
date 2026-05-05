@@ -5,12 +5,15 @@ import Link from 'next/link';
 import { RecognitionFeedItem, getRevisionDiffContext } from '@/app/actions/recognition-feed';
 import { toggleInsightful } from '@/app/actions/contributions';
 import {
+  actorIdentityFor,
   buildScholarlyEvidenceRecord,
   getContributionThesisFromSummary,
   getImpactStatement,
   getReputationPoints,
   getRoleMeta,
+  recipientIdentityFor,
 } from './feedUtils';
+import { displayNameFor, identityLineFor, initialFor, interestLineFor } from '@/app/utils/scholarlyIdentity';
 import FeedComments from './FeedComments';
 
 interface EndorsementCardProps {
@@ -43,6 +46,12 @@ export default function EndorsementCard({
   const impact = getImpactStatement(item);
   const fallbackThesis = item.contribution_thesis
     || getContributionThesisFromSummary(item.source_commit_message, item.node_title);
+  const actorIdentity = actorIdentityFor(item);
+  const recipientIdentity = recipientIdentityFor(item);
+  const actorDisplayName = displayNameFor(actorIdentity);
+  const recipientDisplayName = displayNameFor(recipientIdentity);
+  const actorIdentityLine = identityLineFor(actorIdentity);
+  const actorInterestLine = interestLineFor(actorIdentity);
 
   useEffect(() => {
     if (!item.source_revision_id || diffResult.data) return;
@@ -171,23 +180,33 @@ export default function EndorsementCard({
   return (
     <div className="endorsement-card">
       <div className="ec-header">
-        <div className="ec-avatar" style={{ background: actorRole.color }}>
-          {item.actor_username.charAt(0).toUpperCase()}
+        <div
+          className="ec-avatar"
+          style={{ background: item.actor_profile_photo ? `url(${item.actor_profile_photo}) center / cover` : actorRole.color }}
+        >
+          {!item.actor_profile_photo && initialFor(actorIdentity)}
         </div>
         <div className="ec-info">
           <div className="ec-title">
             <Link href={`/profile/${item.actor_username}`} className="ec-actor-name">
-              @{item.actor_username}
+              {actorDisplayName}
             </Link>
             <span className="ec-action-text">
               {' '}marked{' '}
               <Link href={`/profile/${item.recipient_username}`} className="ec-recipient-name">
-                @{item.recipient_username}
+                {recipientDisplayName}
               </Link>
               {"'s work as "}
               <b>Insightful</b>
             </span>
           </div>
+          {(actorIdentityLine || actorInterestLine) && (
+            <div className="contributor-identity-line">
+              {actorIdentityLine}
+              {actorIdentityLine && actorInterestLine ? ' - ' : ''}
+              {actorInterestLine}
+            </div>
+          )}
           <div className="ec-meta">
             <span className="role-badge-pill" style={{ color: actorRole.color, background: actorRole.bgTint }}>
               {actorRole.icon} {actorRole.label}
