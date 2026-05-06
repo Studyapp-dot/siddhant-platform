@@ -3,33 +3,33 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import { SCHOLARLY_ROLE_OPTIONS, normalizeOptionalUrl } from '@/app/utils/scholarlyIdentity';
+import { LEGAL_INTEREST_OPTIONS, SCHOLARLY_ROLE_OPTIONS, normalizeOptionalUrl } from '@/app/utils/scholarlyIdentity';
 
 interface WelcomeFlowProps {
   username: string;
 }
 
-const AREAS_OF_INTEREST = [
-  'Constitutional Law',
-  'Criminal Law',
-  'Jurisprudence',
-  'Competition Law',
-  'Administrative Law',
-  'Human Rights',
-  'Environmental Law',
-  'Cyber Law',
-  'Family Law',
-  'Labour Law',
-  'International Law',
-  'Intellectual Property',
-];
+const TOTAL_LAYERS = 5;
+
+function ProgressDots({ current, total }: { current: number; total: number }) {
+  return (
+    <div className="welcome-progress" aria-label={`Step ${current} of ${total}`}>
+      {Array.from({ length: total }, (_, i) => (
+        <span
+          key={i}
+          className={`welcome-progress-dot${i + 1 === current ? ' active' : ''}${i + 1 < current ? ' completed' : ''}`}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function WelcomeFlow({ username }: WelcomeFlowProps) {
   const router = useRouter();
-  const [layer, setLayer] = useState<1 | 2 | 3>(1);
+  const [layer, setLayer] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [fadeClass, setFadeClass] = useState('welcome-layer-enter');
 
-  // Layer 3 state
+  // Layer 5 state
   const [fullDisplayName, setFullDisplayName] = useState(username);
   const [scholarlyRole, setScholarlyRole] = useState<string>('');
   const [institution, setInstitution] = useState('');
@@ -38,7 +38,7 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
   const [linkedinUrl, setLinkedinUrl] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const transitionTo = (nextLayer: 1 | 2 | 3) => {
+  const transitionTo = (nextLayer: 1 | 2 | 3 | 4 | 5) => {
     setFadeClass('welcome-layer-exit');
     setTimeout(() => {
       setLayer(nextLayer);
@@ -46,7 +46,7 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
     }, 400);
   };
 
-  const handleEnterSiddhant = () => {
+  const handleEnterArchive = () => {
     router.push('/explore');
   };
 
@@ -87,10 +87,6 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
     router.push('/explore');
   };
 
-  const handleSkip = () => {
-    router.push('/explore');
-  };
-
   const toggleInterest = (area: string) => {
     setSelectedInterests(prev =>
       prev.includes(area)
@@ -101,6 +97,8 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
 
   return (
     <div className="welcome-container">
+      <ProgressDots current={layer} total={TOTAL_LAYERS} />
+
       {/* ===== LAYER 1 — INSTITUTIONAL WELCOME ===== */}
       {layer === 1 && (
         <div className={`welcome-layer ${fadeClass}`}>
@@ -135,7 +133,7 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
         </div>
       )}
 
-      {/* ===== LAYER 2 — ONE CONTINUOUS JURISPRUDENTIAL NARRATIVE ===== */}
+      {/* ===== LAYER 2 — JURISPRUDENTIAL NARRATIVE ===== */}
       {layer === 2 && (
         <div className={`welcome-layer ${fadeClass}`}>
           <div className="welcome-narrative">
@@ -147,58 +145,78 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
               </p>
             </div>
 
-            {/* Constitutional Moment 1 — Origin */}
-            <div className="welcome-moment">
-              <div className="welcome-moment-era">Constitution, 1950</div>
-              <h3 className="welcome-moment-title">Article 21 — Right to Life</h3>
-              <blockquote className="welcome-moment-quote">
-                &ldquo;No person shall be deprived of his life or personal liberty 
-                except according to procedure established by law.&rdquo;
-              </blockquote>
-              <p className="welcome-moment-note">
-                Originally interpreted narrowly — procedural compliance alone sufficed, 
-                regardless of whether the procedure itself was fair.
-              </p>
-            </div>
-
-            {/* Constitutional Moment 2 — Interpretive Shift */}
-            <div className="welcome-moment">
-              <div className="welcome-moment-era">Maneka Gandhi v. Union of India, 1978</div>
-              <h3 className="welcome-moment-title">Procedure Must Be Fair, Just, and Reasonable</h3>
-              <p className="welcome-moment-note">
-                The Supreme Court held that &ldquo;procedure established by law&rdquo; must satisfy 
-                the test of reasonableness — transforming Article 21 from a procedural safeguard 
-                into a substantive guarantee of liberty.
-              </p>
-
-              {/* Interpretive diff — Siddhant's signature */}
-              <div className="welcome-diff">
-                <div className="welcome-diff-label">Interpretive Evolution</div>
-                <code className="welcome-diff-line removed">
-                  Art. 21 requires only that a &quot;procedure established by law&quot; exists.
-                </code>
-                <code className="welcome-diff-line added">
-                  Art. 21 requires that procedure be fair, just, and reasonable — not arbitrary.
-                </code>
-                <code className="welcome-diff-line added">
-                  The right to life includes the right to live with dignity.
-                </code>
+            {/* Timeline of Constitutional Moments */}
+            <div className="welcome-timeline">
+              {/* Constitutional Moment 1 — Origin */}
+              <div className="welcome-timeline-moment">
+                <div className="welcome-timeline-marker">
+                  <div className="welcome-timeline-dot" />
+                  <div className="welcome-timeline-line" />
+                </div>
+                <div className="welcome-timeline-content">
+                  <div className="welcome-moment-era">Constitution, 1950</div>
+                  <h3 className="welcome-moment-title">Article 21 — Right to Life</h3>
+                  <blockquote className="welcome-moment-quote">
+                    &ldquo;No person shall be deprived of his life or personal liberty 
+                    except according to procedure established by law.&rdquo;
+                  </blockquote>
+                  <p className="welcome-moment-note">
+                    Originally interpreted narrowly — procedural compliance alone sufficed, 
+                    regardless of whether the procedure itself was fair.
+                  </p>
+                </div>
               </div>
 
-              <aside className="welcome-diff-annotation">
-                This is how Siddhant records interpretive evolution — every shift is preserved, compared, and traceable.
-              </aside>
-            </div>
+              {/* Constitutional Moment 2 — Interpretive Shift */}
+              <div className="welcome-timeline-moment">
+                <div className="welcome-timeline-marker">
+                  <div className="welcome-timeline-dot" />
+                  <div className="welcome-timeline-line" />
+                </div>
+                <div className="welcome-timeline-content">
+                  <div className="welcome-moment-era">Maneka Gandhi v. Union of India, 1978</div>
+                  <h3 className="welcome-moment-title">Procedure Must Be Fair, Just, and Reasonable</h3>
+                  <p className="welcome-moment-note">
+                    The Supreme Court held that &ldquo;procedure established by law&rdquo; must satisfy 
+                    the test of reasonableness — transforming Article 21 from a procedural safeguard 
+                    into a substantive guarantee of liberty.
+                  </p>
 
-            {/* Constitutional Moment 3 — Expansion */}
-            <div className="welcome-moment">
-              <div className="welcome-moment-era">K.S. Puttaswamy v. Union of India, 2017</div>
-              <h3 className="welcome-moment-title">Privacy as Intrinsic to Liberty</h3>
-              <p className="welcome-moment-note">
-                A nine-judge bench unanimously recognized the right to privacy as a fundamental 
-                right under Article 21 — privacy of body, mind, information, and choice became 
-                constitutionally protected.
-              </p>
+                  {/* Interpretive diff — Siddhant's signature */}
+                  <div className="welcome-diff">
+                    <div className="welcome-diff-label">Interpretive Evolution</div>
+                    <code className="welcome-diff-line removed">
+                      Art. 21 requires only that a &quot;procedure established by law&quot; exists.
+                    </code>
+                    <code className="welcome-diff-line added">
+                      Art. 21 requires that procedure be fair, just, and reasonable — not arbitrary.
+                    </code>
+                    <code className="welcome-diff-line added">
+                      The right to life includes the right to live with dignity.
+                    </code>
+                  </div>
+
+                  <aside className="welcome-diff-annotation">
+                    This is how Siddhant records interpretive evolution — every shift is preserved, compared, and traceable.
+                  </aside>
+                </div>
+              </div>
+
+              {/* Constitutional Moment 3 — Expansion */}
+              <div className="welcome-timeline-moment">
+                <div className="welcome-timeline-marker">
+                  <div className="welcome-timeline-dot" />
+                </div>
+                <div className="welcome-timeline-content">
+                  <div className="welcome-moment-era">K.S. Puttaswamy v. Union of India, 2017</div>
+                  <h3 className="welcome-moment-title">Privacy as Intrinsic to Liberty</h3>
+                  <p className="welcome-moment-note">
+                    A nine-judge bench unanimously recognized the right to privacy as a fundamental 
+                    right under Article 21 — privacy of body, mind, information, and choice became 
+                    constitutionally protected.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Doctrinal Relationship Map */}
@@ -240,26 +258,26 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
               </p>
             </div>
 
-            {/* Contribution Culture */}
+            {/* Scholarly Participation — Numbered Cards */}
             <div className="welcome-contribution-culture">
               <div className="welcome-diff-label">Scholarly Participation</div>
               <div className="welcome-culture-grid">
                 <div className="welcome-culture-item">
-                  <span className="welcome-culture-icon">✍️</span>
+                  <span className="welcome-culture-number">01</span>
                   <div>
                     <strong>Revise Interpretations</strong>
                     <p>Every contribution becomes part of the permanent scholarly record.</p>
                   </div>
                 </div>
                 <div className="welcome-culture-item">
-                  <span className="welcome-culture-icon">⚖️</span>
+                  <span className="welcome-culture-number">02</span>
                   <div>
                     <strong>Review Doctrinal Claims</strong>
                     <p>Your judgment shapes the quality and credibility of the archive.</p>
                   </div>
                 </div>
                 <div className="welcome-culture-item">
-                  <span className="welcome-culture-icon">🔗</span>
+                  <span className="welcome-culture-number">03</span>
                   <div>
                     <strong>Map Jurisprudential Lineage</strong>
                     <p>Establish the interpretive threads that bind legal concepts together.</p>
@@ -272,6 +290,132 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
               <button
                 className="welcome-cta"
                 onClick={() => transitionTo(3)}
+                id="welcome-continue-how"
+              >
+                Continue
+                <span className="welcome-cta-arrow">→</span>
+              </button>
+              <button
+                className="welcome-skip"
+                onClick={handleEnterArchive}
+                id="welcome-skip-to-archive"
+              >
+                Skip — explore the archive →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== LAYER 3 — HOW SIDDHANT WORKS ===== */}
+      {layer === 3 && (
+        <div className={`welcome-layer ${fadeClass}`}>
+          <div className="welcome-process">
+            <div className="welcome-section-label">How Siddhant Works</div>
+            <p className="welcome-process-intro">
+              Every piece of legal knowledge on Siddhant follows 
+              a transparent scholarly process.
+            </p>
+
+            <div className="welcome-pipeline">
+              <div className="welcome-pipeline-step">
+                <div className="welcome-pipeline-icon">📝</div>
+                <div className="welcome-pipeline-connector" />
+                <div className="welcome-pipeline-body">
+                  <strong>Contribute</strong>
+                  <p>Add interpretations, revisions, and doctrinal relationships.</p>
+                </div>
+              </div>
+
+              <div className="welcome-pipeline-step">
+                <div className="welcome-pipeline-icon">🔍</div>
+                <div className="welcome-pipeline-connector" />
+                <div className="welcome-pipeline-body">
+                  <strong>Review</strong>
+                  <p>Contributions are examined by qualified scholars and peers.</p>
+                </div>
+              </div>
+
+              <div className="welcome-pipeline-step">
+                <div className="welcome-pipeline-icon">🏛</div>
+                <div className="welcome-pipeline-connector" />
+                <div className="welcome-pipeline-body">
+                  <strong>Preserve</strong>
+                  <p>Every change is traceable. Nothing is silently overwritten.</p>
+                </div>
+              </div>
+
+              <div className="welcome-pipeline-step">
+                <div className="welcome-pipeline-icon">⚖️</div>
+                <div className="welcome-pipeline-body">
+                  <strong>Consensus</strong>
+                  <p>Scholarly consensus becomes visible over time. Reputation reflects contribution quality.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="welcome-narrative-actions">
+              <button
+                className="welcome-cta"
+                onClick={() => transitionTo(4)}
+                id="welcome-continue-why"
+              >
+                Continue
+                <span className="welcome-cta-arrow">→</span>
+              </button>
+              <button
+                className="welcome-skip"
+                onClick={handleEnterArchive}
+                id="welcome-skip-process"
+              >
+                Skip — explore the archive →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== LAYER 4 — WHY YOUR PARTICIPATION MATTERS ===== */}
+      {layer === 4 && (
+        <div className={`welcome-layer ${fadeClass}`}>
+          <div className="welcome-manifesto">
+            <div className="welcome-section-label">Your Place in the Archive</div>
+
+            <div className="welcome-manifesto-body">
+              <p className="welcome-manifesto-lead">
+                Your contributions don&apos;t disappear into a feed.
+              </p>
+
+              <p>
+                They become part of the permanent jurisprudential record.
+              </p>
+
+              <div className="welcome-manifesto-rule" />
+
+              <p>
+                Interpretations you write are preserved and attributed 
+                to your scholarly identity.
+              </p>
+              <p>
+                Revisions you make become traceable threads 
+                in constitutional history.
+              </p>
+              <p>
+                Reviews you conduct shape the credibility 
+                of the entire archive.
+              </p>
+
+              <div className="welcome-manifesto-rule" />
+
+              <p className="welcome-manifesto-close">
+                Your participation becomes part of the archive.
+              </p>
+            </div>
+
+            <div className="welcome-narrative-actions">
+              <button
+                className="welcome-cta"
+                onClick={() => transitionTo(5)}
                 id="welcome-continue-identity"
               >
                 Continue
@@ -279,21 +423,26 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
               </button>
               <button
                 className="welcome-skip"
-                onClick={handleEnterSiddhant}
-                id="welcome-skip-to-archive"
+                onClick={handleEnterArchive}
+                id="welcome-skip-manifesto"
               >
-                Enter Siddhant →
+                Skip — explore the archive →
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ===== LAYER 3 — IDENTITY FORMATION (OPTIONAL) ===== */}
-      {layer === 3 && (
+      {/* ===== LAYER 5 — IDENTITY FORMATION (OPTIONAL) ===== */}
+      {layer === 5 && (
         <div className={`welcome-layer ${fadeClass}`}>
           <div className="welcome-identity">
             <div className="welcome-section-label">Scholarly Identity</div>
+
+            <p className="welcome-identity-preamble">
+              Now that you understand how Siddhant works — define your place within it.
+            </p>
+
             <h2 className="welcome-identity-title">
               Introduce your scholarly interests and institutional background.
             </h2>
@@ -347,7 +496,7 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
             <div className="welcome-interests">
               <label className="welcome-field-label">Constitutional and Legal Interests</label>
               <div className="welcome-interest-grid">
-                {AREAS_OF_INTEREST.map(area => (
+                {LEGAL_INTEREST_OPTIONS.map(area => (
                   <button
                     key={area}
                     className={`welcome-interest-chip ${selectedInterests.includes(area) ? 'selected' : ''}`}
@@ -392,15 +541,15 @@ export default function WelcomeFlow({ username }: WelcomeFlowProps) {
                 disabled={isSaving}
                 id="welcome-save-enter"
               >
-                {isSaving ? 'Saving…' : 'Enter Siddhant'}
+                {isSaving ? 'Saving…' : 'Enter the Living Archive'}
                 {!isSaving && <span className="welcome-cta-arrow">→</span>}
               </button>
               <button
                 className="welcome-skip"
-                onClick={handleSkip}
+                onClick={handleEnterArchive}
                 id="welcome-skip-identity"
               >
-                Continue to the Archive →
+                Skip for now — explore first →
               </button>
             </div>
           </div>

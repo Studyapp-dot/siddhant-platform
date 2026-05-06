@@ -7,6 +7,8 @@ import { signout } from '../login/actions';
 interface UserMenuProps {
   user: {
     username: string;
+    displayName?: string;
+    profilePhoto?: string | null;
     profileUrl: string;
   } | null;
 }
@@ -34,6 +36,8 @@ export default function UserMenu({ user }: UserMenuProps) {
     );
   }
 
+  const menuName = user.displayName || user.username;
+
   return (
     <div className="user-menu" ref={menuRef}>
       <button
@@ -42,10 +46,13 @@ export default function UserMenu({ user }: UserMenuProps) {
         aria-expanded={open}
         aria-haspopup="true"
       >
-        <span className="user-menu-avatar">
-          {user.username.charAt(0).toUpperCase()}
+        <span
+          className="user-menu-avatar"
+          style={user.profilePhoto ? { backgroundImage: `url(${user.profilePhoto})` } : undefined}
+        >
+          {!user.profilePhoto && menuName.charAt(0).toUpperCase()}
         </span>
-        <span className="user-menu-name">{user.username}</span>
+        <span className="user-menu-name">{menuName}</span>
         <span className={`user-menu-chevron ${open ? 'open' : ''}`}>v</span>
       </button>
 
@@ -56,7 +63,6 @@ export default function UserMenu({ user }: UserMenuProps) {
             className="user-menu-item"
             onClick={() => setOpen(false)}
           >
-            <span className="user-menu-item-icon">P</span>
             My Profile
           </Link>
           <Link
@@ -64,13 +70,11 @@ export default function UserMenu({ user }: UserMenuProps) {
             className="user-menu-item"
             onClick={() => setOpen(false)}
           >
-            <span className="user-menu-item-icon">D</span>
             Scholar&apos;s Desk
           </Link>
           <div className="user-menu-divider" />
           <form action={signout}>
             <button type="submit" className="user-menu-item user-menu-signout">
-              <span className="user-menu-item-icon">O</span>
               Sign Out
             </button>
           </form>

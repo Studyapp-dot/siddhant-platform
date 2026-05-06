@@ -1,0 +1,392 @@
+/* ============================================================================
+   SIDDHANT — System Visibility CSS
+   Tooltips, Trust Badges, Review Pipeline
+   Design: Institutional, restrained, scholarly.
+   ============================================================================ */
+
+/* ═══════════════════════════════════════════
+   SYSTEM TOOLTIP — Desktop Popover
+   ═══════════════════════════════════════════ */
+
+.sys-tooltip-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.sys-tooltip-trigger {
+  cursor: help;
+  display: inline-flex;
+  align-items: center;
+}
+
+.sys-tooltip-popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+
+  min-width: 200px;
+  max-width: 300px;
+  padding: 10px 14px;
+  border-radius: 10px;
+
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-elevated);
+
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  transform: translateX(-50%) translateY(4px);
+}
+
+.sys-tooltip-wrapper:hover .sys-tooltip-popover,
+.sys-tooltip-popover.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Tooltip arrow */
+.sys-tooltip-popover::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--border-medium);
+}
+
+.sys-tooltip-popover::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--bg-surface);
+  z-index: 1;
+}
+
+.sys-tooltip-title {
+  font-family: var(--font-serif);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 3px;
+  letter-spacing: 0.01em;
+}
+
+.sys-tooltip-text {
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.sys-tooltip-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--color-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+}
+
+.sys-tooltip-link:hover {
+  text-decoration: underline;
+}
+
+/* ═══════════════════════════════════════════
+   SYSTEM TOOLTIP — Mobile Bottom Sheet
+   ═══════════════════════════════════════════ */
+
+.sys-bottomsheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  animation: sysBottomsheetFadeIn 0.2s ease forwards;
+}
+
+@keyframes sysBottomsheetFadeIn {
+  to { opacity: 1; }
+}
+
+.sys-bottomsheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-medium);
+  border-radius: 20px 20px 0 0;
+  padding: 20px 24px calc(20px + env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+
+  transform: translateY(100%);
+  animation: sysBottomsheetSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes sysBottomsheetSlideUp {
+  to { transform: translateY(0); }
+}
+
+.sys-bottomsheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border-medium);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+.sys-bottomsheet-title {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 6px;
+}
+
+.sys-bottomsheet-text {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* ═══════════════════════════════════════════
+   TRUST BADGES — Restrained, Institutional
+   ═══════════════════════════════════════════ */
+
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  cursor: help;
+  border: 1px solid transparent;
+}
+
+.trust-badge:hover {
+  filter: brightness(1.08);
+}
+
+.trust-badge-icon {
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+/* Badge variants */
+.trust-badge--peer-reviewed {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.trust-badge--community-verified {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.trust-badge--under-review {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.trust-badge--trusted-contributor {
+  color: var(--color-gold);
+  background: var(--color-gold-soft);
+  border-color: rgba(184, 150, 62, 0.2);
+}
+
+.trust-badge--top-reviewer {
+  color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.08);
+  border-color: rgba(139, 92, 246, 0.2);
+}
+
+/* Trust badge row container */
+.trust-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+/* ═══════════════════════════════════════════
+   REVIEW PIPELINE — Living Process Visualization
+   ═══════════════════════════════════════════ */
+
+.review-pipeline {
+  padding: 20px 24px;
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  margin: 1.5rem 0;
+}
+
+.review-pipeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.review-pipeline-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.review-pipeline-tier {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* Pipeline track — horizontal layout */
+.review-pipeline-track {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+}
+
+/* Connecting line behind stages */
+.review-pipeline-track::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: var(--border-subtle);
+  z-index: 0;
+}
+
+.review-pipeline-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  gap: 6px;
+  cursor: help;
+}
+
+/* Stage marker — the circle */
+.review-pipeline-marker {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 800;
+  transition: all 0.3s ease;
+  border: 2px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+}
+
+.review-pipeline-marker.completed {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+.review-pipeline-marker.current {
+  background: var(--color-gold-soft);
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+  box-shadow: 0 0 0 4px rgba(184, 150, 62, 0.12);
+}
+
+.review-pipeline-marker.future {
+  opacity: 0.4;
+}
+
+/* Stage label */
+.review-pipeline-stage-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+  line-height: 1.3;
+  max-width: 80px;
+  color: var(--text-muted);
+}
+
+.review-pipeline-stage-label.completed {
+  color: #22c55e;
+}
+
+.review-pipeline-stage-label.current {
+  color: var(--color-gold);
+}
+
+.review-pipeline-stage-label.future {
+  opacity: 0.4;
+}
+
+/* Stage detail — date or context */
+.review-pipeline-stage-detail {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Mobile: vertical layout */
+@media (max-width: 600px) {
+  .review-pipeline-track {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .review-pipeline-track::before {
+    top: 0;
+    bottom: 0;
+    left: 12px;
+    right: auto;
+    width: 2px;
+    height: auto;
+  }
+
+  .review-pipeline-stage {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .review-pipeline-stage-label {
+    text-align: left;
+    max-width: none;
+  }
+
+  .review-pipeline-marker {
+    flex-shrink: 0;
+  }
+}

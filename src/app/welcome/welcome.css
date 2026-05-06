@@ -10,6 +10,36 @@
   min-height: calc(100vh - 72px); /* Account for navbar */
 }
 
+/* ===== PROGRESS DOTS ===== */
+.welcome-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 1.5rem 0 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.welcome-progress-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-medium);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.welcome-progress-dot.active {
+  width: 8px;
+  height: 8px;
+  background: var(--color-gold);
+  box-shadow: 0 0 8px var(--color-gold-glow);
+}
+
+.welcome-progress-dot.completed {
+  background: var(--color-gold);
+  opacity: 0.5;
+}
+
 /* ===== LAYER TRANSITIONS ===== */
 .welcome-layer {
   transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -182,16 +212,49 @@
   max-width: 600px;
 }
 
+/* ===== TIMELINE LAYOUT ===== */
+.welcome-timeline {
+  position: relative;
+  padding: 0.5rem 0;
+}
+
+.welcome-timeline-moment {
+  display: flex;
+  gap: 1.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.welcome-timeline-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 20px;
+  padding-top: 4px;
+}
+
+.welcome-timeline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  box-shadow: 0 0 8px var(--color-gold-glow);
+  flex-shrink: 0;
+}
+
+.welcome-timeline-line {
+  width: 1px;
+  flex: 1;
+  min-height: 20px;
+  background: linear-gradient(to bottom, var(--color-gold), var(--border-subtle));
+}
+
+.welcome-timeline-content {
+  flex: 1;
+  padding-bottom: 2rem;
+}
+
 /* Constitutional Moments */
-.welcome-moment {
-  padding: 2rem 0;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.welcome-moment:last-of-type {
-  border-bottom: none;
-}
-
 .welcome-moment-era {
   font-size: 0.7rem;
   font-weight: 800;
@@ -388,7 +451,7 @@
   margin-right: auto;
 }
 
-/* ===== CONTRIBUTION CULTURE ===== */
+/* ===== CONTRIBUTION CULTURE — NUMBERED ===== */
 .welcome-contribution-culture {
   padding: 2rem 0;
 }
@@ -411,17 +474,20 @@
   box-shadow: var(--shadow-sm);
 }
 
-.welcome-culture-icon {
-  font-size: 1.2rem;
+.welcome-culture-number {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--color-gold);
+  letter-spacing: 0.02em;
   flex-shrink: 0;
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-panel);
+  background: var(--color-gold-soft);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(184, 150, 62, 0.15);
 }
 
 .welcome-culture-item strong {
@@ -449,9 +515,139 @@
   border-top: 1px solid var(--border-subtle);
 }
 
-/* ===== LAYER 3 — IDENTITY FORMATION ===== */
+/* ===== LAYER 3 — HOW SIDDHANT WORKS (PIPELINE) ===== */
+.welcome-process {
+  padding: 2rem 0;
+}
+
+.welcome-process-intro {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  max-width: 500px;
+  margin-bottom: 3rem;
+}
+
+.welcome-pipeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.welcome-pipeline-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  position: relative;
+  padding-bottom: 0.25rem;
+}
+
+.welcome-pipeline-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  z-index: 2;
+}
+
+.welcome-pipeline-connector {
+  position: absolute;
+  left: 23px;
+  top: 48px;
+  bottom: -2px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--color-gold), var(--border-subtle));
+  z-index: 1;
+}
+
+.welcome-pipeline-step:last-child .welcome-pipeline-connector {
+  display: none;
+}
+
+.welcome-pipeline-body {
+  flex: 1;
+  padding: 0.5rem 0 2rem;
+}
+
+.welcome-pipeline-body strong {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.01em;
+}
+
+.welcome-pipeline-body p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ===== LAYER 4 — MANIFESTO ===== */
+.welcome-manifesto {
+  padding: 2rem 0;
+}
+
+.welcome-manifesto-body {
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.welcome-manifesto-body p {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.85;
+  margin-bottom: 1rem;
+}
+
+.welcome-manifesto-lead {
+  font-size: 1.15rem !important;
+  color: var(--text-primary) !important;
+  font-weight: 500;
+  margin-bottom: 0.5rem !important;
+}
+
+.welcome-manifesto-rule {
+  width: 60px;
+  height: 1px;
+  background: var(--color-gold);
+  margin: 2rem auto;
+  opacity: 0.5;
+}
+
+.welcome-manifesto-close {
+  color: var(--text-primary) !important;
+  font-weight: 500;
+  font-style: italic;
+}
+
+/* ===== LAYER 5 — IDENTITY FORMATION ===== */
 .welcome-identity {
   padding: 2rem 0;
+}
+
+.welcome-identity-preamble {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
 }
 
 .welcome-identity-title {
@@ -638,5 +834,48 @@
 
   .welcome-identity-title {
     font-size: 1.35rem;
+  }
+
+  /* Timeline responsive */
+  .welcome-timeline-moment {
+    gap: 1rem;
+  }
+
+  .welcome-timeline-marker {
+    width: 16px;
+  }
+
+  .welcome-timeline-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  /* Pipeline responsive */
+  .welcome-pipeline-step {
+    gap: 1rem;
+  }
+
+  .welcome-pipeline-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+
+  .welcome-pipeline-connector {
+    left: 19px;
+    top: 40px;
+  }
+
+  .welcome-pipeline-body strong {
+    font-size: 0.92rem;
+  }
+
+  /* Manifesto responsive */
+  .welcome-manifesto-body p {
+    font-size: 0.95rem;
+  }
+
+  .welcome-manifesto-lead {
+    font-size: 1.05rem !important;
   }
 }

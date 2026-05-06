@@ -9,6 +9,82 @@
 -- migrations.
 -- ============================================================================
 
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Some deployed databases have the recognition/reputation feed tables but not
+-- the later contribution-intelligence table yet. The feed view below references
+-- revision_semantics, and the app's edit flow already writes to it, so make the
+-- dependency explicit here instead of requiring a separate older root SQL file.
+CREATE TABLE IF NOT EXISTS public.revision_semantics (
+  id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
+  revision_id uuid REFERENCES public.revisions(id) ON DELETE CASCADE NOT NULL UNIQUE,
+  contribution_thesis text NOT NULL,
+  contribution_type text NOT NULL CHECK (contribution_type IN (
+    'citation_addition',
+    'doctrinal_expansion',
+    'conceptual_clarification',
+    'precedent_synthesis',
+    'contradiction_resolution',
+    'structural_reorganization',
+    'historical_context',
+    'analytical_improvement',
+    'terminology_standardization',
+    'evidence_strengthening',
+    'mixed'
+  )),
+  contribution_scope text NOT NULL CHECK (contribution_scope IN (
+    'local',
+    'section_wide',
+    'article_wide',
+    'doctrinal',
+    'cross_node'
+  )),
+  significance text NOT NULL CHECK (significance IN (
+    'minor',
+    'meaningful',
+    'substantial',
+    'foundational'
+  )),
+  claims_added text[] DEFAULT '{}'::text[] NOT NULL,
+  concepts_introduced text[] DEFAULT '{}'::text[] NOT NULL,
+  evidence_quality text NOT NULL CHECK (evidence_quality IN (
+    'citation_backed',
+    'reasoning_backed',
+    'assertion_only',
+    'incomplete',
+    'mixed'
+  )),
+  reasoning text,
+  extraction_model text,
+  extracted_at timestamptz DEFAULT timezone('utc'::text, now()) NOT NULL,
+  created_at timestamptz DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at timestamptz DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_revision_semantics_revision_id
+  ON public.revision_semantics (revision_id);
+CREATE INDEX IF NOT EXISTS idx_revision_semantics_type
+  ON public.revision_semantics (contribution_type);
+CREATE INDEX IF NOT EXISTS idx_revision_semantics_significance
+  ON public.revision_semantics (significance);
+
+ALTER TABLE public.revision_semantics ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'revision_semantics'
+      AND policyname = 'Revision semantics are viewable by everyone.'
+  ) THEN
+    CREATE POLICY "Revision semantics are viewable by everyone."
+      ON public.revision_semantics FOR SELECT USING (true);
+  END IF;
+END $$;
+
+GRANT SELECT ON public.revision_semantics TO anon, authenticated;
+
 ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS full_display_name text,
   ADD COLUMN IF NOT EXISTS institution_name text,

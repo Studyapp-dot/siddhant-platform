@@ -10,10 +10,15 @@ import QualityVoting from '@/app/components/QualityVoting';
 import PeerReviewPanel from '@/app/components/PeerReviewPanel';
 import ContributorSpotlight from '@/app/components/ContributorSpotlight';
 import ArticleEndorsementBar from '@/app/components/ArticleEndorsementBar';
+import SystemTooltip from '@/app/components/SystemTooltip';
+import TrustBadge from '@/app/components/TrustBadge';
+import ReviewPipeline from '@/app/components/ReviewPipeline';
+import { QUALITY_TIER_TOOLTIPS, ROLE_TOOLTIPS, getTopicTrustBadges } from '@/app/actions/trust-vocabulary';
 import { processEditAcceptance } from '@/app/actions/edit-acceptance';
 import { QUALITY_TIERS } from '@/app/actions/quality-constants';
 import './page.css';
 import '@/app/recognition/recognition.css';
+import '@/app/system-visibility.css';
 
 // Human-readable relative time for "Last Updated" banner
 function getTimeAgo(date: Date): string {
@@ -265,6 +270,45 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
     hasStaleVotes = (totalVoteCount ?? 0) > 0 && (staleVoteCount ?? 0) > (totalVoteCount ?? 0) / 2;
   }
 
+  // ── System Visibility: Trust badge & pipeline data ──
+  // Total quality votes (for community-verified badge)
+  const { count: totalQualityVoteCount } = await supabase
+    .from('quality_votes')
+    .select('id', { count: 'exact', head: true })
+    .eq('node_id', node.id);
+
+  // Active review cycle (for under-review badge + pipeline)
+  const { data: activeReviewCycle } = await supabase
+    .from('review_cycles')
+    .select('id, status')
+    .eq('node_id', node.id)
+    .in('status', ['open', 'awaiting_conclusion'])
+    .maybeSingle();
+  const hasActiveReviewCycle = !!activeReviewCycle;
+
+  // Completed review cycles count (for pipeline)
+  const { count: completedReviewCycleCount } = await supabase
+    .from('review_cycles')
+    .select('id', { count: 'exact', head: true })
+    .eq('node_id', node.id)
+    .eq('status', 'closed');
+
+  // Last tier change date (for pipeline detail)
+  const { data: lastAssessment } = await supabase
+    .from('quality_assessments')
+    .select('created_at')
+    .eq('node_id', node.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  // Compute which trust badges to show (max 2–3)
+  const topicTrustBadges = getTopicTrustBadges({
+    qualityTier: (node as any).quality_tier || 'stub',
+    hasActiveReviewCycle,
+    totalQualityVotes: totalQualityVoteCount ?? 0,
+  });
+
   // User state
   let isFollowing = false;
   let currentUserRole: string | null = null;
@@ -499,14 +543,27 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
               {typeMeta.icon} {typeMeta.label}
             </span>
 
-            {/* Quality Tier Badge — SHORT label only, full explanation in tooltip */}
-            <span
-              className="quality-badge"
-              style={{ color: qualityTier.color, background: qualityTier.bg, border: `1px solid ${qualityTier.border}` }}
-              title={`${qualityTier.label}: ${qualityTier.description}`}
+            {/* Quality Tier Badge — contextual tooltip replaces bare title attr */}
+            <SystemTooltip
+              title={qualityTier.label}
+              text={QUALITY_TIER_TOOLTIPS[(node as any).quality_tier || 'stub']?.tooltip || qualityTier.description}
             >
-              {qualityTier.icon} {qualityTier.label}
-            </span>
+              <span
+                className="quality-badge"
+                style={{ color: qualityTier.color, background: qualityTier.bg, border: `1px solid ${qualityTier.border}` }}
+              >
+                {qualityTier.icon} {qualityTier.label}
+              </span>
+            </SystemTooltip>
+
+            {/* Trust Badges — max 2-3, contextual signals */}
+            {topicTrustBadges.length > 0 && (
+              <span className="trust-badge-row">
+                {topicTrustBadges.map(badgeType => (
+                  <TrustBadge key={badgeType} type={badgeType} />
+                ))}
+              </span>
+            )}
 
             {/* Staleness indicator: if the tier was earned on an earlier revision */}
             {isQualityStale && (
@@ -538,13 +595,18 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
             <span className="meta-text">
               Published {editedDate} · Written by{' '}
               <Link href={`/profile/${authorName}`} className="meta-author-link">@{authorName}</Link>
-              <span className="meta-role-badge">
-                {authorRole === 'recognized' ? 'Recognized Contributor'
-                  : authorRole === 'senior_scholar' ? 'Senior Scholar'
-                  : authorRole === 'steward' ? 'Steward'
-                  : authorRole === 'governance_council' ? 'Governance Council'
-                  : 'Contributor'}
-              </span>
+              <SystemTooltip
+                title={ROLE_TOOLTIPS[authorRole]?.label || 'Contributor'}
+                text={ROLE_TOOLTIPS[authorRole]?.tooltip || 'Can edit content and participate in discussions.'}
+              >
+                <span className="meta-role-badge">
+                  {authorRole === 'recognized' ? 'Recognized Contributor'
+                    : authorRole === 'senior_scholar' ? 'Senior Scholar'
+                    : authorRole === 'steward' ? 'Steward'
+                    : authorRole === 'governance_council' ? 'Governance Council'
+                    : 'Contributor'}
+                </span>
+              </SystemTooltip>
             </span>
             <span className="meta-quality-context">
               {QUALITY_INLINE_DESCRIPTIONS[(node as any).quality_tier || 'stub'] || 'Community-reviewed, open for improvement'}
@@ -663,6 +725,17 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
           isLoggedIn={!!user}
           userRole={currentUserRole}
         />
+
+        {/* Review Pipeline — Visual trust evolution (hidden on old revisions) */}
+        {!isViewingOldRevision && (
+          <ReviewPipeline
+            qualityTier={(node as any).quality_tier || 'stub'}
+            hasActiveReviewCycle={hasActiveReviewCycle}
+            totalQualityVotes={totalQualityVoteCount ?? 0}
+            lastTierChangeDate={lastAssessment?.created_at || null}
+            completedReviewCycles={completedReviewCycleCount ?? 0}
+          />
+        )}
 
         {/* Peer Review Panel — For tiers eligible for advancement or challenge (hidden on old revisions) */}
         {!isViewingOldRevision && ((node as any).quality_tier === 'b_class' || (node as any).quality_tier === 'good_article' || (node as any).quality_tier === 'featured') && (

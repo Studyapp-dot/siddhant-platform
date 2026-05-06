@@ -33,10 +33,27 @@ export default async function RootLayout({
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const userData = user ? {
-    username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-    profileUrl: `/profile/${user.user_metadata?.username || user.email?.split('@')[0]}`,
-  } : null;
+  let userData = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('username, full_display_name, profile_photo')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const username = profile?.username
+      || user.user_metadata?.username
+      || user.email?.split('@')[0]
+      || 'user';
+    const displayName = profile?.full_display_name || username;
+
+    userData = {
+      username,
+      displayName,
+      profilePhoto: profile?.profile_photo || null,
+      profileUrl: `/profile/${username}`,
+    };
+  }
 
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${outfit.variable} ${sourceSerif.variable}`}>

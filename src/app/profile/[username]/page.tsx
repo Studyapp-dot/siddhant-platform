@@ -1,8 +1,11 @@
 import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { LEVEL_THRESHOLDS } from '@/app/actions/reputation-constants';
+import SystemTooltip from '@/app/components/SystemTooltip';
+import TrustBadge from '@/app/components/TrustBadge';
+import { ROLE_TOOLTIPS, REPUTATION_SCORE_TOOLTIP, REPUTATION_EVENT_TOOLTIPS, LEVEL_PROGRESS_PHRASES, getProfileTrustBadges } from '@/app/actions/trust-vocabulary';
 import {
   displayNameFor,
   handleFor,
@@ -11,6 +14,7 @@ import {
   interestLineFor,
 } from '@/app/utils/scholarlyIdentity';
 import '@/app/community-core.css';
+import '@/app/system-visibility.css';
 import '../../topic/[slug]/page.css';
 import '../[username]/profile.css';
 
@@ -29,20 +33,54 @@ const ROLE_CONFIG: Record<string, { label: string; level: number; color: string;
   governance_council: { label: 'Governance Council',     level: 6, color: '#f59e0b', icon: '⚖️' },
 };
 
+const PROFILE_SELECT = 'id, username, full_display_name, institution_name, scholarly_role, areas_of_interest, short_bio, profile_photo, linkedin_url, role, reputation_score, accepted_edits_count, total_edits_count, endorsements_received, peer_reviews_completed, scholar_stars_received, created_at';
+
 export default async function ProfilePage({ params, searchParams }: ProfilePageProps) {
   const { username } = await params;
   const { tab } = (await searchParams) || {};
   const activeTab = tab || 'portfolio';
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   // Fetch the profile with all reputation columns
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from('profiles')
-    .select('id, username, full_display_name, institution_name, scholarly_role, areas_of_interest, short_bio, profile_photo, linkedin_url, role, reputation_score, accepted_edits_count, total_edits_count, endorsements_received, peer_reviews_completed, scholar_stars_received, created_at')
+    .select(PROFILE_SELECT)
     .eq('username', username)
-    .single();
+    .maybeSingle();
+
+  if (!profile) {
+    const { data: caseMatch } = await supabase
+      .from('profiles')
+      .select(PROFILE_SELECT)
+      .ilike('username', username)
+      .maybeSingle();
+
+    if (caseMatch) {
+      redirect(`/profile/${caseMatch.username}${activeTab !== 'portfolio' ? `?tab=${activeTab}` : ''}`);
+    }
+
+    const authFallbacks = [
+      user?.user_metadata?.username,
+      user?.email?.split('@')[0],
+    ].filter(Boolean);
+
+    if (user && authFallbacks.some((value) => value?.toLowerCase() === username.toLowerCase())) {
+      const { data: ownProfile } = await supabase
+        .from('profiles')
+        .select(PROFILE_SELECT)
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (ownProfile?.username) {
+        redirect(`/profile/${ownProfile.username}${activeTab !== 'portfolio' ? `?tab=${activeTab}` : ''}`);
+      }
+    }
+  }
 
   if (!profile) notFound();
+
+  const isOwnProfile = user?.id === profile.id;
 
   // Parallel data fetching
   const [
@@ -299,23 +337,41 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
             </a>
           )}
 
-          {/* Level Badge — Prominent */}
-          <div style={{
-            marginTop: '0.75rem', padding: '8px 16px',
-            borderRadius: '20px',
-            background: `${roleConfig.color}15`,
-            border: `1px solid ${roleConfig.color}40`,
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-          }}>
-            <span style={{ fontSize: '0.9rem' }}>{roleConfig.icon}</span>
-            <span style={{
-              fontSize: '0.72rem', fontWeight: 800,
-              letterSpacing: '0.12em', textTransform: 'uppercase',
-              color: roleConfig.color,
+          {/* Level Badge — Prominent, with contextual tooltip */}
+          <SystemTooltip
+            title={ROLE_TOOLTIPS[profile.role]?.label || roleConfig.label}
+            text={ROLE_TOOLTIPS[profile.role]?.tooltip || 'Member of the scholarly community.'}
+          >
+            <div style={{
+              marginTop: '0.75rem', padding: '8px 16px',
+              borderRadius: '20px',
+              background: `${roleConfig.color}15`,
+              border: `1px solid ${roleConfig.color}40`,
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
             }}>
-              {roleConfig.label}
-            </span>
-          </div>
+              <span style={{ fontSize: '0.9rem' }}>{roleConfig.icon}</span>
+              <span style={{
+                fontSize: '0.72rem', fontWeight: 800,
+                letterSpacing: '0.12em', textTransform: 'uppercase',
+                color: roleConfig.color,
+              }}>
+                {roleConfig.label}
+              </span>
+            </div>
+          </SystemTooltip>
+
+          {/* Trust Badges — shown for L3+ and active reviewers */}
+          {(() => {
+            const profileBadges = getProfileTrustBadges({
+              role: profile.role,
+              peerReviewsCompleted: profile.peer_reviews_completed || 0,
+            });
+            return profileBadges.length > 0 ? (
+              <div className="trust-badge-row" style={{ marginTop: '0.5rem', justifyContent: 'center' }}>
+                {profileBadges.map(bt => <TrustBadge key={bt} type={bt} />)}
+              </div>
+            ) : null;
+          })()}
 
           {/* Level indicator */}
           <div style={{ marginTop: '0.5rem', fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>
@@ -335,6 +391,17 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
               <div className="level-progress-detail">
                 {progressDetail || `${progressPercent}%`}
               </div>
+              {/* Institutional context — non-gamified phrasing */}
+              {progressPercent >= 100 && nextLevelLabel.toLowerCase().replace(' ', '_') && (
+                <div style={{ fontSize: '0.62rem', color: '#22c55e', marginTop: '4px', fontWeight: 600, fontStyle: 'italic' }}>
+                  {LEVEL_PROGRESS_PHRASES[nextLevelLabel === 'Recognized Contributor' ? 'recognized' : nextLevelLabel === 'Senior Scholar' ? 'senior_scholar' : 'steward']?.eligible || ''}
+                </div>
+              )}
+              {progressPercent < 100 && (
+                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: '4px', fontStyle: 'italic' }}>
+                  {LEVEL_PROGRESS_PHRASES[nextLevelLabel === 'Recognized Contributor' ? 'recognized' : nextLevelLabel === 'Senior Scholar' ? 'senior_scholar' : 'steward']?.working || ''}
+                </div>
+              )}
             </div>
           )}
           {nextLevelLabel === '__MAX__' && (
@@ -360,16 +427,21 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
           <div className="stats-ledger" style={{ marginTop: '2.5rem', textAlign: 'left', gap: '1rem' }}>
             <span className="nav-heading" style={{ paddingLeft: 0, color: 'var(--color-gold)' }}>Reputation</span>
 
-            {/* Reputation Score — The primary number */}
-            <div className="stats-item" style={{
-              background: 'rgba(255,255,255,0.03)', padding: '1.25rem',
-              borderRadius: '12px', border: '1px solid var(--border-subtle)',
-            }}>
-              <span className="stats-label" style={{ fontWeight: 700, fontSize: '0.75rem' }}>Reputation Score</span>
-              <span className="stats-value" style={{ color: 'var(--color-gold)', fontSize: '1.6rem', fontWeight: 800 }}>
-                {profile.reputation_score || 0}
-              </span>
-            </div>
+            {/* Reputation Score — The primary number with contextual tooltip */}
+            <SystemTooltip
+              title="Reputation Score"
+              text={REPUTATION_SCORE_TOOLTIP}
+            >
+              <div className="stats-item" style={{
+                background: 'rgba(255,255,255,0.03)', padding: '1.25rem',
+                borderRadius: '12px', border: '1px solid var(--border-subtle)',
+              }}>
+                <span className="stats-label" style={{ fontWeight: 700, fontSize: '0.75rem' }}>Reputation Score</span>
+                <span className="stats-value" style={{ color: 'var(--color-gold)', fontSize: '1.6rem', fontWeight: 800 }}>
+                  {profile.reputation_score || 0}
+                </span>
+              </div>
+            </SystemTooltip>
 
             {/* Acceptance Rate */}
             <div className="stats-item" style={{
@@ -488,14 +560,14 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
 
           {/* Actions */}
           <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid var(--border-subtle)' }}>
-            <Link href={`/profile/${username}/discussions`} className="btn-primary" style={{
+            <Link href={isOwnProfile ? '/profile/edit' : `/profile/${username}/discussions`} className="btn-primary" style={{
               width: '100%', padding: '14px', fontSize: '0.85rem',
               fontWeight: 800, letterSpacing: '0.1em',
               background: 'var(--color-gold-gradient)', color: 'var(--bg-base)',
               boxShadow: 'var(--color-gold-glow)', borderRadius: '12px',
               border: 'none', cursor: 'pointer',
             }}>
-              SEND MESSAGE
+              {isOwnProfile ? 'EDIT PROFILE' : 'SEND MESSAGE'}
             </Link>
           </div>
         </div>
@@ -506,7 +578,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
       {/* Main Content */}
       <main className="scholarly-content">
         <header className="scholarly-header">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1.5rem' }}>
             <div>
               <span className="context-label">Contributor Profile</span>
               <h1 className="scholarly-title" style={{ fontSize: '2.5rem' }}>{profileDisplayName}</h1>
@@ -517,22 +589,41 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
                 <div className="profile-header-interests">{profileInterestLine}</div>
               )}
             </div>
-            {/* Level Badge (Header) */}
-            <div style={{
-              padding: '1rem 1.5rem', border: `1px solid ${roleConfig.color}30`,
-              borderRadius: '12px', textAlign: 'center', minWidth: '140px',
-              background: `${roleConfig.color}08`,
-            }}>
-              <div style={{ fontSize: '1.2rem', marginBottom: '4px' }}>{roleConfig.icon}</div>
-              <div style={{
-                fontSize: '0.65rem', fontWeight: 800, color: roleConfig.color,
-                textTransform: 'uppercase', letterSpacing: '0.08em',
-              }}>
-                {roleConfig.label}
-              </div>
-              <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                Level {roleConfig.level}
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+              {isOwnProfile && (
+                <Link href="/profile/edit" style={{
+                  minHeight: '42px', padding: '0 1rem',
+                  borderRadius: '8px', border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-surface)', color: 'var(--text-primary)',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  textDecoration: 'none', fontSize: '0.72rem', fontWeight: 800,
+                  letterSpacing: '0.06em', textTransform: 'uppercase',
+                }}>
+                  Edit Profile
+                </Link>
+              )}
+              {/* Level Badge (Header) — with contextual tooltip */}
+              <SystemTooltip
+                title={ROLE_TOOLTIPS[profile.role]?.label || roleConfig.label}
+                text={ROLE_TOOLTIPS[profile.role]?.tooltip || 'Member of the scholarly community.'}
+              >
+                <div style={{
+                  padding: '1rem 1.5rem', border: `1px solid ${roleConfig.color}30`,
+                  borderRadius: '12px', textAlign: 'center', minWidth: '140px',
+                  background: `${roleConfig.color}08`,
+                }}>
+                  <div style={{ fontSize: '1.2rem', marginBottom: '4px' }}>{roleConfig.icon}</div>
+                  <div style={{
+                    fontSize: '0.65rem', fontWeight: 800, color: roleConfig.color,
+                    textTransform: 'uppercase', letterSpacing: '0.08em',
+                  }}>
+                    {roleConfig.label}
+                  </div>
+                  <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    Level {roleConfig.level}
+                  </div>
+                </div>
+              </SystemTooltip>
             </div>
           </div>
         </header>

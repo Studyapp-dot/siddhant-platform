@@ -165,6 +165,8 @@
   height: 26px;
   border-radius: 7px;
   background: var(--color-gold);
+  background-position: center;
+  background-size: cover;
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -219,7 +221,7 @@
   color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0;
   font: inherit;
   font-size: 0.86rem;
   font-weight: 650;
@@ -230,20 +232,6 @@
 
 .user-menu-item:hover {
   background: var(--bg-panel);
-}
-
-.user-menu-item-icon {
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
-  border: 1px solid var(--border-subtle);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--color-gold);
-  font-size: 0.72rem;
-  font-weight: 800;
 }
 
 .user-menu-divider {
@@ -367,6 +355,19 @@
   .navbar-logo-text { display: none; }
 }
 
+
+/* ===== ONBOARDING MODE ===== */
+.navbar-onboarding .navbar-links {
+  display: none;
+}
+
+.navbar-onboarding .notif-bell-container {
+  display: none;
+}
+
+.mobile-nav-hidden {
+  display: none !important;
+}
 
 /* ===== NOTIFICATION BELL ===== */
 .notif-bell-container {

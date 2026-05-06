@@ -10,6 +10,8 @@ import './Navbar.css';
 interface NavbarProps {
   user: {
     username: string;
+    displayName?: string;
+    profilePhoto?: string | null;
     profileUrl: string;
   } | null;
 }
@@ -36,9 +38,11 @@ export default function Navbar({ user }: NavbarProps) {
     pathname === href || (href !== '/' && pathname?.startsWith(`${href}/`))
   );
 
+  const isOnboarding = pathname === '/welcome';
+
   return (
     <>
-    <nav className="navbar-container">
+    <nav className={`navbar-container${isOnboarding ? ' navbar-onboarding' : ''}`}>
       <div className="navbar-inner">
         {/* LOGO */}
         <Link href="/" className="navbar-logo">
@@ -68,7 +72,7 @@ export default function Navbar({ user }: NavbarProps) {
       </div>
     </nav>
 
-    <nav className="mobile-bottom-nav" aria-label="Primary mobile navigation">
+    <nav className={`mobile-bottom-nav${isOnboarding ? ' mobile-nav-hidden' : ''}`} aria-label="Primary mobile navigation">
       {mobileLinks.map((link) => (
         <Link
           key={link.href}

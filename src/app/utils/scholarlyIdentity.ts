@@ -19,6 +19,21 @@ export const SCHOLARLY_ROLE_OPTIONS = [
 
 export type ScholarlyRole = (typeof SCHOLARLY_ROLE_OPTIONS)[number];
 
+export const LEGAL_INTEREST_OPTIONS = [
+  'Constitutional Law',
+  'Criminal Law',
+  'Jurisprudence',
+  'Competition Law',
+  'Administrative Law',
+  'Human Rights',
+  'Environmental Law',
+  'Cyber Law',
+  'Family Law',
+  'Labour Law',
+  'International Law',
+  'Intellectual Property',
+] as const;
+
 export function displayNameFor(identity: ScholarlyIdentity): string {
   return identity.full_display_name?.trim()
     || identity.username?.trim()
