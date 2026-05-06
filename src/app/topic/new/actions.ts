@@ -56,21 +56,14 @@ export async function createNode(formData: FormData) {
     commit_message,
   })
 
-  // Fire-and-forget: trigger AI metadata extraction
-  // We don't await this — the user is redirected immediately
-  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin
-    : 'http://localhost:3000'
-  
+  // Await metadata extraction before redirecting
+  // This ensures Vercel's serverless function stays alive until extraction completes
   try {
-    // Use the internal extraction function directly instead of HTTP call
-    // to avoid issues with self-referencing URLs during build
     const { extractMetadata } = await import('@/utils/ai/extract-metadata')
-    extractMetadata(newNode.id).catch((err: any) => {
-      console.error('[create-node] AI extraction failed:', err)
-    })
+    await extractMetadata(newNode.id)
   } catch (err) {
-    console.error('[create-node] Failed to start extraction:', err)
+    // Extraction failure should not block publishing — log and continue
+    console.error('[create-node] AI extraction failed:', err)
   }
 
   redirect(`/topic/${slug}`)

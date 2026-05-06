@@ -62,24 +62,22 @@ export async function submitRevision(formData: FormData) {
       .eq('id', user.id);
   }
 
-  // Fire-and-forget: re-extract metadata from the updated article
+  // Await metadata extraction before redirecting
+  // This ensures Vercel's serverless function stays alive until extraction completes
   try {
     const { extractMetadata } = await import('@/utils/ai/extract-metadata')
-    extractMetadata(node_id).catch((err: unknown) => {
-      console.error('[edit-node] AI re-extraction failed:', err)
-    })
+    await extractMetadata(node_id)
   } catch (err) {
-    console.error('[edit-node] Failed to start re-extraction:', err)
+    // Extraction failure should not block the edit — log and continue
+    console.error('[edit-node] AI re-extraction failed:', err)
   }
 
   if (insertedRevision?.id) {
     try {
       const { extractRevisionSemantics } = await import('@/utils/ai/extract-revision-semantics')
-      extractRevisionSemantics(insertedRevision.id).catch((err: unknown) => {
-        console.error('[edit-node] Revision semantic extraction failed:', err)
-      })
+      await extractRevisionSemantics(insertedRevision.id)
     } catch (err) {
-      console.error('[edit-node] Failed to start revision semantic extraction:', err)
+      console.error('[edit-node] Revision semantic extraction failed:', err)
     }
   }
 
