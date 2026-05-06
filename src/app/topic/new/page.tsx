@@ -377,7 +377,7 @@ function NewTopicPage() {
                 </span>
               )}
               <span className="confidence-signal">
-                ✨ AI extraction ready
+                ✨ Live extraction ready
               </span>
               {wordCount > 0 && (
                 <span className="confidence-signal">
@@ -560,7 +560,7 @@ The platform will extract key facts into a Quick Reference card.`}
             })()}
 
             <div className="intelligent-indicator-sidebar">
-              <span>✨</span> AI Extraction Active
+              <span>✨</span> Live Indexing Active
             </div>
           </div>
           
@@ -572,7 +572,7 @@ The platform will extract key facts into a Quick Reference card.`}
             </button>
             {expandedSections.structure && (
               <div className="sidebar-collapse-body">
-                <p>An Article should flow naturally from a summary to a deep dive:</p>
+                <p>An Article should flow from a clear summary to a deep dive:</p>
                 <ol className="structure-list">
                   <li className="structure-item">
                     <span className="item-num">01</span>
@@ -584,15 +584,15 @@ The platform will extract key facts into a Quick Reference card.`}
                   <li className="structure-item">
                     <span className="item-num">02</span>
                     <span className="item-text">
-                      <span className="item-label">Doctrine &amp; Case Law</span>
-                      Key distinctions, sub-clauses, and landmark precedents.
+                      <span className="item-label">Doctrine &amp; Authority</span>
+                      Ground your claims. Cite landmark judgments, statutory text, and primary sources.
                     </span>
                   </li>
                   <li className="structure-item">
                     <span className="item-num">03</span>
                     <span className="item-text">
                       <span className="item-label">Jurisprudence</span>
-                      The &quot;Why.&quot; Legislative intent, academic debates, and constitutional basis.
+                      The evolution of the law. Legislative intent, exceptions, and academic commentary.
                     </span>
                   </li>
                 </ol>
@@ -600,26 +600,22 @@ The platform will extract key facts into a Quick Reference card.`}
             )}
           </div>
 
-          {/* ── Collapsible: How It Works ── */}
+          {/* ── Collapsible: The Living Archive ── */}
           <div className="sidebar-card">
             <button type="button" className="sidebar-collapse-header" onClick={() => toggleSection('howItWorks')}>
-              <h3>How It Works</h3>
+              <h3>The Living Archive</h3>
               <span className={`collapse-chevron ${expandedSections.howItWorks ? 'expanded' : ''}`}>▸</span>
             </button>
             {expandedSections.howItWorks && (
               <div className="sidebar-collapse-body">
                 <p style={{fontSize: '0.78rem', opacity: 0.8, lineHeight: 1.6}}>
-                  Just write your article naturally. The platform will automatically:
+                  Focus entirely on clear legal synthesis. When you publish:
                 </p>
                 <ul className="structure-list" style={{opacity: 0.7, fontSize: '0.78rem'}}>
-                  <li>• Extract case citations and section numbers</li>
-                  <li>• Generate a Quick Reference card</li>
-                  <li>• Suggest connections to other nodes</li>
-                  <li>• Normalize court names and dates</li>
+                  <li>• <strong>Extraction:</strong> Key citations and facts are indexed automatically.</li>
+                  <li>• <strong>Structure:</strong> A Quick Reference card is generated to aid readers.</li>
+                  <li>• <strong>Collaboration:</strong> Peers will link, review, and build upon your article.</li>
                 </ul>
-                <p style={{fontSize: '0.72rem', opacity: 0.5, marginTop: '12px', lineHeight: 1.5}}>
-                  No forms to fill. No metadata to enter. Just write.
-                </p>
               </div>
             )}
           </div>
@@ -632,11 +628,11 @@ The platform will extract key facts into a Quick Reference card.`}
             </button>
             {expandedSections.ethics && (
               <div className="sidebar-collapse-body">
-                <p>Every contribution is permanently recorded in the Edit History.</p>
+                <p>Every contribution builds your permanent, verifiable professional record.</p>
                 <ul className="structure-list" style={{opacity: 0.7, fontSize: '0.78rem'}}>
-                  <li>• Cite primary sources accurately.</li>
-                  <li>• Avoid bias.</li>
-                  <li>• Write for public legal clarity.</li>
+                  <li>• <strong>Verifiability:</strong> Ground claims in reliable sources.</li>
+                  <li>• <strong>Neutrality:</strong> Summarize established law without bias.</li>
+                  <li>• <strong>Clarity:</strong> Write to make the law accessible to all.</li>
                 </ul>
               </div>
             )}

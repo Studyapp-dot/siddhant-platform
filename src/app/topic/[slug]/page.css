@@ -967,7 +967,8 @@
   font-style: italic;
 }
 
-/* Sidebar Bare Act Card */
+/* Sidebar Bare Act Card — DEPRECATED, replaced by section-card-sidebar */
+/* Kept for any legacy fallback rendering */
 .bare-act-card-sidebar {
   padding: 16px;
   background: var(--bg-panel);
@@ -1009,6 +1010,250 @@
   border-radius: 8px;
   border: 1px solid var(--border-subtle);
 }
+.statute-card-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ═══════════════════════════════════════════
+   LEGAL ESSENCE — One-line interpretation
+   Used across all major card types
+   ═══════════════════════════════════════════ */
+.legal-essence-text {
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  background: rgba(197, 160, 89, 0.04);
+  border-left: 2px solid rgba(197, 160, 89, 0.3);
+  border-radius: 0 6px 6px 0;
+}
+
+/* ═══════════════════════════════════════════
+   SECTION CARD — Redesigned
+   Identity → Essence → Classification → Essentials
+   ═══════════════════════════════════════════ */
+.section-card-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.section-header-sidebar {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #3b82f6;
+  margin-bottom: 4px;
+}
+.section-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.section-number-display {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.section-parent-statute {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Classification chips — Cognizable / Bailable / Compoundable */
+.classification-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.classification-chip {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+}
+.classification-chip.chip-yes {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.15);
+}
+.classification-chip.chip-no {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.06);
+  border-color: rgba(34, 197, 94, 0.15);
+}
+
+/* Essentials list — compressed bullet list */
+.essentials-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.essentials-label {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.essentials-list-sidebar {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.essentials-list-sidebar li {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  padding: 4px 0 4px 14px;
+  position: relative;
+  line-height: 1.4;
+}
+.essentials-list-sidebar li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #3b82f6;
+  font-weight: 800;
+}
+.chip-overflow-inline {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding-left: 14px;
+}
+.chip-overflow-inline::before {
+  content: '' !important;
+}
+
+/* Section punishment row */
+.section-punishment {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 10px;
+  background: var(--bg-panel);
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+}
+
+/* ═══════════════════════════════════════════
+   CONSTITUTIONAL PROVISION CARD — Fixed
+   ═══════════════════════════════════════════ */
+.constitutional-card-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.constitutional-header-sidebar {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0ea5e9;
+  margin-bottom: 4px;
+}
+.constitutional-chip {
+  color: #0ea5e9 !important;
+  background: rgba(14, 165, 233, 0.06) !important;
+  border-color: rgba(14, 165, 233, 0.15) !important;
+}
+
+/* ═══════════════════════════════════════════
+   CHAPTER CARD — New, minimal
+   ═══════════════════════════════════════════ */
+.chapter-card-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.chapter-header-sidebar {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #6366f1;
+  margin-bottom: 4px;
+}
+
+/* ═══════════════════════════════════════════
+   THEME CHIPS — Reused across card types
+   ═══════════════════════════════════════════ */
+.card-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.theme-chip {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  padding: 3px 10px;
+  border-radius: 100px;
+  background: var(--bg-panel);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+.maxim-chip {
+  font-style: italic;
+  text-transform: none;
+  font-size: 0.6rem;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chip-overflow {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 3px 8px;
+  font-style: italic;
+}
+
+/* ═══════════════════════════════════════════
+   STATUS PILLS — for statutes and doctrines
+   ═══════════════════════════════════════════ */
+.status-pill-sidebar {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 100px;
+  width: fit-content;
+}
+.status-active {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.08);
+}
+.status-repealed {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+.status-partial {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+}
 
 /* Sidebar Meta Line */
 .sidebar-meta-line {
@@ -1018,13 +1263,18 @@
   background: var(--bg-panel);
   border-radius: 8px;
   margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-/* Doctrine Card Sidebar */
+/* ═══════════════════════════════════════════
+   DOCTRINE CARD — Expanded
+   ═══════════════════════════════════════════ */
 .doctrine-card-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 .doctrine-header-sidebar {
   font-family: var(--font-sans);
@@ -1032,6 +1282,18 @@
   font-weight: 800;
   color: #10b981;
   margin-bottom: 4px;
+}
+.doctrine-name-display {
+  font-family: var(--font-serif);
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.doctrine-grid-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .sidebar-meta-list {
   display: flex;
@@ -1041,6 +1303,50 @@
   padding: 10px;
   border-radius: 8px;
   border: 1px solid var(--border-subtle);
+}
+
+/* ═══════════════════════════════════════════
+   CONCEPT CARD — New
+   ═══════════════════════════════════════════ */
+.concept-card-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.concept-header-sidebar {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #ec4899;
+  margin-bottom: 4px;
+}
+.concept-name-display {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.concept-translation {
+  font-family: var(--font-serif);
+  font-size: 0.88rem;
+  font-style: italic;
+  color: #ec4899;
+  opacity: 0.85;
+}
+.concept-explanation {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  padding: 10px 12px;
+  background: var(--bg-panel);
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+}
+.concept-maxims {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 /* ========================================

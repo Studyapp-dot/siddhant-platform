@@ -1,7 +1,9 @@
-# Node Metadata Reference — Complete Specification
+# Node Metadata Reference — Complete Specification (v2)
 
 > [!NOTE]
 > This document describes **exactly** what metadata is saved for each node type, how it gets there, and how it's displayed in the Quick Reference card on the Topic Page sidebar.
+>
+> **v2 Updates:** Added `legal_essence` across all major types, redesigned section/constitutional cards (removed bare act text wall), new chapter/concept cards, tightened essentials extraction, chip overflow system.
 
 ---
 
@@ -21,11 +23,11 @@ flowchart LR
 
 | Step | What Happens | Code Location |
 |------|-------------|---------------|
-| **1. Create** | User writes article text, picks a `node_type`. Node is inserted with `metadata = {}` | [actions.ts](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/app/topic/new/actions.ts) |
-| **2. Extract** | `extractMetadata(nodeId)` is called fire-and-forget. AI reads the article and returns structured JSON | [extract-metadata.ts](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/utils/ai/extract-metadata.ts) |
-| **3. Store** | Extracted JSON is saved to `nodes.metadata` (JSONB column). System fields `_extracted_at`, `_extraction_model`, `_suggested_edges` are appended | Same file, lines 256–265 |
-| **4. Display** | Topic Page reads `node.metadata` and renders a type-specific Quick Reference card in the right sidebar | [page.tsx](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/app/topic/%5Bslug%5D/page.tsx) |
-| **5. Re-extract** | On every edit/revision, extraction re-runs and overwrites the metadata | [edit/actions.ts](file:///c:/Users/Nipun/OneDrive/Desktop/Legal%20Platfrom%20-%20AG/src/app/topic/%5Bslug%5D/edit/actions.ts) |
+| **1. Create** | User writes article text, picks a `node_type`. Node is inserted with `metadata = {}` | [actions.ts](file:///c:/Users/Nipun/OneDrive/Documents/Siddhant%20Save/Siddhant%20Save%2012/src/app/topic/new/actions.ts) |
+| **2. Extract** | `extractMetadata(nodeId)` is called fire-and-forget. AI reads the article and returns structured JSON | [extract-metadata.ts](file:///c:/Users/Nipun/OneDrive/Documents/Siddhant%20Save/Siddhant%20Save%2012/src/utils/ai/extract-metadata.ts) |
+| **3. Store** | Extracted JSON is saved to `nodes.metadata` (JSONB column). System fields `_extracted_at`, `_extraction_model`, `_semantic_version`, `_suggested_edges` are appended | Same file |
+| **4. Display** | Topic Page reads `node.metadata` and renders a type-specific Quick Reference card in the right sidebar | [page.tsx](file:///c:/Users/Nipun/OneDrive/Documents/Siddhant%20Save/Siddhant%20Save%2012/src/app/topic/%5Bslug%5D/page.tsx) |
+| **5. Re-extract** | On every edit/revision, extraction re-runs and overwrites the metadata | [edit/actions.ts](file:///c:/Users/Nipun/OneDrive/Documents/Siddhant%20Save/Siddhant%20Save%2012/src/app/topic/%5Bslug%5D/edit/actions.ts) |
 
 ---
 
@@ -39,6 +41,29 @@ ALTER TABLE public.nodes
 ```
 
 The structure of the JSON varies by `node_type`. Every value below is **conditionally present** — the AI only includes fields it can extract from the article text.
+
+---
+
+## Design Principles
+
+### Information Hierarchy (L1 → L4)
+
+Every Quick Reference card follows this visual hierarchy:
+
+| Level | Purpose | Example |
+|-------|---------|---------|
+| **L1 — Identity** | What is this? | Section 103, BNS |
+| **L2 — Core Meaning** | Why does it matter? | `legal_essence` — one-line interpretation |
+| **L3 — Classification** | How is it treated? | Cognizable, Non-bailable (subtle chips) |
+| **L4 — Semantic Context** | How does it connect? | Key themes, essentials |
+
+### Store More Than You Display
+
+Not all metadata is shown in UI. Some metadata exists for AI systems, graph reasoning, retrieval, ranking, and future analytics. The sidebar shows only high-signal orientation information.
+
+### Chip Overflow Rule
+
+All chip arrays display max **3–5 visible items**. Overflow shows `+N more` as a muted pill.
 
 ---
 
@@ -59,25 +84,30 @@ There are **8 node types**. Each has a different metadata schema extracted by AI
 | `short_title` | `string` | `"BNS"` | Common abbreviation |
 | `full_title` | `string` | `"The Bharatiya Nyaya Sanhita, 2023"` | Full official name |
 | `act_number` | `string` | `"45 of 2023"` | Official Act number |
+| `year` | `string` | `"2023"` | Enactment year |
 | `date_of_enactment` | `string` (ISO date) | `"2023-12-25"` | Date passed by legislature |
 | `date_of_enforcement` | `string` (ISO date) | `"2024-07-01"` | Date the Act came into force |
 | `legislative_list` | `string` enum | `"concurrent"` | One of: `union`, `state`, `concurrent`, `residuary` |
 | `status` | `string` enum | `"in_force"` | One of: `in_force`, `repealed`, `partially_repealed` |
 | `replaces` | `string` | `"Indian Penal Code, 1860"` | Human-readable name of the Act it replaced |
+| `key_themes` | `string[]` | `["criminal justice", "reform"]` | Main thematic tags (max 3–5) |
 
 #### Quick Reference Card Display
 
-The statute card displays when `nodeType === 'statute' && metadata.short_title` is truthy. Fields shown:
+The statute card displays when `nodeType === 'statute' && metadata.short_title` is truthy.
 
-| Card Row | Source Field |
-|----------|-------------|
-| **Short Title** | `metadata.short_title` |
-| **Act No.** | `metadata.act_number` (if present) |
-| **List** | `metadata.legislative_list` (if present, capitalized) |
-| **Enacted** | `metadata.date_of_enactment` (if present) |
+| Level | Card Row | Source Field |
+|-------|----------|-------------|
+| L1 | **Short Title** | `metadata.short_title` |
+| L1 | **Act No.** | `metadata.act_number` (if present) |
+| L2 | **Status** | `metadata.status` → colored status pill |
+| L3 | **List** | `metadata.legislative_list` (if present, capitalized) |
+| L3 | **Enacted** | `metadata.date_of_enactment` (if present) |
+| L3 | **Replaces** | `metadata.replaces` (if present) |
+| L4 | **Key Themes** | `metadata.key_themes` → chips (max 5, overflow hidden) |
 
 > [!NOTE]
-> `full_title`, `date_of_enforcement`, `status`, and `replaces` are **saved but NOT displayed** in the Quick Reference card currently.
+> `full_title`, `year`, `date_of_enforcement` are **saved but NOT displayed** in the Quick Reference card.
 
 ---
 
@@ -92,10 +122,17 @@ The statute card displays when `nodeType === 'statute' && metadata.short_title` 
 | `chapter_number` | `string` | `"VI"` | Chapter/Part number |
 | `chapter_title` | `string` | `"Offences Affecting the Human Body"` | Official chapter title |
 | `parent_statute` | `string` | `"Bharatiya Nyaya Sanhita, 2023"` | Name of the parent Act |
+| `key_themes` | `string[]` | `["homicide", "grievous hurt"]` | Main themes (max 3) |
 
 #### Quick Reference Card Display
 
-**No dedicated card.** Chapter nodes do not have a specific Quick Reference card template. If metadata exists, it falls through with no special rendering.
+**New card** — displays when `nodeType === 'chapter' && metadata._extracted_at` is truthy.
+
+| Level | Card Row | Source Field |
+|-------|----------|-------------|
+| L1 | **Chapter Number** | `metadata.chapter_number` |
+| L1 | **Parent Statute** | `metadata.parent_statute` |
+| L4 | **Key Themes** | `metadata.key_themes` → chips (max 3) |
 
 ---
 
@@ -108,27 +145,32 @@ The statute card displays when `nodeType === 'statute' && metadata.short_title` 
 | Field | Type | Example | Description |
 |-------|------|---------|-------------|
 | `section_number` | `string` | `"103"` | Section number within the Act |
+| `legal_essence` | `string` | `"Punishes intentional causing of death."` | One-line compressed interpretation (max 15 words) |
 | `bare_act_text` | `string` | `"Whoever causes death by doing an act with the intention..."` | Exact statutory text |
-| `essentials` | `string[]` | `["Causing death", "Intention to cause death", ...]` | Each element/ingredient of the provision |
+| `essentials` | `string[]` | `["Causing death", "Intention to cause death", ...]` | Each element/ingredient (max 5 items, 8–12 words each) |
 | `punishment` | `string` | `"Death or imprisonment for life, and fine"` | Prescribed punishment |
 | `cognizable` | `boolean` | `true` | Whether the offence is cognizable |
 | `bailable` | `boolean` | `false` | Whether the offence is bailable |
 | `compoundable` | `boolean` | `false` | Whether the offence is compoundable |
 | `parent_statute` | `string` | `"Bharatiya Nyaya Sanhita, 2023"` | Name of parent Act |
 | `enforcement_status` | `string` enum | `"in_force"` | One of: `in_force`, `repealed` |
+| `legal_domains` | `string[]` | `["criminal"]` | Legal domains (max 3) |
 
 #### Quick Reference Card Display
 
-The section card displays when `nodeType === 'section' && metadata.bare_act_text` is truthy. Fields shown:
+**Redesigned** — displays when `nodeType === 'section' && metadata._extracted_at` is truthy.
 
-| Card Row | Source Field |
-|----------|-------------|
-| **Header** | `"§ Provision"` + `"Section {metadata.section_number}"` |
-| **Bare Act Text** | `metadata.bare_act_text` (full text block) |
-| **Punishment** | `metadata.punishment` (if present) |
+| Level | Card Row | Source Field |
+|-------|----------|-------------|
+| L1 | **Section Number** | `metadata.section_number` |
+| L1 | **Parent Statute** | `metadata.parent_statute` |
+| L2 | **Legal Essence** | `metadata.legal_essence` — italic, one-line |
+| L3 | **Classification** | Cognizable / Bailable / Compoundable → subtle chips |
+| L4 | **Essentials** | `metadata.essentials` → compressed bullet list (max 5) |
+| Optional | **Punishment** | `metadata.punishment` |
 
-> [!NOTE]
-> `essentials`, `cognizable`, `bailable`, `compoundable`, `parent_statute`, and `enforcement_status` are **saved but NOT displayed** in the Quick Reference card currently.
+> [!IMPORTANT]
+> **`bare_act_text` is NO LONGER displayed in the sidebar.** It is still extracted and stored for the article body and future use, but removed from the Quick Reference card to reduce clutter and improve scannability.
 
 ---
 
@@ -141,25 +183,26 @@ The section card displays when `nodeType === 'section' && metadata.bare_act_text
 | Field | Type | Example | Description |
 |-------|------|---------|-------------|
 | `article_number` | `string` | `"21"` | Article number |
+| `legal_essence` | `string` | `"Guarantees right to life and personal liberty."` | One-line compressed interpretation |
 | `bare_text` | `string` | `"No person shall be deprived of his life..."` | Exact constitutional text |
 | `part` | `string` | `"Part III — Fundamental Rights"` | Part/chapter of the Constitution |
 | `amendment_details` | `string` | `"Inserted by Constitution (44th Amendment) Act, 1978"` | Relevant amendment info |
-
-> [!IMPORTANT]
-> Note the field is `bare_text` (not `bare_act_text`). But the display code checks for `metadata.bare_act_text`. This means the constitutional provision card **may not render correctly** unless the AI happens to use `bare_act_text` instead of `bare_text`.
+| `constitutional_principles` | `string[]` | `["Right to Life", "Due Process"]` | Key principles (max 2–3) |
 
 #### Quick Reference Card Display
 
-Shares the same card template as `section`. Displays when `nodeType === 'constitutional_provision' && metadata.bare_act_text` is truthy:
+**Fixed and redesigned** — displays when `nodeType === 'constitutional_provision' && metadata._extracted_at` is truthy.
 
-| Card Row | Source Field |
-|----------|-------------|
-| **Header** | `"🏛 Article"` + `"Art. {metadata.section_number}"` |
-| **Bare Act Text** | `metadata.bare_act_text` (full text block) |
-| **Punishment** | `metadata.punishment` (if present — typically N/A for articles) |
+| Level | Card Row | Source Field |
+|-------|----------|-------------|
+| L1 | **Article Number** | `metadata.article_number` (with `metadata.section_number` fallback for legacy) |
+| L1 | **Part** | `metadata.part` |
+| L2 | **Legal Essence** | `metadata.legal_essence` |
+| L3 | **Principles** | `metadata.constitutional_principles` → chips (max 3) |
+| Optional | **Amendment** | `metadata.amendment_details` |
 
-> [!WARNING]
-> There is a field naming mismatch: the AI extraction schema uses `article_number` and `bare_text`, but the display code reads `section_number` and `bare_act_text`. This is a known inconsistency.
+> [!NOTE]
+> **Schema mismatch fixed.** The display code now reads `article_number` (with `section_number` fallback for legacy data). Full `bare_text` is stored but NOT shown in sidebar.
 
 ---
 
@@ -172,6 +215,7 @@ Shares the same card template as `section`. Displays when `nodeType === 'constit
 | Field | Type | Example | Description |
 |-------|------|---------|-------------|
 | `case_name` | `string` | `"Maneka Gandhi v. Union of India"` | Full case name |
+| `legal_essence` | `string` | `"Expanded Article 21 into substantive due process."` | One-line compressed interpretation |
 | `citations` | `string[]` | `["AIR 1978 SC 597", "(1978) 1 SCC 248"]` | Standard legal citations |
 | `court` | `string` | `"Supreme Court of India"` | Normalized court name |
 | `bench_type` | `string` enum | `"Constitution Bench"` | One of: `Single Judge`, `Division Bench`, `Full Bench`, `Constitution Bench` |
@@ -181,23 +225,22 @@ Shares the same card template as `section`. Displays when `nodeType === 'constit
 | `ratio_decidendi` | `string` | `"The right to travel abroad is part of personal liberty..."` | Core legal principle (1–2 sentences) |
 | `case_status` | `string` enum | `"good_law"` | One of: `good_law`, `overruled`, `partially_overruled`, `doubted` |
 | `significance` | `string` | `"Expanded Article 21 from a narrow, literal interpretation..."` | Why this case matters |
-
-> [!NOTE]
-> The AI prompt also asks for `petitioner` and `respondent`, but these are **not in the extraction schema prompt** sent to the model — they are only in the design document. The extraction prompt schema for `judgment` does NOT include them.
+| `related_doctrines` | `string[]` | `["Doctrine of Due Process"]` | Doctrines established or applied (max 2–3) |
 
 #### Quick Reference Card Display
 
 The judgment card is the **most detailed** card. Displays when `nodeType === 'judgment' && metadata._extracted_at` is truthy:
 
-| Card Row | Source Field |
-|----------|-------------|
-| **Case** | `metadata.case_name` |
-| **Citation** | `metadata.citations` (array joined with `, `) or `metadata.citation` (string fallback) |
-| **Court** | `metadata.court` |
-| **Bench** | `metadata.bench_type` or `metadata.bench`, plus `({bench_strength} Judges)` if present |
-| **Date** | `metadata.date_of_judgment` (formatted as `25 Jan 1978`) |
-| **Status** | `metadata.case_status` → mapped to a colored pill badge |
-| **Ratio Decidendi** | `metadata.ratio_decidendi` (separate highlighted box) |
+| Level | Card Row | Source Field |
+|-------|----------|-------------|
+| L1 | **Case** | `metadata.case_name` |
+| L2 | **Legal Essence** | `metadata.legal_essence` — subtle italic line |
+| L1 | **Citation** | `metadata.citations` (array joined) or `metadata.citation` (string fallback) |
+| L3 | **Court** | `metadata.court` |
+| L3 | **Bench** | `metadata.bench_type` or `metadata.bench`, plus `(N Judges)` |
+| L3 | **Date** | `metadata.date_of_judgment` (formatted) |
+| L3 | **Status** | `metadata.case_status` → colored pill badge |
+| L2 | **Ratio Decidendi** | `metadata.ratio_decidendi` (highlighted box) |
 
 **Case Status Badges:**
 
@@ -209,7 +252,7 @@ The judgment card is the **most detailed** card. Displays when `nodeType === 'ju
 | `doubted` | ⚠️ Doubted | `#fb923c` (orange) |
 
 > [!NOTE]
-> `judges`, `significance`, `petitioner`, and `respondent` are **saved but NOT displayed** in the Quick Reference card.
+> `judges`, `significance`, and `related_doctrines` are **saved but NOT displayed** in the Quick Reference card.
 
 ---
 
@@ -222,22 +265,27 @@ The judgment card is the **most detailed** card. Displays when `nodeType === 'ju
 | Field | Type | Example | Description |
 |-------|------|---------|-------------|
 | `doctrine_name` | `string` | `"Doctrine of Basic Structure"` | Name of the doctrine |
+| `legal_essence` | `string` | `"Limits Parliament's power to amend the Constitution."` | One-line compressed interpretation |
 | `origin_case` | `string` | `"Kesavananda Bharati v. State of Kerala (1973)"` | Case where first established |
 | `applicable_domains` | `string[]` | `["constitutional"]` | Legal domains where applicable |
-| `key_elements` | `string[]` | `["Supremacy of the Constitution", ...]` | Core elements of the doctrine |
+| `key_elements` | `string[]` | `["Supremacy of the Constitution", ...]` | Core elements (max 3–4) |
 | `current_status` | `string` | `"Well-established"` | Current legal standing |
+| `constitutional_basis` | `string[]` | `["Article 368"]` | Constitutional provisions grounded in (max 2) |
 
 #### Quick Reference Card Display
 
-Displays when `nodeType === 'doctrine'`. A minimal card:
+**Expanded** — displays when `nodeType === 'doctrine' && metadata._extracted_at` is truthy:
 
-| Card Row | Source Field |
-|----------|-------------|
-| **Header** | `"💡 Doctrine Details"` |
-| **Origin Case** | `metadata.origin_case` (if present) |
+| Level | Card Row | Source Field |
+|-------|----------|-------------|
+| L1 | **Doctrine Name** | `metadata.doctrine_name` |
+| L2 | **Legal Essence** | `metadata.legal_essence` |
+| L3 | **Origin Case** | `metadata.origin_case` |
+| L3 | **Status** | `metadata.current_status` → status pill |
+| L4 | **Key Elements** | `metadata.key_elements` → bullet list (max 4, overflow hidden) |
 
 > [!NOTE]
-> `doctrine_name`, `applicable_domains`, `key_elements`, and `current_status` are **saved but NOT displayed** in the Quick Reference card.
+> `applicable_domains` and `constitutional_basis` are **saved but NOT displayed** in the Quick Reference card.
 
 ---
 
@@ -250,13 +298,27 @@ Displays when `nodeType === 'doctrine'`. A minimal card:
 | Field | Type | Example | Description |
 |-------|------|---------|-------------|
 | `concept_name` | `string` | `"Mens Rea"` | Name of the concept |
+| `legal_essence` | `string` | `"Intent or knowledge of wrongdoing."` | One-line compressed interpretation |
 | `translation` | `string` | `"Guilty Mind"` | Plain-English translation |
+| `explanation_summary` | `string` | `"Mens rea refers to the mental element..."` | 2–3 sentences in plain language |
 | `applicable_domains` | `string[]` | `["criminal"]` | Legal domains where relevant |
-| `related_maxims` | `string[]` | `["Actus non facit reum nisi mens sit rea"]` | Related legal maxims |
+| `related_maxims` | `string[]` | `["Actus non facit reum nisi mens sit rea"]` | Related legal maxims (max 3) |
+| `related_doctrines` | `string[]` | `["Doctrine of Strict Liability"]` | Related doctrines (max 2) |
 
 #### Quick Reference Card Display
 
-**No dedicated card template.** Concept nodes do not have a specific Quick Reference card. The sidebar just doesn't render anything for this type.
+**New card** — displays when `nodeType === 'concept' && metadata._extracted_at` is truthy:
+
+| Level | Card Row | Source Field |
+|-------|----------|-------------|
+| L1 | **Concept Name** | `metadata.concept_name` |
+| L1 | **Translation** | `metadata.translation` — italic |
+| L2 | **Legal Essence** | `metadata.legal_essence` |
+| L3 | **Explanation** | `metadata.explanation_summary` |
+| L4 | **Related Maxims** | `metadata.related_maxims` → chips (max 3, overflow hidden) |
+
+> [!NOTE]
+> `applicable_domains` and `related_doctrines` are **saved but NOT displayed** in the Quick Reference card.
 
 ---
 
@@ -271,6 +333,7 @@ Displays when `nodeType === 'doctrine'`. A minimal card:
 | `key_themes` | `string[]` | `["self-defence", "proportionality", "imminent threat"]` | Main themes covered |
 | `related_statutes` | `string[]` | `["Bharatiya Nyaya Sanhita, 2023"]` | Statutes mentioned in article |
 | `related_cases` | `string[]` | `["Kesavananda Bharati v. State of Kerala"]` | Cases mentioned in article |
+| `learning_level` | `string` enum | `"intermediate"` | One of: `introductory`, `intermediate`, `advanced` |
 
 #### Quick Reference Card Display
 
@@ -292,6 +355,7 @@ These are added by the extraction pipeline (not by AI) after a successful extrac
 |-------|------|---------|-------------|
 | `_extracted_at` | `string` (ISO datetime) | `"2026-04-01T14:30:00.000Z"` | When extraction ran |
 | `_extraction_model` | `string` | `"google/gemini-2.5-flash"` | Which AI model was used |
+| `_semantic_version` | `string` | `"1.0"` | Schema version for future compatibility |
 | `_suggested_edges` | `object[]` | See below | AI-suggested connections to other nodes |
 
 ### `_suggested_edges` Format
@@ -309,7 +373,7 @@ These are added by the extraction pipeline (not by AI) after a successful extrac
 Valid relationship types for suggestions: `interprets`, `establishes`, `codifies`, `prerequisite`, `distinguish_from`, `related_to`, `exception_to`, `governed_by`, `analogous_to`, `replaces`, `followed`, `applied`, `overruled`, `distinguished`, `explained`, `referred_to`.
 
 > [!IMPORTANT]
-> Suggested edges are **stored in metadata** but are **NOT automatically created** as actual edges in the `cross_references` table. They are currently not surfaced in the UI at all.
+> Suggested edges are **stored in metadata** but are **NOT automatically created** as actual edges in the `cross_references` table. They are currently not surfaced in the UI at all. Planned for future graph intelligence layer.
 
 ---
 
@@ -318,28 +382,49 @@ Valid relationship types for suggestions: `interprets`, `establishes`, `codifies
 A summary of what's saved vs. what's displayed:
 
 | Node Type | Fields Saved | Fields Displayed | Display Condition |
-|-----------|-------------|-----------------|-------------------|
-| `statute` | 8 | 4 | `metadata.short_title` exists |
-| `chapter` | 3 | 0 | No card template |
-| `section` | 9 | 3 | `metadata.bare_act_text` exists |
-| `constitutional_provision` | 4 | 3 | `metadata.bare_act_text` exists ⚠️ |
-| `judgment` | 10 | 7 + ratio box | `metadata._extracted_at` exists |
-| `doctrine` | 5 | 1 | Always (if not `topic`) |
-| `concept` | 4 | 0 | No card template |
-| `topic` | 3 | 0 | Card hidden entirely |
+|-----------|:---:|:---:|---|
+| `statute` | 10 | 7 + theme chips | `metadata.short_title` exists |
+| `chapter` | 4 | 3 + theme chips | `metadata._extracted_at` exists |
+| `section` | 11 | 6 + essentials list | `metadata._extracted_at` exists |
+| `constitutional_provision` | 6 | 4 + principle chips | `metadata._extracted_at` exists |
+| `judgment` | 12 | 8 + ratio box | `metadata._extracted_at` exists |
+| `doctrine` | 7 | 5 + elements list | `metadata._extracted_at` exists |
+| `concept` | 7 | 5 + maxim chips | `metadata._extracted_at` exists |
+| `topic` | 4 | 0 | Card hidden entirely |
 
 ---
 
-## Known Issues & Gaps
+## Extraction Quality Rules
 
-> [!WARNING]
-> **1. `constitutional_provision` field mismatch:** The AI extraction schema uses `article_number` and `bare_text`, but the display code reads `section_number` and `bare_act_text`. The card may not render unless the AI coincidentally uses the section-style field names.
+### Essentials (Section Nodes)
+- Max **5 items**
+- Each item **8–12 words**
+- **Noun/action structure** preferred
+- **No full sentences** or explanations
+
+✅ Good: `"Dishonest intention"`, `"Movable property"`, `"Without consent"`  
+❌ Bad: `"The accused must have dishonestly taken property from another person…"`
+
+### Legal Essence (All Major Types)
+- **One compressed sentence**, max 15 words
+- Captures the core legal meaning
+- Not a summary — an interpretation-oriented label
+
+✅ Good: `"Punishes intentional causing of death."`  
+❌ Bad: `"This section deals with the offence of murder under the new criminal code."`
+
+---
+
+## Resolved Issues (from v1)
 
 > [!NOTE]
-> **2. Many extracted fields are invisible:** Essentials (for sections), judges list, key elements (for doctrines), concept translations, and related maxims are all extracted and saved but never shown to the user.
+> **1. ~~`constitutional_provision` field mismatch~~** — FIXED. Display code now reads `article_number` (with `section_number` fallback for legacy data). No more dual naming.
 
 > [!NOTE]
-> **3. Suggested edges are dormant:** The AI extracts `suggested_edges` on every node but they are stored in metadata and never surfaced in the UI or used to create actual graph edges.
+> **2. ~~Many extracted fields invisible~~** — RESOLVED. Essentials, classification chips, key elements, concept translations, and related maxims are now all displayed in their respective cards.
 
 > [!NOTE]
-> **4. `concept` and `chapter` have no card:** These node types get metadata extracted but have no Quick Reference card template, so the sidebar shows nothing for them.
+> **3. ~~`concept` and `chapter` have no card~~** — FIXED. Both now have dedicated Quick Reference cards.
+
+> [!NOTE]
+> **4. Suggested edges remain dormant.** Stored but not surfaced in UI. Planned for future graph intelligence layer.

@@ -41,9 +41,12 @@ EXTRACTION RULES:
 2. NORMALIZE High Court names: "Bombay HC", "BHC" → "Bombay High Court"
 3. CITATIONS should be in standard format: "AIR 1978 SC 597" or "(1973) 4 SCC 225"
 4. DATES should be ISO format: "1978-01-25"
-5. For essentials/ingredients, extract EACH element as a separate string in an array
+5. For essentials/ingredients: extract EACH element as a SEPARATE short phrase (max 8-12 words). Use noun/action structure. Do NOT write full sentences or explanations. Maximum 5 items. Example GOOD: "Dishonest intention", "Movable property", "Without consent". Example BAD: "The accused must have dishonestly taken property from another person."
 6. For ratio_decidendi, extract the CORE legal principle in 1-2 sentences
 7. For case_status: only use "good_law", "overruled", "partially_overruled", or "doubted"
+8. For legal_essence: write ONE compressed sentence (max 15 words) that captures the core legal meaning. Example: "Punishes intentional causing of death." or "Expanded Article 21 into substantive due process."
+9. For key_themes: extract max 3-5 short theme labels. Example: "self-defence", "proportionality"
+10. For key_elements: extract max 3-4 short element phrases
 
 RESPOND WITH ONLY A JSON OBJECT matching the node type:
 
@@ -62,25 +65,30 @@ function getSchemaForType(nodeType: string): string {
     case 'section':
       return `{
   "section_number": "string (e.g. '103', '304A')",
+  "legal_essence": "string (ONE compressed sentence, max 15 words, capturing core legal meaning)",
   "bare_act_text": "string (exact statutory text if quoted in the article)",
-  "essentials": ["string array — each ingredient/element of the offence or provision"],
+  "essentials": ["string array — max 5 items, each 8-12 words, noun/action structure, NO full sentences"],
   "punishment": "string (e.g. 'Death or life imprisonment, and fine')",
   "cognizable": true/false,
   "bailable": true/false,
   "compoundable": true/false,
   "parent_statute": "string (e.g. 'Bharatiya Nyaya Sanhita, 2023')",
-  "enforcement_status": "in_force | repealed"
+  "enforcement_status": "in_force | repealed",
+  "legal_domains": ["string array like 'criminal', 'property', 'tort' — max 3"]
 }`
     case 'constitutional_provision':
       return `{
   "article_number": "string (e.g. '14', '19(1)(a)', '21')",
+  "legal_essence": "string (ONE compressed sentence, max 15 words, capturing core constitutional meaning)",
   "bare_text": "string (exact constitutional text if quoted)",
   "part": "string (e.g. 'Part III — Fundamental Rights')",
-  "amendment_details": "string (if related to a specific amendment)"
+  "amendment_details": "string (if related to a specific amendment)",
+  "constitutional_principles": ["string array — max 2-3 key constitutional principles this provision embodies"]
 }`
     case 'judgment':
       return `{
   "case_name": "string (e.g. 'Maneka Gandhi v. Union of India')",
+  "legal_essence": "string (ONE compressed sentence, max 15 words, capturing the judgment's core contribution)",
   "citations": ["string array of citations like 'AIR 1978 SC 597'"],
   "court": "string (normalized, e.g. 'Supreme Court of India')",
   "bench_type": "Single Judge | Division Bench | Full Bench | Constitution Bench",
@@ -89,45 +97,55 @@ function getSchemaForType(nodeType: string): string {
   "date_of_judgment": "ISO date string or null",
   "ratio_decidendi": "string (core legal principle in 1-2 sentences)",
   "case_status": "good_law | overruled | partially_overruled | doubted",
-  "significance": "string (why this case matters, 1 sentence)"
+  "significance": "string (why this case matters, 1 sentence)",
+  "related_doctrines": ["string array — max 2-3 doctrines this judgment established or applied"]
 }`
     case 'doctrine':
       return `{
   "doctrine_name": "string (e.g. 'Doctrine of Basic Structure')",
+  "legal_essence": "string (ONE compressed sentence, max 15 words, e.g. 'Limits Parliament's power to amend the Constitution.')",
   "origin_case": "string (case where doctrine was first established)",
   "applicable_domains": ["string array like 'constitutional', 'administrative'"],
-  "key_elements": ["string array of core elements of the doctrine"],
-  "current_status": "string (e.g. 'Well-established', 'Debated')"
+  "key_elements": ["string array — max 3-4 core elements of the doctrine, short phrases"],
+  "current_status": "string (e.g. 'Well-established', 'Debated')",
+  "constitutional_basis": ["string array — max 2 constitutional provisions this doctrine is grounded in"]
 }`
     case 'concept':
       return `{
   "concept_name": "string (e.g. 'Mens Rea')",
+  "legal_essence": "string (ONE compressed sentence, max 15 words, capturing the concept's core meaning)",
   "translation": "string (e.g. 'Guilty Mind')",
+  "explanation_summary": "string (2-3 sentences explaining the concept in plain language)",
   "applicable_domains": ["string array like 'criminal', 'tort'"],
-  "related_maxims": ["string array of related legal maxims"]
+  "related_maxims": ["string array of related legal maxims — max 3"],
+  "related_doctrines": ["string array — max 2 related doctrines"]
 }`
     case 'statute':
       return `{
   "short_title": "string (e.g. 'BNS', 'IPC', 'CPC')",
   "full_title": "string",
   "act_number": "string (e.g. '45 of 2023')",
+  "year": "string (e.g. '2023')",
   "date_of_enactment": "ISO date string or null",
   "date_of_enforcement": "ISO date string or null",
   "legislative_list": "union | state | concurrent | residuary",
   "status": "in_force | repealed | partially_repealed",
-  "replaces": "string (name of previous act it replaced, if any)"
+  "replaces": "string (name of previous act it replaced, if any)",
+  "key_themes": ["string array — max 3-5 short theme labels"]
 }`
     case 'chapter':
       return `{
   "chapter_number": "string (e.g. 'VI', 'III', 'Part III')",
   "chapter_title": "string (e.g. 'Offences Affecting the Human Body')",
-  "parent_statute": "string (e.g. 'Bharatiya Nyaya Sanhita, 2023')"
+  "parent_statute": "string (e.g. 'Bharatiya Nyaya Sanhita, 2023')",
+  "key_themes": ["string array — max 3 short theme labels"]
 }`
     default: // topic
       return `{
   "key_themes": ["string array of main themes covered"],
   "related_statutes": ["string array of statutes mentioned"],
-  "related_cases": ["string array of cases mentioned"]
+  "related_cases": ["string array of cases mentioned"],
+  "learning_level": "introductory | intermediate | advanced"
 }`
   }
 }
@@ -252,9 +270,10 @@ export async function extractMetadata(nodeId: string): Promise<{ success: boolea
     const suggestedEdges = extracted.suggested_edges || []
     delete extracted.suggested_edges
 
-    // 5. Mark metadata as AI-extracted with timestamp
+    // 5. Mark metadata as AI-extracted with timestamp and system fields
     extracted._extracted_at = new Date().toISOString()
     extracted._extraction_model = model
+    extracted._semantic_version = '1.0'
     if (suggestedEdges.length > 0) {
       extracted._suggested_edges = suggestedEdges
     }

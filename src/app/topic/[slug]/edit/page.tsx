@@ -122,15 +122,15 @@ export default async function EditNodePage({ params }: { params: Promise<{ slug:
               <li className="structure-item">
                 <span className="item-num">02</span>
                 <span className="item-text">
-                  <span className="item-label">Doctrine & Case Law</span>
-                  Key distinctions, sub-clauses, and landmark precedents.
+                  <span className="item-label">Doctrine &amp; Authority</span>
+                  Ground your claims. Cite landmark judgments, statutory text, and primary sources.
                 </span>
               </li>
               <li className="structure-item">
                 <span className="item-num">03</span>
                 <span className="item-text">
                   <span className="item-label">Jurisprudence</span>
-                  Legislative intent, academic debates, and constitutional basis.
+                  The evolution of the law. Legislative intent, exceptions, and academic commentary.
                 </span>
               </li>
             </ol>
@@ -138,11 +138,11 @@ export default async function EditNodePage({ params }: { params: Promise<{ slug:
 
           <div className="sidebar-card">
             <h3>Editing Guidelines</h3>
-            <p>Every edit is a permanent contribution to the platform.</p>
+            <p>Every edit is a permanent contribution to your verifiable professional record.</p>
             <ul className="structure-list" style={{ opacity: 0.7, fontSize: '0.78rem' }}>
-              <li>Aim for clarity and precision.</li>
-              <li>Verify all case citations.</li>
-              <li>Maintain a clear, neutral tone.</li>
+              <li>• <strong>Verifiability:</strong> Ground claims in reliable sources.</li>
+              <li>• <strong>Neutrality:</strong> Summarize established law without bias.</li>
+              <li>• <strong>Clarity:</strong> Write to make the law accessible to all.</li>
             </ul>
 
             <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--surface-border)' }}>

@@ -782,7 +782,9 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
               </div>
             )}
 
-            {/* Restored High-Detail Judgment Card */}
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {/* JUDGMENT CARD — Most detailed, institutional authority     */}
+            {/* ═══════════════════════════════════════════════════════════ */}
             {nodeType === 'judgment' && metadata._extracted_at && (
               <div className="judgment-card-sidebar">
                 <div className="judgment-header-sidebar">⚖️ Case Summary</div>
@@ -791,6 +793,11 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
                     <div className="judgment-field-sidebar">
                       <span className="field-label">Case</span>
                       <span className="field-value">{metadata.case_name}</span>
+                    </div>
+                  )}
+                  {metadata.legal_essence && (
+                    <div className="judgment-field-sidebar">
+                      <span className="legal-essence-text">{metadata.legal_essence}</span>
                     </div>
                   )}
                   {(metadata.citations || metadata.citation) && (
@@ -843,11 +850,14 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
               </div>
             )}
 
-            {/* Restored High-Detail Statute Card */}
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {/* STATUTE CARD — Identity + Status + Themes                 */}
+            {/* ═══════════════════════════════════════════════════════════ */}
             {nodeType === 'statute' && metadata.short_title && (
               <div className="statute-card-sidebar">
                 <div className="statute-header-sidebar">📜 Act Information</div>
                 <div className="statute-grid-sidebar">
+                  {/* L1: Identity */}
                   <div className="statute-field-sidebar">
                     <span className="field-label">Short Title</span>
                     <span className="field-value">{metadata.short_title}</span>
@@ -858,6 +868,16 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
                       <span className="field-value">{metadata.act_number}</span>
                     </div>
                   )}
+                  {/* L2: Status */}
+                  {metadata.status && (
+                    <div className="statute-field-sidebar">
+                      <span className="field-label">Status</span>
+                      <span className={`status-pill-sidebar ${metadata.status === 'in_force' ? 'status-active' : metadata.status === 'repealed' ? 'status-repealed' : 'status-partial'}`}>
+                        {metadata.status === 'in_force' ? '● In Force' : metadata.status === 'repealed' ? '○ Repealed' : '◐ Partially Repealed'}
+                      </span>
+                    </div>
+                  )}
+                  {/* L3: Details */}
                   {metadata.legislative_list && (
                     <div className="statute-field-sidebar">
                       <span className="field-label">List</span>
@@ -870,34 +890,236 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
                       <span className="field-value">{metadata.date_of_enactment}</span>
                     </div>
                   )}
+                  {metadata.replaces && (
+                    <div className="statute-field-sidebar">
+                      <span className="field-label">Replaces</span>
+                      <span className="field-value" style={{ fontSize: '0.72rem' }}>{metadata.replaces}</span>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
-
-            {/* Section / Bare Act Text */}
-            {(nodeType === 'section' || nodeType === 'constitutional_provision') && metadata.bare_act_text && (
-              <div className="bare-act-card-sidebar">
-                <div className="bare-act-header-sidebar">
-                  <span>{nodeType === 'section' ? '§ Provision' : '🏛 Article'}</span>
-                  {metadata.section_number && <span>{nodeType === 'section' ? 'Section' : 'Art.'} {metadata.section_number}</span>}
-                </div>
-                <div className="bare-act-text-sidebar">{metadata.bare_act_text}</div>
-                {metadata.punishment && (
-                  <div className="sidebar-meta-line">
-                    <strong>Punishment:</strong> {metadata.punishment}
+                {/* L4: Key Themes */}
+                {metadata.key_themes && Array.isArray(metadata.key_themes) && metadata.key_themes.length > 0 && (
+                  <div className="card-chips-row">
+                    {metadata.key_themes.slice(0, 5).map((theme: string, i: number) => (
+                      <span key={i} className="theme-chip">{theme}</span>
+                    ))}
+                    {metadata.key_themes.length > 5 && (
+                      <span className="chip-overflow">+{metadata.key_themes.length - 5} more</span>
+                    )}
                   </div>
                 )}
               </div>
             )}
 
-            {/* Doctrine Card */}
-            {nodeType === 'doctrine' && (
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {/* SECTION CARD — Redesigned: No bare act text wall           */}
+            {/* Hierarchy: Identity → Essence → Classification → Essentials*/}
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {nodeType === 'section' && metadata._extracted_at && (
+              <div className="section-card-sidebar">
+                <div className="section-header-sidebar">§ Provision</div>
+                {/* L1: Identity */}
+                <div className="section-identity">
+                  {metadata.section_number && (
+                    <span className="section-number-display">Section {metadata.section_number}</span>
+                  )}
+                  {metadata.parent_statute && (
+                    <span className="section-parent-statute">{metadata.parent_statute}</span>
+                  )}
+                </div>
+                {/* L2: Core Meaning */}
+                {metadata.legal_essence && (
+                  <div className="legal-essence-text">{metadata.legal_essence}</div>
+                )}
+                {/* L3: Classification — subtle, secondary */}
+                {(metadata.cognizable !== undefined || metadata.bailable !== undefined || metadata.compoundable !== undefined) && (
+                  <div className="classification-chips">
+                    {metadata.cognizable !== undefined && (
+                      <span className={`classification-chip ${metadata.cognizable ? 'chip-yes' : 'chip-no'}`}>
+                        {metadata.cognizable ? 'Cognizable' : 'Non-cognizable'}
+                      </span>
+                    )}
+                    {metadata.bailable !== undefined && (
+                      <span className={`classification-chip ${metadata.bailable ? 'chip-yes' : 'chip-no'}`}>
+                        {metadata.bailable ? 'Bailable' : 'Non-bailable'}
+                      </span>
+                    )}
+                    {metadata.compoundable !== undefined && (
+                      <span className={`classification-chip ${metadata.compoundable ? 'chip-yes' : 'chip-no'}`}>
+                        {metadata.compoundable ? 'Compoundable' : 'Non-compoundable'}
+                      </span>
+                    )}
+                  </div>
+                )}
+                {/* L4: Essentials — compressed, max 5 */}
+                {metadata.essentials && Array.isArray(metadata.essentials) && metadata.essentials.length > 0 && (
+                  <div className="essentials-section">
+                    <span className="essentials-label">Essentials</span>
+                    <ul className="essentials-list-sidebar">
+                      {metadata.essentials.slice(0, 5).map((item: string, i: number) => (
+                        <li key={i}>{item}</li>
+                      ))}
+                      {metadata.essentials.length > 5 && (
+                        <li className="chip-overflow-inline">+{metadata.essentials.length - 5} more</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+                {/* Punishment */}
+                {metadata.punishment && (
+                  <div className="section-punishment">
+                    <span className="field-label">Punishment</span>
+                    <span className="field-value">{metadata.punishment}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {/* CONSTITUTIONAL PROVISION CARD — Fixed schema               */}
+            {/* Reads article_number/bare_text (not section_number)        */}
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {nodeType === 'constitutional_provision' && metadata._extracted_at && (
+              <div className="constitutional-card-sidebar">
+                <div className="constitutional-header-sidebar">🏛 Constitutional Provision</div>
+                {/* L1: Identity */}
+                <div className="section-identity">
+                  {(metadata.article_number || metadata.section_number) && (
+                    <span className="section-number-display">Article {metadata.article_number || metadata.section_number}</span>
+                  )}
+                  {metadata.part && (
+                    <span className="section-parent-statute">{metadata.part}</span>
+                  )}
+                </div>
+                {/* L2: Core Meaning */}
+                {metadata.legal_essence && (
+                  <div className="legal-essence-text">{metadata.legal_essence}</div>
+                )}
+                {/* L3: Constitutional Principles */}
+                {metadata.constitutional_principles && Array.isArray(metadata.constitutional_principles) && metadata.constitutional_principles.length > 0 && (
+                  <div className="card-chips-row">
+                    {metadata.constitutional_principles.slice(0, 3).map((principle: string, i: number) => (
+                      <span key={i} className="theme-chip constitutional-chip">{principle}</span>
+                    ))}
+                  </div>
+                )}
+                {/* Amendment info */}
+                {metadata.amendment_details && (
+                  <div className="sidebar-meta-line" style={{ marginTop: '8px' }}>
+                    <span className="field-label">Amendment</span>
+                    <span className="field-value" style={{ fontSize: '0.72rem' }}>{metadata.amendment_details}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {/* CHAPTER CARD — New, minimal                                */}
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {nodeType === 'chapter' && metadata._extracted_at && (
+              <div className="chapter-card-sidebar">
+                <div className="chapter-header-sidebar">📖 Chapter</div>
+                {/* L1: Identity */}
+                <div className="section-identity">
+                  {metadata.chapter_number && (
+                    <span className="section-number-display">Chapter {metadata.chapter_number}</span>
+                  )}
+                  {metadata.parent_statute && (
+                    <span className="section-parent-statute">{metadata.parent_statute}</span>
+                  )}
+                </div>
+                {/* L4: Key Themes */}
+                {metadata.key_themes && Array.isArray(metadata.key_themes) && metadata.key_themes.length > 0 && (
+                  <div className="card-chips-row">
+                    {metadata.key_themes.slice(0, 3).map((theme: string, i: number) => (
+                      <span key={i} className="theme-chip">{theme}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {/* DOCTRINE CARD — Expanded: name, essence, origin, status   */}
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {nodeType === 'doctrine' && metadata._extracted_at && (
               <div className="doctrine-card-sidebar">
-                <div className="doctrine-header-sidebar">💡 Doctrine Details</div>
-                {metadata.origin_case && (
-                  <div className="sidebar-meta-list">
-                    <span className="field-label">Origin Case</span>
-                    <span className="field-value">{metadata.origin_case}</span>
+                <div className="doctrine-header-sidebar">💡 Doctrine</div>
+                {/* L1: Identity */}
+                {metadata.doctrine_name && (
+                  <div className="doctrine-name-display">{metadata.doctrine_name}</div>
+                )}
+                {/* L2: Core Meaning */}
+                {metadata.legal_essence && (
+                  <div className="legal-essence-text">{metadata.legal_essence}</div>
+                )}
+                {/* L3: Details */}
+                <div className="doctrine-grid-sidebar">
+                  {metadata.origin_case && (
+                    <div className="sidebar-meta-list">
+                      <span className="field-label">Origin Case</span>
+                      <span className="field-value">{metadata.origin_case}</span>
+                    </div>
+                  )}
+                  {metadata.current_status && (
+                    <div className="sidebar-meta-list">
+                      <span className="field-label">Status</span>
+                      <span className={`status-pill-sidebar ${metadata.current_status === 'Well-established' ? 'status-active' : 'status-partial'}`}>
+                        {metadata.current_status}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {/* L4: Key Elements */}
+                {metadata.key_elements && Array.isArray(metadata.key_elements) && metadata.key_elements.length > 0 && (
+                  <div className="essentials-section">
+                    <span className="essentials-label">Key Elements</span>
+                    <ul className="essentials-list-sidebar">
+                      {metadata.key_elements.slice(0, 4).map((el: string, i: number) => (
+                        <li key={i}>{el}</li>
+                      ))}
+                      {metadata.key_elements.length > 4 && (
+                        <li className="chip-overflow-inline">+{metadata.key_elements.length - 4} more</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {/* CONCEPT CARD — New: concept + translation + maxims        */}
+            {/* ═══════════════════════════════════════════════════════════ */}
+            {nodeType === 'concept' && metadata._extracted_at && (
+              <div className="concept-card-sidebar">
+                <div className="concept-header-sidebar">🧠 Concept</div>
+                {/* L1: Identity + Translation */}
+                {metadata.concept_name && (
+                  <div className="concept-name-display">{metadata.concept_name}</div>
+                )}
+                {metadata.translation && (
+                  <div className="concept-translation">"{metadata.translation}"</div>
+                )}
+                {/* L2: Core Meaning */}
+                {metadata.legal_essence && (
+                  <div className="legal-essence-text">{metadata.legal_essence}</div>
+                )}
+                {/* L3: Explanation */}
+                {metadata.explanation_summary && (
+                  <div className="concept-explanation">{metadata.explanation_summary}</div>
+                )}
+                {/* L4: Related Maxims */}
+                {metadata.related_maxims && Array.isArray(metadata.related_maxims) && metadata.related_maxims.length > 0 && (
+                  <div className="concept-maxims">
+                    <span className="essentials-label">Related Maxims</span>
+                    <div className="card-chips-row">
+                      {metadata.related_maxims.slice(0, 3).map((maxim: string, i: number) => (
+                        <span key={i} className="theme-chip maxim-chip">{maxim}</span>
+                      ))}
+                      {metadata.related_maxims.length > 3 && (
+                        <span className="chip-overflow">+{metadata.related_maxims.length - 3} more</span>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
