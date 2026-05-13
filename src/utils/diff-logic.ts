@@ -2,12 +2,14 @@
  * SHARED UTILITY: Word-level diff computation using LCS approach.
  */
 
+import { toPublicRevisionText } from './revision-presentation';
+
 export type DiffOp = 'equal' | 'insert' | 'delete';
 export type DiffEntry = [DiffOp, string];
 
 export function computeWordDiff(oldText: string, newText: string): DiffEntry[] {
-  const oldWords = tokenize(oldText);
-  const newWords = tokenize(newText);
+  const oldWords = tokenize(toPublicRevisionText(oldText));
+  const newWords = tokenize(toPublicRevisionText(newText));
 
   const m = oldWords.length;
   const n = newWords.length;

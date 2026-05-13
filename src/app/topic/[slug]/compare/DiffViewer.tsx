@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, Fragment } from 'react';
+import { toPublicRevisionText } from '@/utils/revision-presentation';
 
 interface DiffViewerProps {
   oldText: string;
@@ -268,8 +269,8 @@ export default function DiffViewer({ oldText, newText, significance }: DiffViewe
  * Splits text into words (preserving whitespace) and computes minimal edit operations.
  */
 function computeWordDiff(oldText: string, newText: string): DiffEntry[] {
-  const oldWords = tokenize(oldText);
-  const newWords = tokenize(newText);
+  const oldWords = tokenize(toPublicRevisionText(oldText));
+  const newWords = tokenize(toPublicRevisionText(newText));
 
   const m = oldWords.length;
   const n = newWords.length;

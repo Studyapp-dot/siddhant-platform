@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/utils/supabase/server';
+import { toPublicRevisionText } from '@/utils/revision-presentation';
 
 // ============================================================================
 // SIDDHANT: Recognition Feed — Server Actions (Data Fetching)
@@ -97,6 +98,23 @@ function firstRelation<T>(value: T | T[] | null | undefined): T | null {
   return value || null;
 }
 
+function cleanTextArray(value?: string[] | null): string[] | null {
+  if (!value) return value ?? null;
+  return value.map(item => toPublicRevisionText(item)).filter(Boolean);
+}
+
+function sanitizeRecognitionItem(item: RecognitionFeedItem): RecognitionFeedItem {
+  return {
+    ...item,
+    detail_text: item.detail_text ? toPublicRevisionText(item.detail_text) : item.detail_text,
+    source_commit_message: item.source_commit_message ? toPublicRevisionText(item.source_commit_message) : item.source_commit_message,
+    contribution_thesis: item.contribution_thesis ? toPublicRevisionText(item.contribution_thesis) : item.contribution_thesis,
+    claims_added: cleanTextArray(item.claims_added),
+    concepts_introduced: cleanTextArray(item.concepts_introduced),
+    semantic_reasoning: item.semantic_reasoning ? toPublicRevisionText(item.semantic_reasoning) : item.semantic_reasoning,
+  };
+}
+
 /**
  * Activity type filters supported by the feed.
  */
@@ -168,7 +186,7 @@ export async function getRecognitionFeed(
     return { items: [], error: error.message };
   }
 
-  return { items: (data || []) as RecognitionFeedItem[] };
+  return { items: ((data || []) as RecognitionFeedItem[]).map(sanitizeRecognitionItem) };
 }
 
 
@@ -281,7 +299,7 @@ export async function getRevisionDiffContext(revisionId: string): Promise<{
   }
 
   const revisionRow = revision as unknown as RevisionDiffRow;
-  const currentContent = revisionRow.report_content || revisionRow.tier1_content || '';
+  const currentContent = toPublicRevisionText(revisionRow.report_content || revisionRow.tier1_content || '');
   const profileData = firstRelation(revisionRow.profiles);
   const nodeData = firstRelation(revisionRow.nodes);
 
@@ -299,7 +317,7 @@ export async function getRevisionDiffContext(revisionId: string): Promise<{
     .maybeSingle();
 
   const prevContent = prevRevision
-    ? ((prevRevision as unknown as RevisionDiffRow).report_content || (prevRevision as unknown as RevisionDiffRow).tier1_content || '')
+    ? toPublicRevisionText((prevRevision as unknown as RevisionDiffRow).report_content || (prevRevision as unknown as RevisionDiffRow).tier1_content || '')
     : '';
   const prevProfileData = prevRevision
     ? firstRelation((prevRevision as unknown as RevisionDiffRow).profiles)

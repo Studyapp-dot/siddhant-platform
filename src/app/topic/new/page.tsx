@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, Suspense } fr
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { createNode } from './actions';
+import DraftAuthorityEditor from '@/app/components/DraftAuthorityEditor';
+import type { PendingAuthorityAnchor } from '@/app/components/DraftAuthorityEditor';
 import './new-topic.css';
 
 // Suspense wrapper required by Next.js for useSearchParams
@@ -88,89 +90,10 @@ function detectScholarlySignals(text: string) {
 }
 
 // ============================================================================
-// PREVIEW RENDERER — Scholarly formatting with heading hierarchy,
-//                    blockquotes, citation blocks, and inline emphasis
+// PREVIEW RENDERER — Uses shared markdown pipeline
 // ============================================================================
-function renderPreview(text: string): string {
-  if (!text) return '<p class="preview-empty">Your article preview will appear here as you write...</p>';
-  
-  // Process line-by-line for block-level elements
-  const lines = text.split('\n');
-  const blocks: string[] = [];
-  let inBlockquote = false;
-  let blockquoteLines: string[] = [];
+import { renderMarkdown } from '@/app/utils/markdownRenderer';
 
-  function flushBlockquote() {
-    if (blockquoteLines.length > 0) {
-      blocks.push('<blockquote class="preview-blockquote">' + blockquoteLines.join('<br/>') + '</blockquote>');
-      blockquoteLines = [];
-    }
-    inBlockquote = false;
-  }
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const escaped = line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-    // Blockquote (lines starting with > )
-    if (line.trimStart().startsWith('>')) {
-      inBlockquote = true;
-      const content = escaped.replace(/^\s*&gt;\s?/, '');
-      blockquoteLines.push(content);
-      continue;
-    } else if (inBlockquote) {
-      flushBlockquote();
-    }
-
-    // Headings (# ## ###)
-    const h3Match = line.match(/^###\s+(.+)/);
-    const h2Match = line.match(/^##\s+(.+)/);
-    const h1Match = line.match(/^#\s+(.+)/);
-    if (h3Match) {
-      blocks.push('<h4 class="preview-h3">' + applyInline(h3Match[1]) + '</h4>');
-      continue;
-    }
-    if (h2Match) {
-      blocks.push('<h3 class="preview-h2">' + applyInline(h2Match[1]) + '</h3>');
-      continue;
-    }
-    if (h1Match) {
-      blocks.push('<h2 class="preview-h1">' + applyInline(h1Match[1]) + '</h2>');
-      continue;
-    }
-
-    // Empty line = paragraph break
-    if (escaped.trim() === '') {
-      blocks.push('<div class="preview-paragraph-break"></div>');
-      continue;
-    }
-
-    // Normal text line
-    blocks.push('<p class="preview-paragraph">' + applyInline(escaped) + '</p>');
-  }
-
-  flushBlockquote();
-  return blocks.join('\n');
-}
-
-/** Apply inline formatting: bold, italic, citations, sections, case names */
-function applyInline(text: string): string {
-  return text
-    // Bold (**text**)
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    // Italic (*text*)
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    // Highlight citations (reporter style)
-    .replace(/\b(AIR|SCC|SCR)\s+(\d{4})\s+(\w+)\s+(\d+)/g, '<span class="hl-citation">$&</span>')
-    .replace(/\((\d{4})\)\s*(\d+)\s*(SCC|SCR|Bom\s*CR)/g, '<span class="hl-citation">$&</span>')
-    // Highlight section references
-    .replace(/\b(Section|S\.|Sec\.)\s*(\d+[A-Z]?)/gi, '<span class="hl-section">$&</span>')
-    // Highlight article references
-    .replace(/\b(Article|Art\.)\s*(\d+[A-Z]?)/gi, '<span class="hl-article">$&</span>')
-    // Highlight case names (v. pattern)
-    .replace(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(v\.?)\s+((?:State\s+of\s+)?[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g,
-      '<span class="hl-case">$&</span>');
-}
 
 // ============================================================================
 // AUTOSAVE — localStorage draft persistence
@@ -227,6 +150,9 @@ function NewTopicPage() {
   const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(errorFromUrl ? decodeURIComponent(errorFromUrl) : null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Authority anchoring — collected locally during drafting, saved after node creation
+  const [pendingAnchors, setPendingAnchors] = useState<PendingAuthorityAnchor[]>([]);
 
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const hasUnsavedWork = title.length > 0 || content.length > 0;
@@ -408,6 +334,7 @@ function NewTopicPage() {
           {/* ── Content Area ── */}
           <div className="drafting-area">
             {viewMode === 'write' ? (
+              <>
               <textarea 
                 ref={contentRef}
                 name="report_content"
@@ -426,6 +353,31 @@ The platform will extract key facts into a Quick Reference card.`}
                 onChange={(e) => setContent(e.target.value)}
                 required
               />
+
+              {/* Authority Anchor Editor — appears on text selection */}
+              <DraftAuthorityEditor
+                textareaRef={contentRef}
+                pendingAnchors={pendingAnchors}
+                onAnchorsChange={setPendingAnchors}
+              />
+
+              {/* Serialized pending anchors — saved after node creation */}
+              <input
+                type="hidden"
+                name="pending_authority_anchors"
+                value={JSON.stringify(pendingAnchors.map(a => ({
+                  anchor_text: a.anchor_text,
+                  context_before: a.context_before,
+                  context_after: a.context_after,
+                  paragraph_index: a.paragraph_index,
+                  authority_type: a.authority_type,
+                  authority_title: a.authority_title,
+                  authority_citation: a.authority_citation,
+                  authority_url: a.authority_url,
+                  authority_node_id: a.authority_node_id,
+                })))}
+              />
+              </>
             ) : (
               <>
                 <div className="preview-header-bar">
@@ -433,8 +385,8 @@ The platform will extract key facts into a Quick Reference card.`}
                   <span className="preview-header-hint">Headings, blockquotes, and references are rendered below</span>
                 </div>
                 <div 
-                  className="preview-pane"
-                  dangerouslySetInnerHTML={{ __html: renderPreview(content) }}
+                  className="preview-pane rendered-markdown"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
                 />
                 {/* Hidden textarea to keep form data */}
                 <textarea name="report_content" value={content} readOnly hidden required />
@@ -598,6 +550,19 @@ The platform will extract key facts into a Quick Reference card.`}
                 </ol>
               </div>
             )}
+          </div>
+
+          {/* ── Authority Anchoring Cue ── */}
+          <div className="sidebar-card">
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+              <span style={{ fontSize: '0.9rem', marginTop: '1px', opacity: 0.7 }}>◦</span>
+              <p style={{ margin: 0, fontSize: '0.78rem', lineHeight: 1.6, color: 'var(--text-secondary)', fontFamily: 'var(--font-serif)', fontStyle: 'italic' }}>
+                Ground important legal claims with authorities.
+                <span style={{ display: 'block', marginTop: '6px', fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'normal', fontFamily: 'var(--font-sans)' }}>
+                  Select text in the editor to attach cases, statutes, or doctrines.
+                </span>
+              </p>
+            </div>
           </div>
 
           {/* ── Collapsible: The Living Archive ── */}

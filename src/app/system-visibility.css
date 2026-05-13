@@ -235,11 +235,11 @@
    ═══════════════════════════════════════════ */
 
 .review-pipeline {
-  padding: 20px 24px;
+  padding: 14px 18px;
   border-radius: var(--radius-md);
   background: var(--bg-panel);
   border: 1px solid var(--border-subtle);
-  margin: 1.5rem 0;
+  margin: 1rem 0;
 }
 
 .review-pipeline-header {
@@ -263,14 +263,36 @@
   letter-spacing: 0.04em;
 }
 
-/* Pipeline track — horizontal layout */
+/* Pipeline track — replaced with tier classification strip */
+.tier-classification-strip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.tier-classification-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tier-classification-item:hover {
+  opacity: 1 !important;
+  background: var(--bg-panel);
+}
+
+/* Legacy pipeline track — kept for backward compat during transition */
 .review-pipeline-track {
   display: flex;
   align-items: flex-start;
   position: relative;
 }
 
-/* Connecting line behind stages */
 .review-pipeline-track::before {
   content: '';
   position: absolute;
@@ -293,7 +315,6 @@
   cursor: help;
 }
 
-/* Stage marker — the circle */
 .review-pipeline-marker {
   width: 24px;
   height: 24px;
@@ -326,7 +347,6 @@
   opacity: 0.4;
 }
 
-/* Stage label */
 .review-pipeline-stage-label {
   font-size: 0.58rem;
   font-weight: 700;
@@ -350,7 +370,6 @@
   opacity: 0.4;
 }
 
-/* Stage detail — date or context */
 .review-pipeline-stage-detail {
   font-size: 0.55rem;
   color: var(--text-muted);
@@ -359,8 +378,12 @@
   font-weight: 500;
 }
 
-/* Mobile: vertical layout */
+/* Mobile: responsive */
 @media (max-width: 600px) {
+  .tier-classification-strip {
+    gap: 2px;
+  }
+
   .review-pipeline-track {
     flex-direction: column;
     gap: 4px;

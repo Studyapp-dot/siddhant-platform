@@ -17,6 +17,7 @@ export const ROLE_LABELS: Record<string, { label: string; level: number }> = {
 export const REPUTATION_POINTS = {
   edit_accepted_minor: 2,
   edit_accepted_substantive: 5,
+  edit_accepted_metadata: 1,     // Node type changes, slug edits, tag-only edits — NOT scholarly prose
   upvote_received: 1,
   endorsement_received: 10,
   scholar_star_received: 15,

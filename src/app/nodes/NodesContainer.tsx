@@ -59,6 +59,23 @@ export default function NodesContainer({ nodes, edges, revMap, summaryMap, isLog
     nodes.find(n => n.id === selectedNodeId) ?? null,
   [nodes, selectedNodeId]);
 
+  const nodeById = useMemo(() => {
+    const map: Record<string, Node> = {};
+    for (const node of nodes) map[node.id] = node;
+    return map;
+  }, [nodes]);
+
+  const visibleNodeIds = useMemo(
+    () => new Set(filteredNodes.map(node => node.id)),
+    [filteredNodes],
+  );
+
+  useEffect(() => {
+    if (selectedNodeId && !visibleNodeIds.has(selectedNodeId)) {
+      setSelectedNodeId(null);
+    }
+  }, [selectedNodeId, visibleNodeIds]);
+
   // Type counts for filter chips
   const typeCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -88,6 +105,10 @@ export default function NodesContainer({ nodes, edges, revMap, summaryMap, isLog
     return edges.filter(e => e.target_node_id === selectedNodeId);
   }, [edges, selectedNodeId]);
 
+  const visibleEdgeCount = useMemo(() => (
+    edges.filter(e => visibleNodeIds.has(e.source_node_id) && visibleNodeIds.has(e.target_node_id)).length
+  ), [edges, visibleNodeIds]);
+
   // Sidebar scroll sync when selection changes
   useEffect(() => {
     if (selectedNodeId && nodeRefs.current[selectedNodeId]) {
@@ -116,17 +137,23 @@ export default function NodesContainer({ nodes, edges, revMap, summaryMap, isLog
       {/* ---- Left Panel: Knowledge Archive ---- */}
       <div className={`knowledge-index-sidebar ${sidebarOpen ? '' : 'collapsed'}`}>
         <div className="sidebar-header">
-          <span className="sidebar-title">Knowledge Archive</span>
-          <button onClick={() => setSidebarOpen(false)} className="sidebar-close">&times;</button>
+          <div>
+            <span className="sidebar-title">Knowledge Archive</span>
+            <div className="sidebar-counts">
+              {nodes.length} topics / {edges.length} relationships
+            </div>
+          </div>
+          <button onClick={() => setSidebarOpen(false)} className="sidebar-close" aria-label="Collapse archive panel">&times;</button>
         </div>
 
         <div className="sidebar-search-container">
           <input
             type="text"
-            placeholder="Search topics..."
+            placeholder="Search titles or slugs..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="sidebar-search-input"
+            aria-label="Search knowledge archive"
           />
         </div>
 
@@ -159,7 +186,16 @@ export default function NodesContainer({ nodes, edges, revMap, summaryMap, isLog
               <div
                 key={node.id}
                 ref={el => { nodeRefs.current[node.id] = el; }}
+                role="button"
+                tabIndex={0}
+                aria-pressed={selectedNodeId === node.id}
                 onClick={() => handleSelectNode(node.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handleSelectNode(node.id);
+                  }
+                }}
                 className={`sidebar-node-link ${selectedNodeId === node.id ? 'active' : ''}`}
                 style={{ opacity: selectedNodeId && selectedNodeId !== node.id ? 0.5 : 1 }}
               >
@@ -192,6 +228,21 @@ export default function NodesContainer({ nodes, edges, revMap, summaryMap, isLog
           onSelectNode={handleSelectNode}
         />
 
+        <div className="graph-context-strip" aria-live="polite">
+          <span>{filteredNodes.length} of {nodes.length} topics</span>
+          <span>{visibleEdgeCount} visible relationships</span>
+          {typeFilter && (
+            <button type="button" onClick={() => setTypeFilter(null)}>
+              Clear {NODE_TYPE_META[typeFilter]?.label || typeFilter}
+            </button>
+          )}
+          {searchQuery && (
+            <button type="button" onClick={() => setSearchQuery('')}>
+              Clear search
+            </button>
+          )}
+        </div>
+
         {/* Empty state overlay — only show if no data present per user request */}
         {nodes.length === 0 && (
           <div className="graph-empty-overlay">
@@ -201,7 +252,7 @@ export default function NodesContainer({ nodes, edges, revMap, summaryMap, isLog
 
         {/* Sidebar toggle FAB */}
         {!sidebarOpen && (
-          <button onClick={() => setSidebarOpen(true)} className="fab-sidebar-toggle">☰</button>
+          <button onClick={() => setSidebarOpen(true)} className="fab-sidebar-toggle" aria-label="Open archive panel">☰</button>
         )}
 
         {/* New Topic FAB */}
@@ -215,7 +266,7 @@ export default function NodesContainer({ nodes, edges, revMap, summaryMap, isLog
       {/* ---- Right Panel: Node Inspector ---- */}
       {selectedNode && (
         <aside className="node-inspector-panel">
-          <button className="inspector-close" onClick={() => setSelectedNodeId(null)}>&times;</button>
+          <button className="inspector-close" onClick={() => setSelectedNodeId(null)} aria-label="Close node inspector">&times;</button>
 
           <div className="inspector-content">
             {/* Type Badge */}
@@ -270,10 +321,11 @@ export default function NodesContainer({ nodes, edges, revMap, summaryMap, isLog
                 <div className="inspector-section-label">Related Authorities</div>
                 <div className="inspector-relation-list">
                   {outgoingEdges.map((e, idx) => {
-                    const target = nodes.find(n => n.id === e.target_node_id);
+                    const target = nodeById[e.target_node_id];
                     if (!target) return null;
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={`out-${idx}`}
                         className="relation-item"
                         onClick={() => handleSelectNode(target.id)}
@@ -281,14 +333,15 @@ export default function NodesContainer({ nodes, edges, revMap, summaryMap, isLog
                         <span className="rel-type">{e.relationship_type.replace(/_/g, ' ')}</span>
                         <span className="rel-arrow">→</span>
                         <span className="rel-target">{target.title}</span>
-                      </div>
+                      </button>
                     );
                   })}
                   {incomingEdges.map((e, idx) => {
-                    const source = nodes.find(n => n.id === e.source_node_id);
+                    const source = nodeById[e.source_node_id];
                     if (!source) return null;
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={`in-${idx}`}
                         className="relation-item"
                         onClick={() => handleSelectNode(source.id)}
@@ -296,7 +349,7 @@ export default function NodesContainer({ nodes, edges, revMap, summaryMap, isLog
                         <span className="rel-target">{source.title}</span>
                         <span className="rel-arrow">→</span>
                         <span className="rel-type">{e.relationship_type.replace(/_/g, ' ')}</span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>

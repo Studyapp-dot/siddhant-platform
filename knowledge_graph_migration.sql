@@ -69,17 +69,16 @@ ALTER TABLE public.cross_references
 ALTER TABLE public.cross_references 
   ADD CONSTRAINT cross_references_relationship_type_check 
   CHECK (relationship_type IN (
-    -- Structural (2)
-    'part_of', 'grouped_with',
+    -- Structural (1)
+    'part_of',
     -- Legislative Lineage (5)
     'replaces', 'amends', 'repeals', 'subordinate_to', 'overrides',
     -- Judicial Treatment (9) — matches SCC Online / Manupatra citator terms
     'followed', 'applied', 'approved', 'explained', 'referred_to',
     'distinguished', 'doubted', 'not_followed', 'overruled',
-    -- Conceptual (9)
+    -- Conceptual (3)
     'interprets', 'establishes', 'codifies',
-    'prerequisite', 'distinguish_from', 'related_to',
-    'exception_to', 'governed_by', 'analogous_to'
+    'exception_to', 'governed_by'
   ));
 
 -- Add description field for optional context on an edge

@@ -1,0 +1,997 @@
+/* ========================================
+   SIDDHANT — CONTEXTUAL AUTHORITY ANCHORING
+   Editorial. Annotation-layer. Typography-led.
+   
+   Philosophy: annotation, not administration.
+   This should feel like a scholarly marginalia system,
+   not a CMS management panel.
+   ======================================== */
+
+/* ========================================
+   TRIGGER — Born from the selection
+   Contextual, ephemeral, selection-bound.
+   ======================================== */
+
+.authority-attach-trigger {
+  /* position: fixed is set inline via style prop */
+  z-index: 10000;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 16px;
+  border: none;
+  background: rgba(30, 41, 59, 0.88);
+  color: rgba(255, 255, 255, 0.92);
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  white-space: nowrap;
+  animation: anchorTriggerIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.15s ease;
+  pointer-events: auto;
+}
+
+.authority-attach-trigger:hover {
+  background: rgba(30, 41, 59, 0.95);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(197, 160, 89, 0.3);
+  transform: translateY(-1px);
+}
+
+.authority-attach-trigger .trigger-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-gold, #c5a059);
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+
+@keyframes anchorTriggerIn {
+  from { opacity: 0; transform: scale(0.92) translateY(3px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+
+/* ========================================
+   PANEL — Annotation layer, not a form
+   Narrower, lighter, typography-led.
+   ======================================== */
+
+.authority-panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeOverlayIn 0.15s ease;
+}
+
+@keyframes fadeOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.authority-panel {
+  background: var(--bg-surface, #fff);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  width: 88%;
+  max-width: 420px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.06);
+  animation: panelSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+@keyframes panelSlideIn {
+  from { opacity: 0; transform: scale(0.97) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.authority-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.authority-panel-title {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+  letter-spacing: -0.01em;
+}
+
+.authority-panel-close {
+  background: none;
+  border: none;
+  color: var(--text-muted, #94a3b8);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+  transition: color 0.12s;
+  border-radius: 4px;
+}
+
+.authority-panel-close:hover {
+  color: var(--text-primary, #1e293b);
+}
+
+.authority-panel-body {
+  padding: 14px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+
+/* ── Selected text preview — quiet serif italic ── */
+
+.authority-anchor-preview {
+  padding: 8px 0;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-secondary, #475569);
+  font-style: italic;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  max-height: 48px;
+  overflow: hidden;
+  position: relative;
+}
+
+.authority-anchor-preview::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  background: linear-gradient(transparent, var(--bg-surface, #fff));
+}
+
+.authority-anchor-preview-label {
+  display: none; /* The context is self-evident from the quoted text */
+}
+
+
+/* ── Authority type chips — horizontal flow, compact ── */
+
+.authority-type-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.authority-type-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.authority-type-option input {
+  display: none;
+}
+
+.authority-type-option:hover {
+  border-color: rgba(197, 160, 89, 0.35);
+  background: rgba(197, 160, 89, 0.04);
+}
+
+.authority-type-option.selected {
+  border-color: var(--color-gold, #c5a059);
+  background: rgba(197, 160, 89, 0.08);
+}
+
+.authority-type-icon {
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.authority-type-name {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+  line-height: 1;
+}
+
+
+/* ── Form fields — minimal, editorial ── */
+
+.authority-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.authority-field-label {
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-muted, #94a3b8);
+  letter-spacing: 0.01em;
+}
+
+.authority-field-input {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  color: var(--text-primary, #1e293b);
+  outline: none;
+  transition: border-color 0.12s;
+}
+
+.authority-field-input:focus {
+  border-color: var(--color-gold, #c5a059);
+}
+
+.authority-field-input::placeholder {
+  color: var(--text-muted, #94a3b8);
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+
+/* ── Node search results ── */
+
+.authority-node-results {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 2px;
+  background: var(--bg-surface, #fff);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.authority-node-result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.authority-node-result:hover {
+  background: rgba(197, 160, 89, 0.06);
+}
+
+.authority-node-result + .authority-node-result {
+  border-top: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.authority-node-result-type {
+  font-size: 0.78rem;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.authority-node-result-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.authority-node-result-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.authority-node-result-slug {
+  font-size: 0.6rem;
+  color: var(--text-muted, #94a3b8);
+}
+
+
+/* ── Linked node badge ── */
+
+.authority-linked-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(197, 160, 89, 0.06);
+  border-radius: 14px;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-gold, #c5a059);
+}
+
+.authority-linked-badge button {
+  background: none;
+  border: none;
+  color: var(--text-muted, #94a3b8);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.authority-linked-badge button:hover {
+  color: #ef4444;
+}
+
+
+/* ── Submit — subtle, not a landing page CTA ── */
+
+.authority-submit-btn {
+  align-self: flex-end;
+  padding: 6px 18px;
+  border-radius: 6px;
+  border: 1px solid var(--color-gold, #c5a059);
+  background: transparent;
+  color: var(--color-gold, #c5a059);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.authority-submit-btn:hover:not(:disabled) {
+  background: rgba(197, 160, 89, 0.08);
+}
+
+.authority-submit-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+
+/* ========================================
+   ATTACHED AUTHORITIES — Compact, integrated
+   Should feel like scholarly marginalia
+   beneath the writing surface, not a CMS panel.
+   ======================================== */
+
+.authority-existing-section {
+  margin-top: 8px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.authority-existing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding: 0 2px;
+}
+
+.authority-existing-title {
+  font-family: var(--font-sans);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #94a3b8);
+}
+
+.authority-existing-count {
+  font-family: var(--font-sans);
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: var(--text-muted, #94a3b8);
+}
+
+.authority-existing-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.authority-existing-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: transparent;
+  transition: background 0.1s;
+}
+
+.authority-existing-item:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.authority-existing-icon {
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.authority-existing-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.authority-existing-name {
+  font-family: var(--font-sans);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+}
+
+.authority-existing-anchor-text {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 0.65rem;
+  color: var(--text-muted, #94a3b8);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+}
+
+.authority-existing-type {
+  font-family: var(--font-sans);
+  font-size: 0.52rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0 4px;
+  border-radius: 3px;
+  line-height: 1.5;
+}
+
+.authority-existing-delete {
+  background: none;
+  border: none;
+  color: var(--text-muted, #94a3b8);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0 4px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.1s;
+  line-height: 1;
+}
+
+.authority-existing-item:hover .authority-existing-delete {
+  opacity: 0.6;
+}
+
+.authority-existing-delete:hover {
+  opacity: 1 !important;
+  color: #ef4444;
+}
+
+
+/* ========================================
+   INLINE AUTHORITY MARKERS
+   Subtle, text-level grounding.
+   ======================================== */
+
+.authority-inline-marker {
+  position: relative;
+  cursor: help;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  /* Very soft ink wash instead of blocky highlight */
+  background-color: rgba(184, 150, 62, 0.05); 
+}
+
+/* Navigable markers: authority is linked to a node or external URL */
+.authority-inline-marker.authority-navigable {
+  cursor: pointer;
+}
+
+.authority-inline-marker.authority-navigable:hover {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--color-gold, #c5a059);
+  text-underline-offset: 3px;
+}
+
+.authority-inline-marker::after {
+  content: '\00B0' !important; /* Degree symbol unicode */
+  font-family: var(--font-sans) !important;
+  font-size: 0.9em !important;
+  font-weight: 800 !important;
+  color: var(--color-gold, #c5a059) !important;
+  vertical-align: super !important;
+  line-height: 0 !important;
+  margin-left: 2px !important;
+  opacity: 1 !important;
+  transition: opacity 0.25s ease, color 0.25s ease;
+}
+
+.authority-inline-marker.hovered,
+.authority-inline-marker:hover {
+  background-color: rgba(197, 160, 89, 0.12);
+  color: var(--text-primary, #1e293b);
+}
+
+.authority-inline-marker.hovered::after,
+.authority-inline-marker:hover::after {
+  opacity: 1;
+  color: var(--color-gold, #c5a059);
+}
+
+
+/* ========================================
+   READER — PARAGRAPH AUTHORITY INDICATORS
+   Grouped, subtle, powerful on interaction.
+   ======================================== */
+
+.authority-paragraph-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 5px;
+  cursor: help;
+  vertical-align: baseline;
+  position: relative;
+  user-select: none;
+}
+
+.authority-indicator-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-gold, #c5a059);
+  opacity: 0.4;
+  transition: all 0.2s ease;
+}
+
+.authority-paragraph-indicator:hover .authority-indicator-dot {
+  opacity: 1;
+  box-shadow: 0 0 5px rgba(197, 160, 89, 0.4);
+}
+
+.authority-indicator-count {
+  font-family: var(--font-sans);
+  font-size: 0.52rem;
+  font-weight: 700;
+  color: var(--color-gold, #c5a059);
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+
+.authority-paragraph-indicator:hover .authority-indicator-count {
+  opacity: 1;
+}
+
+
+/* ── Authority Popover (on hover/click) ── */
+
+.authority-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 240px;
+  max-width: 320px;
+  background: var(--bg-surface, #fff);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  padding: 10px 12px;
+  z-index: 1000;
+  animation: popoverIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popoverIn {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.authority-popover-header {
+  font-family: var(--font-sans);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text-muted, #94a3b8);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.authority-popover-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.authority-popover-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 7px;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: background 0.1s;
+}
+
+.authority-popover-item:hover {
+  background: rgba(197, 160, 89, 0.06);
+}
+
+.authority-popover-item-icon {
+  font-size: 0.72rem;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.authority-popover-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+
+.authority-popover-item-title {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+}
+
+.authority-popover-item-citation {
+  font-family: var(--font-sans);
+  font-size: 0.6rem;
+  color: var(--text-muted, #94a3b8);
+}
+
+.authority-popover-item-type {
+  font-family: var(--font-sans);
+  font-size: 0.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0 4px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-top: 1px;
+  width: fit-content;
+  line-height: 1.5;
+}
+
+.authority-popover-anchor-text {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 0.62rem;
+  color: var(--text-muted, #94a3b8);
+  font-style: italic;
+  margin-top: 3px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+
+/* ========================================
+   EVIDENCE DRAWER — SIDEBAR
+   "Sources informing this article"
+   Quiet, grouped, archival.
+   ======================================== */
+
+.authority-drawer {
+  margin-top: 16px;
+}
+
+.authority-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.authority-drawer-title {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary, #475569);
+}
+
+.authority-drawer-count {
+  font-family: var(--font-sans);
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: var(--text-muted, #94a3b8);
+}
+
+.authority-drawer-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.authority-drawer-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.authority-drawer-group-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 1px;
+}
+
+.authority-drawer-group-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.authority-drawer-group-label {
+  font-family: var(--font-sans);
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #94a3b8);
+}
+
+.authority-drawer-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 5px 7px;
+  border-radius: 5px;
+  background: transparent;
+  text-decoration: none;
+  transition: background 0.1s;
+  cursor: default;
+}
+
+a.authority-drawer-item,
+.authority-drawer-item.authority-internal,
+.authority-drawer-item.authority-external {
+  cursor: pointer;
+}
+
+a.authority-drawer-item:hover,
+.authority-drawer-item.authority-internal:hover,
+.authority-drawer-item.authority-external:hover {
+  background: rgba(197, 160, 89, 0.05);
+}
+
+/* External authority items — subtle visual distinction */
+.authority-drawer-item.authority-external {
+  border-left: 2px solid rgba(100, 116, 139, 0.2);
+  padding-left: 6px;
+}
+
+.authority-drawer-item-icon {
+  font-size: 0.68rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+  opacity: 0.6;
+}
+
+.authority-drawer-item-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.authority-drawer-item-title {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+  line-height: 1.3;
+}
+
+.authority-drawer-item-citation {
+  font-family: var(--font-sans);
+  font-size: 0.58rem;
+  color: var(--text-muted, #94a3b8);
+}
+
+.authority-drawer-item-excerpt {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 0.58rem;
+  color: var(--text-muted, #94a3b8);
+  font-style: italic;
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.authority-drawer-empty {
+  text-align: center;
+  padding: 14px 12px;
+  color: var(--text-muted, #94a3b8);
+  font-size: 0.68rem;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+
+/* ========================================
+   EXTERNAL AUTHORITY SOURCE STYLES
+   Hostname display, external-link icon,
+   "Open Source" action in popovers.
+   ======================================== */
+
+/* External link icon — inline SVG */
+.authority-external-icon {
+  flex-shrink: 0;
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+
+.authority-popover-item:hover .authority-external-icon,
+.authority-drawer-item:hover .authority-external-icon {
+  opacity: 0.9;
+}
+
+/* Source hostname in popover items and drawer items */
+.authority-popover-item-source,
+.authority-drawer-item-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-sans);
+  font-size: 0.55rem;
+  font-weight: 600;
+  color: var(--text-muted, #94a3b8);
+  margin-top: 1px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(100, 116, 139, 0.06);
+  width: fit-content;
+  transition: color 0.15s, background 0.15s;
+  cursor: pointer;
+}
+
+.authority-popover-item:hover .authority-popover-item-source,
+.authority-drawer-item:hover .authority-drawer-item-source {
+  color: var(--text-secondary, #475569);
+  background: rgba(100, 116, 139, 0.1);
+}
+
+.authority-drawer-source-hostname,
+.authority-popover-external-hostname {
+  font-family: var(--font-sans);
+  letter-spacing: 0.01em;
+}
+
+/* External link action in inline popovers (ReportContent) */
+.authority-popover-external-link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  margin-top: 3px;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  text-decoration: none;
+  color: var(--text-muted, #94a3b8);
+  font-family: var(--font-sans);
+  font-size: 0.6rem;
+  font-weight: 600;
+  border-radius: 0 0 6px 6px;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.authority-popover-external-link:hover {
+  color: var(--text-secondary, #475569);
+  background: rgba(100, 116, 139, 0.06);
+}
+
+.authority-popover-external-link:hover .authority-external-icon {
+  opacity: 1;
+}
+
+.authority-popover-external-label {
+  margin-left: auto;
+  font-size: 0.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #94a3b8);
+  opacity: 0.7;
+}
+
+/* Internal node badge in drawer items */
+.authority-drawer-item-internal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font-sans);
+  font-size: 0.5rem;
+  font-weight: 600;
+  color: var(--color-gold, #c5a059);
+  opacity: 0.5;
+  margin-top: 1px;
+  transition: opacity 0.15s;
+}
+
+.authority-drawer-item:hover .authority-drawer-item-internal-badge {
+  opacity: 0.8;
+}
+
+/* External popover item — subtle left accent */
+.authority-popover-item.authority-external {
+  border-left: 2px solid rgba(100, 116, 139, 0.15);
+  padding-left: 6px;
+}
+
+/* Internal popover item — gold left accent */
+.authority-popover-item.authority-internal {
+  border-left: 2px solid rgba(197, 160, 89, 0.2);
+  padding-left: 6px;
+}
+
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 1024px) {
+  .authority-popover {
+    right: auto;
+    left: 0;
+    min-width: 220px;
+  }
+}
+
+@media (max-width: 640px) {
+  .authority-panel {
+    width: 95%;
+    max-width: none;
+    margin: 12px;
+  }
+  
+  .authority-type-grid {
+    flex-wrap: wrap;
+  }
+  
+  .authority-popover {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: none;
+    border-radius: 12px 12px 0 0;
+    padding: 14px;
+  }
+}

@@ -38,8 +38,7 @@ const EDGE_COLORS: Record<string, string> = {
   explained: '#fbbf24', referred_to: '#fbbf24', distinguished: '#fbbf24',
   doubted: '#f87171', not_followed: '#f87171', overruled: '#f87171',
   interprets: '#3b82f6', establishes: '#3b82f6', codifies: '#3b82f6',
-  prerequisite: '#3b82f6', distinguish_from: '#3b82f6', related_to: '#3b82f6',
-  exception_to: '#3b82f6', governed_by: '#3b82f6', analogous_to: '#3b82f6',
+  exception_to: '#3b82f6', governed_by: '#3b82f6',
 };
 
 const EDGE_LABELS: Record<string, string> = {
@@ -50,24 +49,25 @@ const EDGE_LABELS: Record<string, string> = {
   explained: 'EXPLAINED', referred_to: 'REFERRED', distinguished: 'DISTINGUISHED',
   doubted: 'DOUBTED', not_followed: 'NOT FOLLOWED', overruled: 'OVERRULED',
   interprets: 'INTERPRETS', establishes: 'ESTABLISHES', codifies: 'CODIFIES',
-  prerequisite: 'PREREQUISITE', distinguish_from: 'DISTINGUISH', related_to: 'RELATED',
-  exception_to: 'EXCEPTION', governed_by: 'GOVERNED BY', analogous_to: 'ANALOGOUS',
+  exception_to: 'EXCEPTION', governed_by: 'GOVERNED BY',
 };
 
-// Very gentle Y-bias hints — easily overridden by actual connections
-const TYPE_Y_HINT: Record<string, number> = {
-  constitutional_provision: -0.35, statute: -0.18, judgment: 0,
-  doctrine: 0.08, chapter: 0.12, section: 0.18, concept: 0.28, topic: 0.32,
-};
+const DASHED_EDGES = new Set(['repeals', 'overruled', 'doubted', 'not_followed', 'exception_to']);
+const GRAPH_VIEW_STORAGE_KEY = 'siddhant_graph_view_nodes';
+
+// Estimated label width in layout-space pixels (title.length * factor + padding)
+function estimateLabelWidth(title: string): number {
+  return Math.min(title.length * 5.5 + 20, 160);
+}
 
 /* ═══════════════════════════════════════════════════════
-   LAYOUT ENGINE — Fruchterman-Reingold to convergence
-   Topology-faithful: positions from actual edges, not hierarchy
+   LAYOUT ENGINE — Label-aware, degree-scaled Fruchterman-Reingold
    ═══════════════════════════════════════════════════════ */
 
 interface LayoutNode {
   id: string; nodeType: string; name: string; slug: string;
   x: number; y: number; vx: number; vy: number;
+  radius: number; labelW: number; degree: number;
 }
 
 interface LayoutEdge { source: string; target: string; type: string; }
@@ -80,80 +80,104 @@ function computeLayout(
 
   const nodeIdSet = new Set(rawNodes.map(n => n.id));
   const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
-  const ITERATIONS = 280;
-  const REPULSION = 6500;
-  const ATTRACTION = 0.004;
-  const DAMPING = 0.9;
-  const MAX_DISP = 45;
-  const BIAS_STR = 0.018;
+  const N = rawNodes.length;
 
-  // Deterministic spiral seeding
+  // ── Tuning constants — scale gently from small (6) to large (100+) graphs ──
+  const ITERATIONS = 320;
+  const BASE_REPULSION = 8000;
+  const REPULSION = BASE_REPULSION + Math.max(0, N - 10) * 400;
+  const ATTRACTION = 0.003;
+  const IDEAL_EDGE_LEN = 120 + N * 5;
+  const DAMPING = 0.88;
+  const MAX_DISP = 50;
+  const MIN_DIST = 80;            // label-aware (supplemented by labelW below)
+  const DEGREE_SCALE = 0.25;      // extra spacing per connection
+
+  // ── Build edge list + degree map ──
+  const degreeMap: Record<string, number> = {};
+  const edges: LayoutEdge[] = rawEdges
+    .filter(e => nodeIdSet.has(e.source_node_id) && nodeIdSet.has(e.target_node_id))
+    .map(e => {
+      degreeMap[e.source_node_id] = (degreeMap[e.source_node_id] || 0) + 1;
+      degreeMap[e.target_node_id] = (degreeMap[e.target_node_id] || 0) + 1;
+      return { source: e.source_node_id, target: e.target_node_id, type: e.relationship_type };
+    });
+
+  // ── Deterministic spiral seeding — compact start, grows with N ──
+  const spiralScale = 55 + Math.max(0, N - 6) * 8;
   const nodes: LayoutNode[] = rawNodes.map((n, i) => {
     const angle = i * GOLDEN_ANGLE;
-    const radius = Math.sqrt(i + 1) * 55;
+    const radius = Math.sqrt(i + 1) * spiralScale;
+    const r = NODE_TYPE_SIZES[n.node_type || 'topic'] || 12;
     return {
       id: n.id, nodeType: n.node_type || 'topic', name: n.title, slug: n.slug,
       x: Math.cos(angle) * radius, y: Math.sin(angle) * radius, vx: 0, vy: 0,
+      radius: r, labelW: estimateLabelWidth(n.title), degree: degreeMap[n.id] || 0,
     };
   });
-
-  const edges: LayoutEdge[] = rawEdges
-    .filter(e => nodeIdSet.has(e.source_node_id) && nodeIdSet.has(e.target_node_id))
-    .map(e => ({ source: e.source_node_id, target: e.target_node_id, type: e.relationship_type }));
 
   const idx = new Map<string, number>();
   nodes.forEach((n, i) => idx.set(n.id, i));
 
   for (let iter = 0; iter < ITERATIONS; iter++) {
-    const cool = 1 - (iter / ITERATIONS) * 0.7;
+    const cool = 1 - (iter / ITERATIONS) * 0.75;
+    const t = cool * MAX_DISP;
 
-    // Repulsion — all pairs
+    // ── Repulsion — label-aware + degree-scaled ──
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
-        let dx = nodes[j].x - nodes[i].x;
-        let dy = nodes[j].y - nodes[i].y;
+        const ni = nodes[i], nj = nodes[j];
+        let dx = nj.x - ni.x;
+        let dy = nj.y - ni.y;
         let d = Math.sqrt(dx * dx + dy * dy);
-        if (d < 0.5) { dx = 0.5; dy = 0.5; d = Math.SQRT2 * 0.5; }
+        if (d < 1) { dx = Math.random() * 2 - 1; dy = Math.random() * 2 - 1; d = 1.5; }
+
+        // Effective minimum distance: accounts for node radius + half label widths + degree padding
+        const degBonus = (ni.degree + nj.degree) * DEGREE_SCALE * 10;
+        const effectiveMin = MIN_DIST + (ni.labelW + nj.labelW) * 0.2 + degBonus;
+
         const f = (REPULSION / (d * d)) * cool;
-        const fx = (dx / d) * f;
-        const fy = (dy / d) * f;
-        nodes[i].vx -= fx; nodes[i].vy -= fy;
-        nodes[j].vx += fx; nodes[j].vy += fy;
+        // Gentle push below effectiveMin
+        const overlap = d < effectiveMin ? (effectiveMin - d) * 0.25 : 0;
+        const fx = (dx / d) * (f + overlap);
+        const fy = (dy / d) * (f + overlap);
+        ni.vx -= fx; ni.vy -= fy;
+        nj.vx += fx; nj.vy += fy;
       }
     }
 
-    // Attraction — along edges
+    // ── Attraction — along edges with ideal length ──
     for (const e of edges) {
-      const ai = idx.get(e.source); const bi = idx.get(e.target);
+      const ai = idx.get(e.source), bi = idx.get(e.target);
       if (ai === undefined || bi === undefined) continue;
-      let dx = nodes[bi].x - nodes[ai].x;
-      let dy = nodes[bi].y - nodes[ai].y;
+      const na = nodes[ai], nb = nodes[bi];
+      let dx = nb.x - na.x;
+      let dy = nb.y - na.y;
       let d = Math.sqrt(dx * dx + dy * dy);
-      if (d < 0.5) d = 0.5;
-      const f = d * ATTRACTION * cool;
-      const fx = (dx / d) * f; const fy = (dy / d) * f;
-      nodes[ai].vx += fx; nodes[ai].vy += fy;
-      nodes[bi].vx -= fx; nodes[bi].vy -= fy;
+      if (d < 1) d = 1;
+      // Spring-like: attract toward ideal length, not just closer
+      const displacement = d - IDEAL_EDGE_LEN;
+      const f = displacement * ATTRACTION * cool;
+      const fx = (dx / d) * f;
+      const fy = (dy / d) * f;
+      na.vx += fx; na.vy += fy;
+      nb.vx -= fx; nb.vy -= fy;
     }
 
-    // Soft type Y-bias (~2% strength, topology easily overrides)
-    const area = Math.max(400, nodes.length * 80);
-    for (const n of nodes) {
-      const hint = TYPE_Y_HINT[n.nodeType] ?? 0;
-      n.vy += (hint * area - n.y) * BIAS_STR * cool;
-    }
-
-    // Centering
+    // ── Centering gravity ──
     let cx = 0, cy = 0;
     for (const n of nodes) { cx += n.x; cy += n.y; }
-    cx /= nodes.length; cy /= nodes.length;
-    for (const n of nodes) { n.vx -= cx * 0.008; n.vy -= cy * 0.008; }
+    cx /= N; cy /= N;
+    for (const n of nodes) {
+      n.vx -= cx * 0.012;
+      n.vy -= cy * 0.012;
+    }
 
-    // Apply with damping
+    // ── Apply velocities with damping + displacement cap ──
     for (const n of nodes) {
       n.vx *= DAMPING; n.vy *= DAMPING;
       const disp = Math.sqrt(n.vx * n.vx + n.vy * n.vy);
-      if (disp > MAX_DISP) { n.vx = (n.vx / disp) * MAX_DISP; n.vy = (n.vy / disp) * MAX_DISP; }
+      if (disp > t) { n.vx = (n.vx / disp) * t; n.vy = (n.vy / disp) * t; }
       n.x += n.vx; n.y += n.vy;
     }
   }
@@ -164,22 +188,30 @@ function computeLayout(
 }
 
 /* ═══════════════════════════════════════════════════════
-   EDGE GEOMETRY
+   EDGE GEOMETRY — better curve separation
    ═══════════════════════════════════════════════════════ */
 
 function edgePath(
-  sx: number, sy: number, tx: number, ty: number, srcR: number, tgtR: number, curveDir: number
+  sx: number, sy: number, tx: number, ty: number,
+  srcR: number, tgtR: number, curveDir: number, pairIdx: number
 ) {
   let dx = tx - sx, dy = ty - sy;
   const dist = Math.sqrt(dx * dx + dy * dy);
   if (dist < 1) return { path: '', mx: sx, my: sy, ax: '', show: false };
 
   const ux = dx / dist, uy = dy / dist;
-  const startX = sx + ux * srcR, startY = sy + uy * srcR;
-  const endX = tx - ux * (tgtR + 8), endY = ty - uy * (tgtR + 8);
+  // Start edge at node border
+  const startX = sx + ux * (srcR + 4), startY = sy + uy * (srcR + 4);
+  // End edge well outside the node's visual territory (circle + badge above)
+  // This ensures the arrowhead never overlaps the badge label
+  const arrowStandoff = 18;
+  const endX = tx - ux * (tgtR + arrowStandoff), endY = ty - uy * (tgtR + arrowStandoff);
 
   const nx = -uy, ny = ux;
-  const offset = dist * 0.12 * curveDir;
+  // Stronger curve separation for parallel edges
+  const baseOffset = dist * 0.15;
+  const pairSpread = pairIdx * 18;
+  const offset = (baseOffset + pairSpread) * curveDir;
   const cpx = (startX + endX) / 2 + nx * offset;
   const cpy = (startY + endY) / 2 + ny * offset;
 
@@ -187,14 +219,13 @@ function edgePath(
   const mx = 0.25 * startX + 0.5 * cpx + 0.25 * endX;
   const my = 0.25 * startY + 0.5 * cpy + 0.25 * endY;
 
-  // Arrowhead
-  const atx = tx - ux * tgtR, aty = ty - uy * tgtR;
+  // Arrowhead — tip at path endpoint
   const tdx = endX - cpx, tdy = endY - cpy;
   const td = Math.sqrt(tdx * tdx + tdy * tdy) || 1;
   const tux = tdx / td, tuy = tdy / td;
-  const al = 9, aw = 4.5;
-  const bx = atx - tux * al, by = aty - tuy * al;
-  const ax = `M${atx},${aty} L${bx - tuy * aw},${by + tux * aw} L${bx + tuy * aw},${by - tux * aw} Z`;
+  const al = 14, aw = 7;
+  const bx = endX - tux * al, by = endY - tuy * al;
+  const ax = `M${endX},${endY} L${bx - tuy * aw},${by + tux * aw} L${bx + tuy * aw},${by - tux * aw} Z`;
 
   return { path, mx, my, ax, show: true };
 }
@@ -212,7 +243,6 @@ export default function GraphVisualizer({ nodes, edges, selectedNodeId, onSelect
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Drag state in refs for performance
   const dragRef = useRef<{
     nodeId: string; startPx: number; startPy: number; origX: number; origY: number; moved: boolean;
   } | null>(null);
@@ -220,6 +250,14 @@ export default function GraphVisualizer({ nodes, edges, selectedNodeId, onSelect
     active: false, startPx: 0, startPy: 0, origPanX: 0, origPanY: 0,
   });
   const suppressClickRef = useRef(0);
+
+  // Viewport persistence: only auto-fit on initial load or topology changes
+  const hasUserInteracted = useRef(false);
+  const prevNodeCountRef = useRef(0);
+  const shouldAutoFitRef = useRef(true);
+
+  // Active focus node: hovered OR selected
+  const focusId = hoveredId || selectedNodeId || null;
 
   // Adjacency map
   const adjacencyMap = useMemo(() => {
@@ -235,10 +273,9 @@ export default function GraphVisualizer({ nodes, edges, selectedNodeId, onSelect
     return map;
   }, [nodes, edges]);
 
-  // Processed edges
+  // Processed edges with better pair separation
   const graphEdges = useMemo(() => {
     const idSet = new Set(nodes.map(n => n.id));
-    // Track pair indices for curve direction
     const pairCount: Record<string, number> = {};
     return edges
       .filter(e => idSet.has(e.source_node_id) && idSet.has(e.target_node_id))
@@ -246,19 +283,24 @@ export default function GraphVisualizer({ nodes, edges, selectedNodeId, onSelect
         const pairKey = [e.source_node_id, e.target_node_id].sort().join(':');
         const idx = (pairCount[pairKey] || 0);
         pairCount[pairKey] = idx + 1;
-        const curveDir = idx === 0 ? 1 : (idx % 2 === 0 ? 1 : -1) * (1 + Math.floor(idx / 2) * 0.5);
-        return { source: e.source_node_id, target: e.target_node_id, type: e.relationship_type, curveDir };
+        const curveDir = idx === 0 ? 1 : (idx % 2 === 0 ? 1 : -1);
+        return { source: e.source_node_id, target: e.target_node_id, type: e.relationship_type, curveDir, pairIdx: idx };
       });
   }, [nodes, edges]);
 
-  // Compute layout ONCE when data changes
+  // Compute layout — track topology changes for smart auto-fit
   useEffect(() => {
     if (nodes.length === 0) { setPositions(new Map()); return; }
+    const previousNodeCount = prevNodeCountRef.current;
+    const isTopologyChange = nodes.length !== previousNodeCount;
+    prevNodeCountRef.current = nodes.length;
     const layout = computeLayout(nodes, edges);
     setPositions(layout);
+    shouldAutoFitRef.current =
+      !hasUserInteracted.current && (previousNodeCount === 0 || isTopologyChange);
   }, [nodes, edges]);
 
-  // Auto-fit after layout or resize
+  // Auto-fit — tight framing with padding proportional to content
   const fitToView = useCallback(() => {
     if (positions.size === 0) return;
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -266,14 +308,47 @@ export default function GraphVisualizer({ nodes, edges, selectedNodeId, onSelect
       if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
       if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
     });
-    const gw = maxX - minX + 160, gh = maxY - minY + 160;
-    const z = Math.min(dims.w / gw, dims.h / gh, 1.8);
+    const pad = Math.max(120, Math.min((maxX - minX) * 0.15, 200));
+    const gw = maxX - minX + pad * 2;
+    const gh = maxY - minY + pad * 2;
+    const z = Math.min(dims.w / gw, dims.h / gh, 1.5);
     const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
-    setZoom(Math.max(0.3, Math.min(z, 1.8)));
+    setZoom(Math.max(0.25, Math.min(z, 1.5)));
     setPan({ x: dims.w / 2 - cx * z, y: dims.h / 2 - cy * z });
   }, [positions, dims]);
 
-  useEffect(() => { if (positions.size > 0) fitToView(); }, [positions, dims.w, dims.h]);
+  // Only auto-fit when user hasn't interacted (initial load / topology change)
+  useEffect(() => {
+    if (positions.size > 0 && shouldAutoFitRef.current) {
+      fitToView();
+      shouldAutoFitRef.current = false;
+    }
+  }, [positions, fitToView]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(GRAPH_VIEW_STORAGE_KEY);
+      if (!saved) return;
+      const parsed = JSON.parse(saved);
+      if (
+        typeof parsed?.zoom === 'number' &&
+        typeof parsed?.pan?.x === 'number' &&
+        typeof parsed?.pan?.y === 'number'
+      ) {
+        setZoom(Math.max(0.15, Math.min(parsed.zoom, 3)));
+        setPan({ x: parsed.pan.x, y: parsed.pan.y });
+        hasUserInteracted.current = true;
+        shouldAutoFitRef.current = false;
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted || !hasUserInteracted.current) return;
+    try {
+      localStorage.setItem(GRAPH_VIEW_STORAGE_KEY, JSON.stringify({ zoom, pan }));
+    } catch {}
+  }, [isMounted, zoom, pan]);
 
   // Measure container
   useEffect(() => {
@@ -298,28 +373,29 @@ export default function GraphVisualizer({ nodes, edges, selectedNodeId, onSelect
     const mx = e.clientX - rect.left, my = e.clientY - rect.top;
     const factor = e.deltaY < 0 ? 1.1 : 0.9;
     setZoom(prev => {
-      const nz = Math.max(0.2, Math.min(prev * factor, 3));
+      const nz = Math.max(0.15, Math.min(prev * factor, 3));
       const ratio = nz / prev;
       setPan(p => ({ x: mx - (mx - p.x) * ratio, y: my - (my - p.y) * ratio }));
+      hasUserInteracted.current = true;
       return nz;
     });
   }, []);
 
-  // Pan on background drag
   const handleBgPointerDown = useCallback((e: React.PointerEvent) => {
     if ((e.target as HTMLElement).closest('.gv-node')) return;
     panRef.current = { active: true, startPx: e.clientX, startPy: e.clientY, origPanX: pan.x, origPanY: pan.y };
+    hasUserInteracted.current = true;
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
   }, [pan]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    // Node drag
     if (dragRef.current) {
       const d = dragRef.current;
       const dx = (e.clientX - d.startPx) / zoom;
       const dy = (e.clientY - d.startPy) / zoom;
       if (!d.moved && Math.hypot(e.clientX - d.startPx, e.clientY - d.startPy) > 4) {
         d.moved = true;
+        hasUserInteracted.current = true;
       }
       setPositions(prev => {
         const next = new Map(prev);
@@ -328,7 +404,6 @@ export default function GraphVisualizer({ nodes, edges, selectedNodeId, onSelect
       });
       return;
     }
-    // Pan
     if (panRef.current.active) {
       const p = panRef.current;
       setPan({ x: p.origPanX + (e.clientX - p.startPx), y: p.origPanY + (e.clientY - p.startPy) });
@@ -364,12 +439,9 @@ export default function GraphVisualizer({ nodes, edges, selectedNodeId, onSelect
     onSelectNode?.(null);
   }, [onSelectNode]);
 
-  // Center on selected node
-  useEffect(() => {
-    if (!selectedNodeId || !positions.has(selectedNodeId)) return;
-    const pos = positions.get(selectedNodeId)!;
-    setPan({ x: dims.w / 2 - pos.x * zoom, y: dims.h / 2 - pos.y * zoom });
-  }, [selectedNodeId]);
+  // Note: selectedNodeId no longer forces camera movement.
+  // The user's viewport position is preserved — clicking a node in the sidebar
+  // highlights it visually but doesn't hijack the camera.
 
   if (!isMounted) {
     return (
@@ -396,6 +468,9 @@ export default function GraphVisualizer({ nodes, edges, selectedNodeId, onSelect
 
   const nodeRadius = (type: string) => NODE_TYPE_SIZES[type] || 12;
 
+  // Adaptive rendering: hide edge labels at far zoom
+  const showEdgeLabels = zoom > 0.45;
+
   return (
     <div
       ref={containerRef}
@@ -406,84 +481,121 @@ export default function GraphVisualizer({ nodes, edges, selectedNodeId, onSelect
       onPointerUp={handlePointerUp}
       onClick={handleBgClick}
     >
-      {/* Transform container */}
       <div className="gv-transform" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}>
-        {/* SVG Edge Layer */}
-        <svg className="gv-edge-layer" style={{ overflow: 'visible', position: 'absolute', top: 0, left: 0, width: 1, height: 1, pointerEvents: 'none' }}>
-          {graphEdges.map((e, i) => {
+
+        {/* Pre-compute edge render data (shared between path and arrow layers) */}
+        {(() => {
+          const edgeRenderData = graphEdges.map((e, i) => {
             const sp = positions.get(e.source);
             const tp = positions.get(e.target);
             if (!sp || !tp) return null;
 
             const sr = nodeRadius(nodes.find(n => n.id === e.source)?.node_type || 'topic');
             const tr = nodeRadius(nodes.find(n => n.id === e.target)?.node_type || 'topic');
-            const { path, mx, my, ax, show } = edgePath(sp.x, sp.y, tp.x, tp.y, sr, tr, e.curveDir);
-            if (!show) return null;
+            const geo = edgePath(sp.x, sp.y, tp.x, tp.y, sr, tr, e.curveDir, e.pairIdx);
+            if (!geo.show) return null;
 
             const color = EDGE_COLORS[e.type] || '#94a3b8';
             const label = EDGE_LABELS[e.type] || e.type.replace(/_/g, ' ').toUpperCase();
-            const isRelated = hoveredId && (e.source === hoveredId || e.target === hoveredId);
-            const isDimmed = hoveredId && !isRelated;
+            const isRelated = focusId && (e.source === focusId || e.target === focusId);
+            const isDimmed = focusId && !isRelated;
+            const isDashed = DASHED_EDGES.has(e.type);
 
-            return (
-              <g key={`${e.source}-${e.target}-${i}`} className={`gv-edge-group ${isDimmed ? 'dimmed' : ''} ${isRelated ? 'highlighted' : ''}`}>
-                <path d={path} fill="none" stroke={isRelated ? '#b8963e' : color} strokeWidth={isRelated ? 2.6 : 1.8} strokeOpacity={isDimmed ? 0.08 : 0.65} />
-                <path d={ax} fill={isRelated ? '#b8963e' : color} fillOpacity={isDimmed ? 0.08 : 0.7} />
-                {!isDimmed && (
-                  <g>
-                    <rect x={mx - label.length * 3.2 - 5} y={my - 8} width={label.length * 6.4 + 10} height={16} rx={4} fill="var(--bg-surface, #fff)" stroke={color} strokeWidth={0.8} fillOpacity={0.92} />
-                    <text x={mx} y={my + 0.5} textAnchor="middle" dominantBaseline="middle" fill={color} fontSize={8} fontWeight={700} fontFamily="Inter, system-ui, sans-serif" letterSpacing="0.04em">
-                      {label}
-                    </text>
-                  </g>
-                )}
-              </g>
-            );
-          })}
-        </svg>
+            return { key: `${e.source}-${e.target}-${i}`, geo, color, label, isRelated, isDimmed, isDashed };
+          }).filter(Boolean) as {
+            key: string; geo: ReturnType<typeof edgePath>;
+            color: string; label: string; isRelated: boolean | null | string;
+            isDimmed: boolean | null | string; isDashed: boolean;
+          }[];
 
-        {/* Node Layer */}
-        {nodes.map((node, i) => {
-          const pos = positions.get(node.id);
-          if (!pos) return null;
-
-          const type = node.node_type || 'topic';
-          const r = nodeRadius(type);
-          const color = NODE_TYPE_COLORS[type] || '#718096';
-          const badge = NODE_TYPE_BADGES[type] || 'TOPIC';
-          const isSelected = selectedNodeId === node.id;
-          const isHovered = hoveredId === node.id;
-          const isNeighbor = hoveredId ? adjacencyMap[hoveredId]?.has(node.id) : false;
-          const isDimmed = hoveredId ? (!isHovered && !isNeighbor) : false;
+          const svgStyle = { overflow: 'visible' as const, position: 'absolute' as const, top: 0, left: 0, width: 1, height: 1, pointerEvents: 'none' as const };
 
           return (
-            <div
-              key={node.id}
-              className={`gv-node ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDimmed ? 'dimmed' : ''}`}
-              style={{
-                transform: `translate(${pos.x}px, ${pos.y}px)`,
-                '--node-color': color,
-                '--node-r': `${r * 2}px`,
-                animationDelay: `${i * 40}ms`,
-              } as React.CSSProperties}
-              onPointerDown={e => handleNodePointerDown(e, node.id)}
-              onPointerEnter={() => setHoveredId(node.id)}
-              onPointerLeave={() => setHoveredId(null)}
-              onClick={e => { e.stopPropagation(); handleNodeClick(node.id); }}
-            >
-              <span className="gv-node-badge">{badge}</span>
-              <div className="gv-node-circle" style={{ width: r * 2, height: r * 2 }} />
-              <span className="gv-node-label">{node.title}</span>
-            </div>
+            <>
+              {/* Layer 1: Edge paths + labels — BELOW nodes */}
+              <svg className="gv-edge-layer" style={{ ...svgStyle, zIndex: 1 }}>
+                {edgeRenderData.map(ed => (
+                  <g key={ed.key} className={`gv-edge-group ${ed.isDimmed ? 'dimmed' : ''} ${ed.isRelated ? 'highlighted' : ''}`}>
+                    <path
+                      d={ed.geo.path}
+                      fill="none"
+                      stroke={ed.isRelated ? '#b8963e' : ed.color}
+                      strokeWidth={ed.isRelated ? 3 : 1.8}
+                      strokeOpacity={ed.isDimmed ? 0.04 : 0.6}
+                      strokeDasharray={ed.isDashed ? '6 3' : undefined}
+                    />
+                    {showEdgeLabels && !ed.isDimmed && (
+                      <g>
+                        <rect x={ed.geo.mx - ed.label.length * 3.2 - 5} y={ed.geo.my - 22} width={ed.label.length * 6.4 + 10} height={16} rx={4} fill="var(--bg-surface, #fff)" stroke={ed.color} strokeWidth={0.8} fillOpacity={0.92} />
+                        <text x={ed.geo.mx} y={ed.geo.my - 13.5} textAnchor="middle" dominantBaseline="middle" fill={ed.color} fontSize={7} fontWeight={700} fontFamily="Inter, system-ui, sans-serif" letterSpacing="0.04em">
+                          {ed.label}
+                        </text>
+                      </g>
+                    )}
+                  </g>
+                ))}
+              </svg>
+
+              {/* Layer 2: Node divs */}
+              {nodes.map((node, i) => {
+                const pos = positions.get(node.id);
+                if (!pos) return null;
+
+                const type = node.node_type || 'topic';
+                const r = nodeRadius(type);
+                const color = NODE_TYPE_COLORS[type] || '#718096';
+                const badge = NODE_TYPE_BADGES[type] || 'TOPIC';
+                const isSelected = selectedNodeId === node.id;
+                const isHovered = hoveredId === node.id;
+                const isFocused = focusId === node.id;
+                const isNeighbor = focusId ? adjacencyMap[focusId]?.has(node.id) : false;
+                const isDimmed = focusId ? (!isFocused && !isNeighbor) : false;
+
+                return (
+                  <div
+                    key={node.id}
+                    className={`gv-node ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isDimmed ? 'dimmed' : ''}`}
+                    style={{
+                      transform: `translate(${pos.x}px, ${pos.y}px)`,
+                      '--node-color': color,
+                      '--node-r': `${r * 2}px`,
+                      animationDelay: `${i * 40}ms`,
+                      opacity: isDimmed ? 0.04 : undefined,
+                      transition: 'opacity 0.2s ease',
+                    } as React.CSSProperties}
+                    onPointerDown={e => handleNodePointerDown(e, node.id)}
+                    onPointerEnter={() => setHoveredId(node.id)}
+                    onPointerLeave={() => setHoveredId(null)}
+                    onClick={e => { e.stopPropagation(); handleNodeClick(node.id); }}
+                  >
+                    <span className="gv-node-badge">{badge}</span>
+                    <div className="gv-node-circle" style={{ width: r * 2, height: r * 2 }} />
+                    <span className="gv-node-label">{node.title}</span>
+                  </div>
+                );
+              })}
+
+              {/* Layer 3: Arrowheads — ABOVE all nodes (z:20 beats .gv-node.selected z:11) */}
+              <svg className="gv-arrow-layer" style={{ ...svgStyle, zIndex: 20 }}>
+                {edgeRenderData.map(ed => (
+                  <path
+                    key={`arrow-${ed.key}`}
+                    d={ed.geo.ax}
+                    fill={ed.isRelated ? '#b8963e' : ed.color}
+                    fillOpacity={ed.isDimmed ? 0.04 : 0.85}
+                  />
+                ))}
+              </svg>
+            </>
           );
-        })}
+        })()}
       </div>
 
       {/* Zoom Controls */}
       <div className="gv-zoom-controls">
-        <button onClick={() => setZoom(z => Math.min(z * 1.25, 3))} title="Zoom in">+</button>
-        <button onClick={() => setZoom(z => Math.max(z * 0.8, 0.2))} title="Zoom out">−</button>
-        <button onClick={fitToView} title="Fit all">⊡</button>
+        <button type="button" onClick={() => { setZoom(z => Math.min(z * 1.25, 3)); hasUserInteracted.current = true; }} title="Zoom in" aria-label="Zoom in">+</button>
+        <button type="button" onClick={() => { setZoom(z => Math.max(z * 0.8, 0.15)); hasUserInteracted.current = true; }} title="Zoom out" aria-label="Zoom out">−</button>
+        <button type="button" onClick={() => { hasUserInteracted.current = false; shouldAutoFitRef.current = true; fitToView(); }} title="Reset view" aria-label="Reset graph view">⊡</button>
       </div>
     </div>
   );

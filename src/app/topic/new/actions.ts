@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { computeVisibleTextSize } from '@/utils/content-size'
 
 function slugify(title: string): string {
   return title
@@ -49,22 +50,57 @@ export async function createNode(formData: FormData) {
   }
 
   // Create first revision
-  await supabase.from('revisions').insert({
+  const content_size = computeVisibleTextSize(report_content);
+  const { data: newRevision } = await supabase.from('revisions').insert({
     node_id: newNode.id,
     author_id: user.id,
     report_content,
     commit_message,
-  })
+    content_size,
+    revision_type: 'content_edit',
+    node_type_at_save: node_type,
+  }).select('id').single()
 
-  // Await metadata extraction before redirecting
-  // This ensures Vercel's serverless function stays alive until extraction completes
-  try {
-    const { extractMetadata } = await import('@/utils/ai/extract-metadata')
-    await extractMetadata(newNode.id)
-  } catch (err) {
-    // Extraction failure should not block publishing — log and continue
-    console.error('[create-node] AI extraction failed:', err)
+  // Save any authority anchors collected during drafting
+  const pendingAnchorsJson = formData.get('pending_authority_anchors') as string
+  if (pendingAnchorsJson && newRevision) {
+    try {
+      const pendingAnchors = JSON.parse(pendingAnchorsJson) as Array<{
+        anchor_text: string; context_before: string; context_after: string;
+        paragraph_index: number; authority_type: string; authority_title: string;
+        authority_citation?: string; authority_url?: string; authority_node_id?: string;
+      }>
+      if (pendingAnchors.length > 0) {
+        const rows = pendingAnchors.map(a => ({
+          node_id: newNode.id,
+          revision_id: newRevision.id,
+          author_id: user.id,
+          anchor_text: a.anchor_text,
+          context_before: a.context_before || '',
+          context_after: a.context_after || '',
+          paragraph_index: a.paragraph_index || 0,
+          authority_type: a.authority_type,
+          authority_title: a.authority_title,
+          authority_citation: a.authority_citation || null,
+          authority_url: a.authority_url || null,
+          authority_node_id: a.authority_node_id || null,
+          source_tier: 'primary',
+        }))
+        await supabase.from('authority_anchors').insert(rows)
+      }
+    } catch (err) {
+      console.error('[create-node] Authority anchors save failed:', err)
+    }
   }
+
+  // AI extraction — non-blocking, fire-and-forget (TRANSITIONAL)
+  // Phase 3 should replace with durable job queue.
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  fetch(`${origin}/api/extract-metadata`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nodeId: newNode.id }),
+  }).catch(err => console.error('[create-node] Metadata extraction dispatch failed:', err));
 
   redirect(`/topic/${slug}`)
 }

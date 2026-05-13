@@ -28,12 +28,12 @@ export const QUALITY_TIER_TOOLTIPS: Record<string, { label: string; tooltip: str
     tooltip: 'Mostly complete and well-referenced, eligible for formal peer review.',
   },
   good_article: {
-    label: 'Good Article',
-    tooltip: 'Independently reviewed and meets editorial standards through structured peer assessment.',
+    label: 'Trusted',
+    tooltip: 'Independently reviewed and meets institutional editorial standards through structured peer assessment.',
   },
   featured: {
-    label: 'Featured',
-    tooltip: 'Definitive scholarly resource verified by multiple senior reviewers.',
+    label: 'Canonical',
+    tooltip: 'Definitive archival resource verified by multiple senior reviewers.',
   },
 };
 

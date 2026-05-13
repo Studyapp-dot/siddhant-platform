@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useTransition, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { computeWordDiff, DiffEntry } from '@/utils/diff-logic';
+import { toPublicRevisionText } from '@/utils/revision-presentation';
 import { submitRecognition } from '@/app/actions/contributions';
 import { flagRevision, clearRevisionFlag, getRevisionDetails } from '@/app/actions/revisions';
 import { revertRevision, restoreToVersion } from '@/app/actions/revert';
@@ -104,7 +105,7 @@ export default function ContributionReviewDrawer({
 
   // Semantic analysis
   const analysis = useMemo(() => classifyChanges(diffs), [diffs]);
-  const newContentText = revision?.report_content || revision?.tier1_content || '';
+  const newContentText = toPublicRevisionText(revision?.report_content || revision?.tier1_content || '');
   const allRefs = useMemo(() => detectReferences(newContentText), [newContentText]);
   const totalRefs = allRefs.sections.length + allRefs.articles.length + allRefs.acts.length + allRefs.cases.length + allRefs.citations.length;
 

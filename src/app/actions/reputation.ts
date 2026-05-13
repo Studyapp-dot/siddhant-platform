@@ -148,14 +148,29 @@ export async function incrementEditCount(userId: string) {
 /**
  * Mark an edit as accepted — called after the 72h window passes
  * without the edit being reverted or flagged.
- * Awards reputation based on whether it's minor or substantive.
+ *
+ * Classification taxonomy:
+ *   - type_change → metadata (+1 rep) — ontology reclassification, not prose
+ *   - charDelta < 50 → minor (+2 rep) — small prose corrections
+ *   - charDelta >= 50 → substantive (+5 rep) — meaningful scholarly contribution
  */
-export async function acceptEdit(userId: string, revisionId: string, charDelta: number) {
+export async function acceptEdit(userId: string, revisionId: string, charDelta: number, revisionType?: string | null) {
   const supabase = await createClient();
 
-  // Determine if minor or substantive based on character delta
-  const isMinor = Math.abs(charDelta) < 50;
-  const eventType = isMinor ? 'edit_accepted_minor' : 'edit_accepted_substantive';
+  // Classify the edit using the 3-tier taxonomy
+  let eventType: keyof typeof REPUTATION_POINTS;
+  let classification: string;
+
+  if (revisionType === 'type_change') {
+    eventType = 'edit_accepted_metadata';
+    classification = 'metadata';
+  } else if (Math.abs(charDelta) < 50) {
+    eventType = 'edit_accepted_minor';
+    classification = 'minor';
+  } else {
+    eventType = 'edit_accepted_substantive';
+    classification = 'substantive';
+  }
 
   // Increment accepted edits count via RPC
   await supabase.rpc('increment_profile_counter', {
@@ -170,7 +185,7 @@ export async function acceptEdit(userId: string, revisionId: string, charDelta: 
     eventType,
     revisionId,
     'revision',
-    `Edit ${isMinor ? '(minor)' : '(substantive)'} accepted after community review window`,
+    `Edit (${classification}) accepted after community review window`,
   );
 
   return result;

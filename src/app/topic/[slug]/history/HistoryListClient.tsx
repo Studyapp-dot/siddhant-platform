@@ -219,7 +219,8 @@ export default function HistoryListClient({
     const sem = getSemantics(rev);
     const sig = getSignificance(rev, sizeDeltas[rev.id]);
     const profileData = Array.isArray(rev.profiles) ? rev.profiles[0] : rev.profiles;
-    const authorName = profileData?.username || 'Unknown';
+    const authorUsername = profileData?.username || 'Unknown';
+    const authorName = profileData?.full_display_name || authorUsername;
     const authorRole = profileData?.role || 'contributor';
     const authorRep = profileData?.reputation_score || 0;
     const badge = roleBadges[authorRole] || roleBadges.contributor;
@@ -336,7 +337,7 @@ export default function HistoryListClient({
         {/* Author line */}
         <div className="rev-author-line">
           <div className="author-avatar-sm">{authorName.charAt(0).toUpperCase()}</div>
-          <Link href={`/profile/${authorName}`} className="author-name-link">@{authorName}</Link>
+          <Link href={`/profile/${authorUsername}`} className="author-name-link">{authorName}</Link>
           <span className="role-badge-sm" style={{
             color: badge.color,
             background: `${badge.color}12`,
@@ -418,15 +419,37 @@ export default function HistoryListClient({
   const renderMinorGroup = (group: { type: 'minor-group'; revs: any[] }, groupIndex: number) => {
     const groupKey = `minor-${groupIndex}`;
     const isExpanded = expandedMinorGroups.has(groupKey);
+    const contributorNames = Array.from(new Set(group.revs.map((rev: any) => {
+      const profileData = Array.isArray(rev.profiles) ? rev.profiles[0] : rev.profiles;
+      return profileData?.full_display_name || profileData?.username || 'Unknown';
+    }))).slice(0, 3);
+    const totalDelta = group.revs.reduce((sum, rev) => sum + Math.abs(sizeDeltas[rev.id] || 0), 0);
+    const socialTotal = group.revs.reduce(
+      (sum, rev) => sum + (voteCounts[rev.id] || 0) + (endorsementCounts[rev.id] || 0),
+      0
+    );
 
     return (
       <div key={groupKey}>
-        <div className="minor-group-toggle" onClick={() => toggleMinorGroup(groupKey)}>
+        <button
+          type="button"
+          className="minor-group-toggle"
+          onClick={() => toggleMinorGroup(groupKey)}
+          aria-expanded={isExpanded}
+        >
           <span className="minor-group-label">
             {group.revs.length} minor revision{group.revs.length > 1 ? 's' : ''}
+            <span className="minor-group-credit">
+              {contributorNames.join(', ')}
+              {group.revs.length > contributorNames.length ? ` +${group.revs.length - contributorNames.length}` : ''}
+            </span>
+            <span className="minor-group-impact">
+              {totalDelta.toLocaleString()} chars reviewed
+              {socialTotal > 0 ? ` | ${socialTotal} recognition signal${socialTotal !== 1 ? 's' : ''}` : ''}
+            </span>
           </span>
           <span className={`minor-group-chevron ${isExpanded ? 'expanded' : ''}`}>▸</span>
-        </div>
+        </button>
         {isExpanded && (
           <div className="revisions-list" style={{ marginLeft: '4px' }}>
             {group.revs.map((rev, i) => renderRevisionCard(rev, revs.indexOf(rev)))}
@@ -538,9 +561,14 @@ export default function HistoryListClient({
             const isCollapsed = collapsedEpochs.has(epoch.key);
             return (
               <div key={epoch.key} className="epoch-section" id={`epoch-${epoch.key}`}>
-                <div className="epoch-header" onClick={() => toggleEpoch(epoch.key)}>
+                <button
+                  type="button"
+                  className="epoch-header"
+                  onClick={() => toggleEpoch(epoch.key)}
+                  aria-expanded={!isCollapsed}
+                >
                   <span className="epoch-title">{epoch.label}</span>
-                  <div className="epoch-meta">
+                  <span className="epoch-meta">
                     <span>{epoch.revs.length} revision{epoch.revs.length > 1 ? 's' : ''}</span>
                     {epoch.majorCount > 0 && (
                       <>
@@ -548,9 +576,9 @@ export default function HistoryListClient({
                         <span>{epoch.majorCount} major</span>
                       </>
                     )}
-                  </div>
+                  </span>
                   <span className={`epoch-chevron ${isCollapsed ? 'collapsed' : ''}`}>▾</span>
-                </div>
+                </button>
                 <div className={`epoch-body ${isCollapsed ? 'collapsed' : 'expanded'}`}>
                   {renderEpochContent(epoch.revs, ei)}
                 </div>

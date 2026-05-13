@@ -3,6 +3,7 @@ import { createClient } from '@/utils/supabase/server';
 import Link from 'next/link';
 import DiffViewer from './DiffViewer';
 import './compare.css';
+import { toPublicRevisionText } from '@/utils/revision-presentation';
 
 // Contribution type labels (matches History page)
 const TYPE_LABELS: Record<string, string> = {
@@ -143,8 +144,8 @@ export default async function ComparePage({
   const nextCompareRevId = newIndex < revList.length - 1 ? revList[newIndex + 1] : null;
 
   // ── 5. Prepare display data ──
-  const oldContent = oldData?.report_content || oldData?.tier1_content || '';
-  const newContent = newData?.report_content || newData?.tier1_content || '';
+  const oldContent = toPublicRevisionText(oldData?.report_content || oldData?.tier1_content || '');
+  const newContent = toPublicRevisionText(newData?.report_content || newData?.tier1_content || '');
 
   const formatDate = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });

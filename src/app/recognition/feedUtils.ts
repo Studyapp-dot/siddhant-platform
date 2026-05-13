@@ -9,6 +9,7 @@
 import { RecognitionFeedItem } from '@/app/actions/recognition-feed';
 import { displayNameFor, type ScholarlyIdentity } from '@/app/utils/scholarlyIdentity';
 import { diff_match_patch } from 'diff-match-patch';
+import { toPublicRevisionText } from '@/utils/revision-presentation';
 
 // ─── Role Metadata ───────────────────────────────────────────────────────────
 
@@ -78,6 +79,10 @@ export const IMPORTANCE_MAP: Record<string, number> = {
 
 export function getImportanceScore(item: RecognitionFeedItem): number {
   if (item.activity_type === 'revision') {
+    if (item.scholarly_significance === 'foundational') return 5;
+    if (item.scholarly_significance === 'substantial') return 4;
+    if (item.scholarly_significance === 'meaningful') return IMPORTANCE_MAP.revision_substantive;
+    if (item.detail_category === 'type_change') return IMPORTANCE_MAP.revision_minor; // Metadata edits = low importance
     return item.detail_size >= 50 ? IMPORTANCE_MAP.revision_substantive : IMPORTANCE_MAP.revision_minor;
   }
   return IMPORTANCE_MAP[item.activity_type] ?? 1;
@@ -114,8 +119,10 @@ export function getContributionStatus(item: RecognitionFeedItem): ContributionSt
 
 
 // ─── Contribution Type ───────────────────────────────────────────────────────
+// Three categories: substantive scholarly edits, minor prose edits, and metadata
+// (ontology/classification) changes. Metadata edits are NOT scholarly prose.
 
-export type ContributionType = 'substantive' | 'minor';
+export type ContributionType = 'substantive' | 'minor' | 'metadata';
 
 export interface TypeMeta {
   label: string;
@@ -127,20 +134,30 @@ export interface TypeMeta {
 export const TYPE_META: Record<ContributionType, TypeMeta> = {
   substantive: { label: 'Substantive', icon: '🔥', color: '#22c55e', bgTint: 'rgba(34,197,94,0.10)' },
   minor:       { label: 'Minor Edit',  icon: '·',  color: '#94a3b8', bgTint: 'rgba(148,163,184,0.08)' },
+  metadata:    { label: 'Metadata',    icon: '🏷', color: '#64748b', bgTint: 'rgba(100,116,139,0.08)' },
 };
 
-export function getContributionType(detailSize: number): ContributionType {
+/**
+ * Classify a revision's contribution type.
+ * @param detailSize - Character delta or content size from the revision
+ * @param revisionType - Optional revision_type field (e.g., 'type_change')
+ */
+export function getContributionType(detailSize: number, revisionType?: string | null): ContributionType {
+  // Node type reclassifications are metadata edits, not scholarly prose
+  if (revisionType === 'type_change') return 'metadata';
   return detailSize >= 50 ? 'substantive' : 'minor';
 }
 
 
 // ─── Reputation Points ───────────────────────────────────────────────────────
 
-export function getReputationPoints(activityType: string, detailSize: number = 0): number {
+export function getReputationPoints(activityType: string, detailSize: number = 0, revisionType?: string | null): number {
   switch (activityType) {
     case 'scholar_star':       return 15;
     case 'endorsement':        return 10;
-    case 'revision':           return detailSize >= 50 ? 5 : 2;
+    case 'revision':
+      if (revisionType === 'type_change') return 1; // Metadata edit — not scholarly prose
+      return detailSize >= 50 ? 5 : 2;
     case 'mentorship_started': return 5;
     case 'quality_assessment': return 3;
     case 'group_post':         return 1;
@@ -156,6 +173,7 @@ export function getReputationPoints(activityType: string, detailSize: number = 0
 export function getImpactStatement(item: RecognitionFeedItem): string {
   const title = item.node_title || 'the platform';
   const groupName = item.group_name || 'a subject group';
+  const thesis = item.contribution_thesis?.trim();
 
   switch (item.activity_type) {
     case 'scholar_star':
@@ -163,6 +181,7 @@ export function getImpactStatement(item: RecognitionFeedItem): string {
     case 'endorsement':
       return `Validated analytical depth on ${title}`;
     case 'revision':
+      if (thesis) return thesis;
       if (item.detail_size >= 50) {
         return `Expanded coverage of ${title}`;
       }
@@ -216,10 +235,9 @@ const WEAK_SUMMARY_PATTERNS = [
 ];
 
 function cleanEvidenceText(text: string, maxLength = 170): string {
-  const cleaned = text
+  const cleaned = toPublicRevisionText(text)
     .replace(/^[+\-*>#\s]+/, '')
     .replace(/\s+/g, ' ')
-    .replace(/\[(.*?)\]\(.*?\)/g, '$1')
     .trim();
 
   if (cleaned.length <= maxLength) return cleaned;
@@ -266,8 +284,8 @@ export function buildScholarlyEvidenceRecord(params: {
   expanded?: boolean;
 }): ScholarlyEvidenceRecord {
   const dmp = new diff_match_patch();
-  const previous = params.previousContent || '';
-  const current = params.currentContent || '';
+  const previous = toPublicRevisionText(params.previousContent);
+  const current = toPublicRevisionText(params.currentContent);
   const diffs = dmp.diff_main(previous, current);
   dmp.diff_cleanupSemantic(diffs);
 

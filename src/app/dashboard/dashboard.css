@@ -15,6 +15,11 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 
+.dashboard-header > div:last-child {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .dashboard-title-group h1 {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
@@ -207,6 +212,7 @@
   font-size: 0.82rem;
   color: var(--text-muted);
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .activity-user {
@@ -245,6 +251,39 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+@media (max-width: 800px) {
+  .dashboard-container {
+    padding: 1.5rem 1rem calc(5rem + env(safe-area-inset-bottom));
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .dashboard-header > div:last-child {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .dashboard-header > div:last-child a {
+    flex: 1 1 180px;
+  }
+
+  .since-visit-banner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .since-visit-stats {
+    width: 100%;
+    flex-wrap: wrap;
+  }
 }
 
 /* ===== ENGAGEMENT LAYER — Phase 1B ===== */

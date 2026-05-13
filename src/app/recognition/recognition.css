@@ -230,11 +230,62 @@
   padding: 0.5rem 1rem; border-radius: 100px;
   background: transparent; color: var(--text-muted);
   font-size: 0.8rem; font-weight: 600; cursor: pointer;
-  transition: all 0.2s ease; border: 1px solid transparent;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent;
+  position: relative;
 }
 .action-pill:hover { background: var(--bg-panel); color: var(--text-primary); }
-.action-pill.active { background: var(--color-gold-soft); color: var(--color-gold); }
+.action-pill.active {
+  background: var(--color-gold-soft); color: var(--color-gold);
+  border-color: rgba(197, 160, 79, 0.25);
+}
 .action-pill:active { transform: scale(0.95); }
+.action-pill:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.action-pill.active.just-activated {
+  animation: pillActivate 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Rep impact flash — appears briefly after action */
+.action-pill-rep {
+  position: absolute;
+  top: -8px; right: -4px;
+  font-size: 0.6rem;
+  font-weight: 900;
+  color: #22c55e;
+  opacity: 0;
+  pointer-events: none;
+  animation: repFlash 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pillActivate {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+@keyframes repFlash {
+  0%   { opacity: 0; transform: translateY(4px); }
+  15%  { opacity: 1; transform: translateY(0); }
+  70%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* Error state for action pills */
+.action-pill-error {
+  font-size: 0.68rem;
+  color: #ef4444;
+  padding: 4px 12px;
+  margin-top: 4px;
+  animation: errorFadeIn 0.3s ease;
+}
+
+@keyframes errorFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 /* ===== COMMENTS DRAWER ===== */
 .comments-drawer {
@@ -759,6 +810,75 @@
 .rc-commit {
   padding: 0.75rem 1.5rem 0; font-size: 0.9rem;
   color: var(--text-secondary); line-height: 1.5;
+}
+.rc-credit-record {
+  margin: 0.9rem 1.5rem 0;
+  padding: 1rem;
+  border: 1px solid rgba(197, 160, 79, 0.22);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, rgba(197, 160, 79, 0.07), rgba(255, 255, 255, 0.025));
+}
+.rc-credit-kicker {
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  margin-bottom: 0.35rem;
+}
+.rc-credit-thesis {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+  font-weight: 650;
+}
+.rc-credit-taxonomy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.65rem;
+}
+.rc-credit-taxonomy span {
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-panel);
+  color: var(--text-secondary);
+  font-size: 0.66rem;
+  font-weight: 750;
+}
+.rc-credit-evidence {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+.rc-credit-evidence div {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.035);
+}
+.rc-credit-evidence strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.rc-credit-evidence span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+.rc-credit-ledger {
+  margin-top: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 650;
 }
 .rc-badges {
   display: flex; flex-wrap: wrap; gap: 6px;

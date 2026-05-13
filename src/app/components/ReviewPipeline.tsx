@@ -2,19 +2,19 @@
 
 import React from 'react';
 import SystemTooltip from '@/app/components/SystemTooltip';
-import { PIPELINE_STAGE_TOOLTIPS } from '@/app/actions/trust-vocabulary';
+import { QUALITY_TIERS, TIER_ORDER } from '@/app/actions/quality-constants';
 import '@/app/system-visibility.css';
 
 // ============================================================================
-// SIDDHANT: ReviewPipeline
+// SIDDHANT: ReviewPipeline → Scholarly Quality Standing
 //
-// Visual pipeline showing the scholarly evolution of an article.
-// NOT a progress bar — a living procedural record.
+// Displays the article's quality classification within the institutional
+// tier hierarchy: Draft → Developing → Useful → Solid → Trusted → Canonical
 //
-// Stages: Draft → Community Review → Peer Review → Consensus → Trusted
+// NOT a progress bar — scholarship doesn't guarantee upward movement.
+// A node may regress, become disputed, or fragment academically.
 //
-// Design: institutional serif labels, subtle connecting lines,
-//         timestamps on completed stages, feels like a constitutional process.
+// Design: Institutional classification card, archival trust badge style.
 // ============================================================================
 
 interface ReviewPipelineProps {
@@ -30,135 +30,134 @@ interface ReviewPipelineProps {
   completedReviewCycles: number;
 }
 
-interface PipelineStage {
-  key: string;
-  status: 'completed' | 'current' | 'future';
-  detail?: string;
-}
-
-// Map quality tiers to pipeline position
-function computeStages(props: ReviewPipelineProps): PipelineStage[] {
-  const {
-    qualityTier,
-    hasActiveReviewCycle,
-    totalQualityVotes,
-    lastTierChangeDate,
-    completedReviewCycles,
-  } = props;
-
-  const stages: PipelineStage[] = [];
-  const tierOrder = ['stub', 'start', 'c_class', 'b_class', 'good_article', 'featured'];
-  const tierIndex = tierOrder.indexOf(qualityTier);
-
-  // Stage 1: Draft — completed for everything except stub with 0 votes
-  if (tierIndex >= 1 || totalQualityVotes > 0) {
-    stages.push({ key: 'draft', status: 'completed', detail: 'Content created' });
-  } else {
-    stages.push({ key: 'draft', status: 'current' });
-  }
-
-  // Stage 2: Community Review — completed if tier >= c_class, or if 3+ votes
-  if (tierIndex >= 2 || totalQualityVotes >= 3) {
-    stages.push({
-      key: 'community_review',
-      status: 'completed',
-      detail: `${totalQualityVotes} vote${totalQualityVotes !== 1 ? 's' : ''} recorded`,
-    });
-  } else if (tierIndex >= 1 || totalQualityVotes > 0) {
-    stages.push({
-      key: 'community_review',
-      status: 'current',
-      detail: totalQualityVotes > 0
-        ? `${totalQualityVotes} of 3 votes`
-        : 'Awaiting votes',
-    });
-  } else {
-    stages.push({ key: 'community_review', status: 'future' });
-  }
-
-  // Stage 3: Peer Review — completed if Good Article or Featured
-  if (tierIndex >= 4) {
-    stages.push({
-      key: 'peer_review',
-      status: 'completed',
-      detail: `${completedReviewCycles} review cycle${completedReviewCycles !== 1 ? 's' : ''}`,
-    });
-  } else if (hasActiveReviewCycle || tierIndex === 3) {
-    stages.push({
-      key: 'peer_review',
-      status: hasActiveReviewCycle ? 'current' : 'future',
-      detail: hasActiveReviewCycle ? 'Cycle in progress' : 'Eligible for nomination',
-    });
-  } else {
-    stages.push({ key: 'peer_review', status: 'future' });
-  }
-
-  // Stage 4: Consensus
-  if (tierIndex >= 4 && completedReviewCycles > 0) {
-    stages.push({
-      key: 'consensus',
-      status: 'completed',
-      detail: lastTierChangeDate
-        ? new Date(lastTierChangeDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
-        : 'Reviewers agreed',
-    });
-  } else if (hasActiveReviewCycle) {
-    stages.push({ key: 'consensus', status: 'future', detail: 'Pending review outcome' });
-  } else {
-    stages.push({ key: 'consensus', status: 'future' });
-  }
-
-  // Stage 5: Trusted
-  if (tierIndex >= 4) {
-    stages.push({
-      key: 'trusted',
-      status: tierIndex >= 5 ? 'completed' : 'current',
-      detail: tierIndex >= 5 ? 'Definitive resource' : 'Meets editorial standards',
-    });
-  } else {
-    stages.push({ key: 'trusted', status: 'future' });
-  }
-
-  return stages;
-}
+// Institutional descriptions for each tier (longer form for the card)
+const TIER_DESCRIPTIONS: Record<string, string> = {
+  stub: 'Recently published content awaiting initial community assessment and scholarly development.',
+  start: 'Contains meaningful analysis but requires further sourcing, expansion, or structural refinement.',
+  c_class: 'Provides a useful foundation. Some gaps in coverage, sourcing, or legal precision remain.',
+  b_class: 'Well-referenced and mostly complete. Eligible for formal peer review and quality nomination.',
+  good_article: 'Independently reviewed by qualified peers. Meets institutional editorial standards for accuracy and citation.',
+  featured: 'Definitive scholarly resource. Verified by multiple senior reviewers with comprehensive archival citations.',
+};
 
 export default function ReviewPipeline(props: ReviewPipelineProps) {
-  const stages = computeStages(props);
+  const { qualityTier, hasActiveReviewCycle, totalQualityVotes, lastTierChangeDate, completedReviewCycles } = props;
+
+  const currentTierIndex = TIER_ORDER.indexOf(qualityTier);
+  const currentTier = QUALITY_TIERS[qualityTier] || QUALITY_TIERS.stub;
+  const tierDescription = TIER_DESCRIPTIONS[qualityTier] || TIER_DESCRIPTIONS.stub;
 
   return (
     <div className="review-pipeline">
       <div className="review-pipeline-header">
-        <span className="review-pipeline-label">Scholarly Trust Pipeline</span>
+        <span className="review-pipeline-label">Scholarly Standing</span>
+        {hasActiveReviewCycle && (
+          <span style={{
+            fontSize: '0.58rem', fontWeight: 800, textTransform: 'uppercase',
+            letterSpacing: '0.08em', color: '#60a5fa',
+            padding: '2px 8px', borderRadius: '4px',
+            background: 'rgba(96, 165, 250, 0.1)', border: '1px solid rgba(96, 165, 250, 0.2)',
+          }}>
+            Under Review
+          </span>
+        )}
       </div>
 
-      <div className="review-pipeline-track">
-        {stages.map((stage) => {
-          const vocab = PIPELINE_STAGE_TOOLTIPS[stage.key];
-          if (!vocab) return null;
+      {/* Current Tier Card — The primary display */}
+      <div className="scholarly-tier-card" style={{
+        padding: '16px',
+        borderRadius: '10px',
+        background: currentTier.bg,
+        border: `1px solid ${currentTier.border}`,
+        marginBottom: '12px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+          <span style={{ fontSize: '1.1rem' }}>{currentTier.icon}</span>
+          <span style={{
+            fontFamily: 'var(--font-sans)', fontSize: '0.9rem',
+            fontWeight: 800, color: currentTier.color,
+          }}>
+            {currentTier.label}
+          </span>
+        </div>
+        <p style={{
+          fontSize: '0.78rem', lineHeight: 1.6,
+          color: 'var(--text-secondary)', margin: 0,
+          fontFamily: 'var(--font-serif)', fontStyle: 'italic',
+        }}>
+          {tierDescription}
+        </p>
+      </div>
+
+      {/* Tier Hierarchy — Compact classification strip, NOT a progress bar */}
+      <div className="tier-classification-strip">
+        {TIER_ORDER.map((tierKey, index) => {
+          const tier = QUALITY_TIERS[tierKey];
+          if (!tier) return null;
+
+          const isCurrent = tierKey === qualityTier;
+          const isPast = index < currentTierIndex;
 
           return (
             <SystemTooltip
-              key={stage.key}
-              title={vocab.label}
-              text={vocab.tooltip}
+              key={tierKey}
+              title={tier.label}
+              text={TIER_DESCRIPTIONS[tierKey] || tier.description}
             >
-              <div className="review-pipeline-stage">
-                <div className={`review-pipeline-marker ${stage.status}`}>
-                  {stage.status === 'completed' ? '✓' : stage.status === 'current' ? '●' : '○'}
-                </div>
-                <span className={`review-pipeline-stage-label ${stage.status}`}>
-                  {vocab.label}
+              <div
+                className="tier-classification-item"
+                style={{
+                  opacity: isCurrent ? 1 : isPast ? 0.5 : 0.25,
+                  borderBottom: isCurrent ? `2px solid ${tier.color}` : '2px solid transparent',
+                  paddingBottom: '4px',
+                }}
+              >
+                <span style={{
+                  fontSize: '0.72rem', fontWeight: isCurrent ? 800 : 600,
+                  color: isCurrent ? tier.color : 'var(--text-muted)',
+                  cursor: 'help',
+                }}>
+                  {tier.icon} {tier.label}
                 </span>
-                {stage.detail && (
-                  <span className="review-pipeline-stage-detail">
-                    {stage.detail}
-                  </span>
-                )}
               </div>
             </SystemTooltip>
           );
         })}
       </div>
+
+      {/* Contextual metadata — votes, review cycles */}
+      {(totalQualityVotes > 0 || completedReviewCycles > 0 || lastTierChangeDate) && (
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', gap: '12px',
+          marginTop: '10px', paddingTop: '8px',
+          borderTop: '1px solid var(--border-subtle)',
+        }}>
+          {totalQualityVotes > 0 && (
+            <span style={{
+              fontSize: '0.65rem', fontWeight: 600,
+              color: 'var(--text-muted)',
+            }}>
+              {totalQualityVotes} quality vote{totalQualityVotes !== 1 ? 's' : ''}
+            </span>
+          )}
+          {completedReviewCycles > 0 && (
+            <span style={{
+              fontSize: '0.65rem', fontWeight: 600,
+              color: 'var(--text-muted)',
+            }}>
+              {completedReviewCycles} review cycle{completedReviewCycles !== 1 ? 's' : ''}
+            </span>
+          )}
+          {lastTierChangeDate && (
+            <span style={{
+              fontSize: '0.65rem', fontWeight: 600,
+              color: 'var(--text-muted)',
+            }}>
+              Last assessed {new Date(lastTierChangeDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

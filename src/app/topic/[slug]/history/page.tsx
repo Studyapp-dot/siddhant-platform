@@ -30,7 +30,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ slug: 
     .select(`
       id, created_at, commit_message, content_size, author_id,
       is_revert, is_reverted, reverted_revision_id, is_flagged,
-      profiles!revisions_author_id_fkey ( username, role, reputation_score )
+      profiles!revisions_author_id_fkey ( username, full_display_name, role, reputation_score )
     `)
     .eq('node_id', node.id)
     .order('created_at', { ascending: false });

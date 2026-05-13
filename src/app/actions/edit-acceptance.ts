@@ -34,7 +34,14 @@ export async function processEditAcceptance(): Promise<{ processed: number }> {
     });
 
     if (error) {
-      console.error('[edit-acceptance] RPC error:', error.message);
+      // Expected during development if the RPC or a dependency function
+      // (e.g., award_reputation_points) hasn't been deployed. Safe to ignore.
+      if (error.message.includes('does not exist')) {
+        // Silent — this fires on every page load; noisy warns are not helpful.
+        // Actual error: error.message (check Supabase for function deployment)
+      } else {
+        console.error('[edit-acceptance] RPC error:', error.message);
+      }
       return { processed: 0 };
     }
 

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { toPublicRevisionText } from '@/utils/revision-presentation';
 
 /**
  * Fetch full revision content and its immediate predecessor for diffing.
@@ -34,8 +35,18 @@ export async function getRevisionDetails(revisionId: string) {
     .maybeSingle();
 
   return {
-    revision,
-    previous: previous || null
+    revision: {
+      ...revision,
+      report_content: toPublicRevisionText(revision.report_content),
+      tier1_content: toPublicRevisionText(revision.tier1_content),
+    },
+    previous: previous
+      ? {
+          ...previous,
+          report_content: toPublicRevisionText(previous.report_content),
+          tier1_content: toPublicRevisionText(previous.tier1_content),
+        }
+      : null
   };
 }
 

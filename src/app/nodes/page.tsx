@@ -1,6 +1,14 @@
 import { createClient } from '@/utils/supabase/server';
+import { toPublicRevisionText } from '@/utils/revision-presentation';
 import NodesContainer from './NodesContainer';
 import './nodes.css';
+
+interface RevisionSummary {
+  node_id: string;
+  created_at: string;
+  report_content: string | null;
+  profiles?: { username?: string | null } | { username?: string | null }[] | null;
+}
 
 export default async function NodesIndexPage() {
   const supabase = await createClient();
@@ -32,7 +40,7 @@ export default async function NodesIndexPage() {
     : { data: [] };
 
   // Build revMap (latest revision per node) and summaryMap (first sentence)
-  const revMap: Record<string, any> = {};
+  const revMap: Record<string, RevisionSummary> = {};
   const summaryMap: Record<string, string> = {};
 
   for (const rev of (latestRevisions ?? [])) {
@@ -41,10 +49,7 @@ export default async function NodesIndexPage() {
 
       // Extract summary: first sentence of report_content
       if (rev.report_content) {
-        const text = rev.report_content
-          .replace(/^#+\s.*/gm, '')     // strip markdown headings
-          .replace(/[*_\[\]`]/g, '')     // strip formatting chars
-          .trim();
+        const text = toPublicRevisionText(rev.report_content);
         const firstSentence = text.split(/[.!?]\s/)[0];
         summaryMap[rev.node_id] = (firstSentence || text).substring(0, 150);
       }
@@ -54,7 +59,7 @@ export default async function NodesIndexPage() {
   return (
     <NodesContainer
       nodes={allNodes}
-      edges={allEdges as any}
+      edges={allEdges}
       revMap={revMap}
       summaryMap={summaryMap}
       isLoggedIn={!!user}

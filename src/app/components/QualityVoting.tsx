@@ -17,7 +17,7 @@ import { castQualityVote, getQualityVoteSummary } from '@/app/actions/quality-vo
 // ============================================================================
 
 const TIER_OPTIONS = [
-  { value: 'stub',    label: 'Draft',       description: 'Bare-bones, just created',              icon: '⚠',  minLevel: 2 },
+  { value: 'stub',    label: 'Draft',       description: 'Bare-bones, just created',              icon: '◇',  minLevel: 2 },
   { value: 'start',   label: 'Developing',  description: 'Some meaningful content, needs improvement', icon: '📋', minLevel: 2 },
   { value: 'c_class', label: 'Useful',      description: 'Useful to casual reader, gaps remain',  icon: '📖', minLevel: 2 },
   { value: 'b_class', label: 'Solid',       description: 'Mostly complete, well-referenced',      icon: '✓',  minLevel: 2 },
@@ -119,7 +119,7 @@ export default function QualityVoting({ nodeId, slug, currentTier, userRole, use
           textTransform: 'uppercase',
         }}
       >
-        {summary.userVote ? '✓ Voted' : '🗳 Vote on Quality'}
+        {summary.userVote ? '✓ Assessed' : '⚖ Assess Standing'}
         {summaryLoaded && summary.totalVotes > 0 && (
           <span style={{
             fontSize: '0.58rem', padding: '1px 5px', borderRadius: '4px',
@@ -165,7 +165,7 @@ export default function QualityVoting({ nodeId, slug, currentTier, userRole, use
                 color: 'var(--text-primary, white)',
                 fontFamily: 'var(--font-serif)', margin: 0,
               }}>
-                🗳 Quality Vote
+                Assess Scholarly Standing
               </h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted, #888)', margin: '6px 0 0 0' }}>
                 {summary.userVote ? (
@@ -265,7 +265,7 @@ export default function QualityVoting({ nodeId, slug, currentTier, userRole, use
                 color: 'var(--text-muted, #888)',
                 display: 'block', marginBottom: '10px',
               }}>
-                Your Quality Vote
+                Your Assessment
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {TIER_OPTIONS.map(tier => {

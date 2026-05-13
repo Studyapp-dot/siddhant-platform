@@ -2,27 +2,23 @@
 
 .spotlight-container {
   margin: 1rem 0;
+  position: relative;
+  z-index: 1; /* Explicit stacking context to prevent sticky collisions */
 }
 
-/* V2: Lighter panel-style banner — noticeable but not dominant */
+/* V2: Inline metadata line — compressed, archival */
 .spotlight-banner-v2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-subtle);
-  border-left: 3px solid var(--color-gold);
-  border-radius: 10px;
-  box-shadow: var(--shadow-sm);
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   transition: all 0.2s ease;
-  position: relative;
 }
 
 .spotlight-banner-v2:hover {
-  border-color: var(--color-gold-soft);
-  border-left-color: var(--color-gold);
-  box-shadow: var(--shadow-md);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .spotlight-left {
@@ -45,15 +41,22 @@
   flex-shrink: 0;
 }
 
+.spotlight-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .spotlight-info h4 {
   margin: 0;
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .spotlight-author {
-  color: var(--color-gold);
+  color: var(--text-primary);
   text-decoration: none;
   font-weight: 700;
   transition: opacity 0.15s;
@@ -63,9 +66,8 @@
 }
 
 .spotlight-meta-v2 {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: 3px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
 }
 
 .change-summary {
@@ -89,24 +91,23 @@
 }
 
 .review-trigger-btn-v2 {
-  padding: 8px 16px;
-  border-radius: 8px;
-  background: var(--color-gold-soft);
-  border: 1px solid rgba(197, 160, 89, 0.25);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
   color: var(--color-gold);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .review-trigger-btn-v2:hover {
-  background: var(--color-gold);
-  color: #000;
-  transform: translateY(-1px);
+  background: var(--color-gold-soft);
+  border-color: rgba(197, 160, 89, 0.25);
 }
 
 .spotlight-history-link {

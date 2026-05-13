@@ -29,7 +29,8 @@ export default function ContributorSpotlight({
   if (!revision) return null;
 
   const profileData = Array.isArray(revision.profiles) ? revision.profiles[0] : revision.profiles;
-  const authorName = profileData?.username || 'Unknown';
+  const authorDisplayName = profileData?.full_display_name || profileData?.username || 'Unknown';
+  const authorHandle = profileData?.username || 'unknown';
   const authorRole = profileData?.role || 'contributor';
   
   const date = new Date(revision.created_at);
@@ -45,12 +46,9 @@ export default function ContributorSpotlight({
     <div className="spotlight-container">
       <div className="spotlight-banner-v2">
         <div className="spotlight-left">
-          <div className="contributor-avatar-v2">
-            {authorName.charAt(0).toUpperCase()}
-          </div>
           <div className="spotlight-info">
             <h4>
-              Last updated by <Link href={`/profile/${authorName}`} className="spotlight-author">@{authorName}</Link>
+              Last revised by <Link href={`/profile/${authorHandle}`} className="spotlight-author">{authorDisplayName}</Link>
               {sizeDelta !== 0 && (
                 <span className={`change-summary ${sizeDelta < 0 ? 'del' : ''}`} style={sizeDelta < 0 ? { background: 'rgba(239, 68, 68, 0.08)', color: '#ef4444' } : {}}>
                   {sizeDelta > 0 ? '▲' : '▼'} {Math.abs(sizeDelta).toLocaleString()} chars
@@ -84,7 +82,7 @@ export default function ContributorSpotlight({
           onClose={() => setIsDrawerOpen(false)}
           revision={revision}
           previousRevision={previousRevision}
-          authorName={authorName}
+          authorName={authorDisplayName}
           slug={slug}
           allRevisionIds={allRevisionIds}
           currentUserRole={currentUserRole}

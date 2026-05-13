@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { extractMetadata } from '@/utils/ai/extract-metadata'
-import { createClient } from '@/utils/supabase/server'
 
 export async function POST(request: NextRequest) {
-  // Verify user is authenticated (this route IS called during request context)
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  // No auth gate — this route is called fire-and-forget from server actions
+  // (edit/actions.ts, new/actions.ts) AFTER redirect(), when no cookies exist.
+  // extractMetadata() uses its own service-role Supabase client internally,
+  // so request-context auth is unnecessary.
 
   const body = await request.json()
   const { nodeId } = body

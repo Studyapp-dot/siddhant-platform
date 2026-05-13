@@ -17,7 +17,6 @@ const EDGE_FAMILIES: Record<string, {
     color: '#64748b',
     types: {
       part_of:      { label: 'Part Of',       icon: '📁' },
-      grouped_with: { label: 'Grouped With',  icon: '📎' },
     },
   },
   legislative: {
@@ -53,12 +52,8 @@ const EDGE_FAMILIES: Record<string, {
       interprets:      { label: 'Interprets',       icon: '🔍' },
       establishes:     { label: 'Establishes',      icon: '⭐' },
       codifies:        { label: 'Codifies',         icon: '📝' },
-      prerequisite:    { label: 'Prerequisites',    icon: '📚' },
-      distinguish_from:{ label: 'Distinguish From', icon: '⟷' },
-      related_to:      { label: 'Related To',       icon: '🔗' },
       exception_to:    { label: 'Exception To',     icon: '🛡' },
       governed_by:     { label: 'Governed By',      icon: '📜' },
-      analogous_to:    { label: 'Analogous To',     icon: '🔀' },
     },
   },
 };

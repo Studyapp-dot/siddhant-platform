@@ -13,6 +13,7 @@ import {
   getRecognitionSummary,
   getPendingOpportunities,
 } from '@/app/actions/dashboard-data';
+import { toPublicRevisionText } from '@/utils/revision-presentation';
 
 interface DashboardPageProps {
   searchParams: Promise<{ q?: string }>;
@@ -400,7 +401,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                               textTransform: 'uppercase',
                             }}>REVERT</span>
                           )}
-                          &quot;{rev.commit_message}&quot;
+                          &quot;{toPublicRevisionText(rev.commit_message)}&quot;
                           <br />
                           <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>
                             {new Date(rev.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} · {new Date(rev.created_at).toLocaleDateString('en-IN')}
@@ -469,7 +470,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                               textTransform: 'uppercase',
                             }}>REVERT</span>
                           )}
-                          &quot;{item.commit_message}&quot;
+                          &quot;{toPublicRevisionText(item.commit_message)}&quot;
                           <br />
                           <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>
                             {new Date(item.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} · {new Date(item.created_at).toLocaleDateString('en-IN')}

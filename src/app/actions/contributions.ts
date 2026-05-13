@@ -100,6 +100,7 @@ export async function toggleAcknowledge(revisionId: string, slug: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Not authenticated' };
+  let awardedPoints = 0;
 
   // Check if already acknowledged
   const { data: existing } = await supabase
@@ -165,7 +166,7 @@ export async function toggleAcknowledge(revisionId: string, slug: string) {
           revision.author_id, REPUTATION_POINTS.upvote_received, 'acknowledge'
         );
 
-        await awardReputation(
+        const awardResult = await awardReputation(
           revision.author_id,
           'upvote_received',
           revisionId,
@@ -173,6 +174,7 @@ export async function toggleAcknowledge(revisionId: string, slug: string) {
           `Acknowledgment from ${user.id}`,
           weightedPoints,
         );
+        if (awardResult.success) awardedPoints = awardResult.points ?? 0;
       } catch (err) {
         console.error('[contributions] Failed to award acknowledge reputation:', err);
       }
@@ -180,7 +182,8 @@ export async function toggleAcknowledge(revisionId: string, slug: string) {
   }
 
   revalidatePath(`/topic/${slug}/history`);
-  return { action: 'added' };
+  revalidatePath('/recognition');
+  return { action: 'added', awardedPoints, awardedTo: 'author' as const };
 }
 
 
@@ -194,6 +197,7 @@ export async function toggleInsightful(revisionId: string, slug: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Not authenticated' };
+  let awardedPoints = 0;
 
   // Level gate: L2+ required to give Insightful endorsements
   const { data: giverProfile } = await supabase
@@ -223,7 +227,30 @@ export async function toggleInsightful(revisionId: string, slug: string) {
       .eq('endorser_id', user.id)
       .eq('revision_id', revisionId);
 
+    const { data: revision } = await supabase
+      .from('revisions')
+      .select('author_id')
+      .eq('id', revisionId)
+      .single();
+
+    if (revision?.author_id) {
+      const { data: recipientProfile } = await supabase
+        .from('profiles')
+        .select('endorsements_received')
+        .eq('id', revision.author_id)
+        .single();
+
+      if ((recipientProfile?.endorsements_received || 0) > 0) {
+        await supabase.rpc('increment_profile_counter', {
+          p_user_id: revision.author_id,
+          p_column_name: 'endorsements_received',
+          p_amount: -1,
+        });
+      }
+    }
+
     revalidatePath(`/topic/${slug}/history`);
+    revalidatePath('/recognition');
     return { action: 'removed' };
   }
 
@@ -262,7 +289,7 @@ export async function toggleInsightful(revisionId: string, slug: string) {
           revision.author_id, REPUTATION_POINTS.endorsement_received, 'insightful'
         );
 
-        await awardReputation(
+        const awardResult = await awardReputation(
           revision.author_id,
           'endorsement_received',
           revisionId,
@@ -270,6 +297,7 @@ export async function toggleInsightful(revisionId: string, slug: string) {
           `Insightful endorsement from ${user.id}`,
           weightedPoints,
         );
+        if (awardResult.success) awardedPoints = awardResult.points ?? 0;
 
         // Increment endorsements_received counter via RPC
         await supabase.rpc('increment_profile_counter', {
@@ -284,7 +312,8 @@ export async function toggleInsightful(revisionId: string, slug: string) {
   }
 
   revalidatePath(`/topic/${slug}/history`);
-  return { action: 'added' };
+  revalidatePath('/recognition');
+  return { action: 'added', awardedPoints, awardedTo: 'author' as const };
 }
 
 
@@ -462,6 +491,7 @@ export async function submitRecognition(
         .from('reputation_events')
         .select('id', { count: 'exact', head: true })
         .eq('source_id', revisionId)
+        .eq('source_type', 'revision')
         .eq('event_type', 'upvote_received')
         .eq('description', `Acknowledgment from ${user.id}`);
 
@@ -490,6 +520,7 @@ export async function submitRecognition(
         .from('reputation_events')
         .select('id', { count: 'exact', head: true })
         .eq('source_id', revisionId)
+        .eq('source_type', 'revision')
         .eq('event_type', 'endorsement_received')
         .eq('description', `Insightful endorsement from ${user.id}`);
 
@@ -526,5 +557,7 @@ export async function submitRecognition(
 
   revalidatePath(`/topic/${slug}`);
   revalidatePath(`/topic/${slug}/discussion`);
+  revalidatePath(`/topic/${slug}/history`);
+  revalidatePath('/recognition');
   return { success: true };
 }

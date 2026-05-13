@@ -4,7 +4,7 @@ import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { RecognitionFeedItem, getRevisionDiffContext } from '@/app/actions/recognition-feed';
 import { toggleAcknowledge, toggleInsightful } from '@/app/actions/contributions';
-import { diff_match_patch } from 'diff-match-patch';
+import { computeWordDiff } from '@/utils/diff-logic';
 import {
   actorIdentityFor,
   getRoleMeta, getReputationPoints, getImpactStatement,
@@ -21,10 +21,29 @@ interface RevisionCardProps {
   initialEndorsed?: boolean;
 }
 
+function formatTaxonomyLabel(value?: string | null): string | null {
+  if (!value) return null;
+  return value
+    .split('_')
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function formatSignificance(value?: string | null): string | null {
+  const label = formatTaxonomyLabel(value);
+  return label ? `${label} significance` : null;
+}
+
+function formatEvidenceQuality(value?: string | null): string | null {
+  const label = formatTaxonomyLabel(value);
+  return label ? `${label} evidence` : null;
+}
+
 /**
  * SIDDHANT: Revision Card — Compact Contribution Card
  * 
- * Shows edits with impact signals: contribution type (substantive/minor),
+ * Shows edits with impact signals: contribution type (substantive/minor/metadata),
  * acceptance status, reputation points, and author authority.
  * Compact layout — less visual weight than endorsement/star cards.
  */
@@ -41,18 +60,43 @@ export default function RevisionCard({
   const [voted, setVoted] = useState(initialAcknowledged);
   const [endorsed, setEndorsed] = useState(initialEndorsed);
   const [isActionPending, startActionTransition] = useTransition();
+  // Visual feedback state
+  const [justActivatedAck, setJustActivatedAck] = useState(false);
+  const [justActivatedEnd, setJustActivatedEnd] = useState(false);
+  const [showAckRep, setShowAckRep] = useState(false);
+  const [showEndRep, setShowEndRep] = useState(false);
+  const [ackCreditText, setAckCreditText] = useState('Author credited');
+  const [endCreditText, setEndCreditText] = useState('Author credited');
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const actorRole = getRoleMeta(item.actor_role);
   const status = getContributionStatus(item);
   const statusMeta = STATUS_META[status];
-  const contribType = getContributionType(item.detail_size);
+  const contribType = getContributionType(item.detail_size, item.detail_category);
   const typeMeta = TYPE_META[contribType];
-  const points = getReputationPoints(item.activity_type, item.detail_size);
+  const points = getReputationPoints(item.activity_type, item.detail_size, item.detail_category);
   const impact = getImpactStatement(item);
   const actorIdentity = actorIdentityFor(item);
   const actorDisplayName = displayNameFor(actorIdentity);
   const actorIdentityLine = identityLineFor(actorIdentity);
   const actorInterestLine = interestLineFor(actorIdentity);
+  const semanticThesis = item.contribution_thesis?.trim();
+  const semanticType = formatTaxonomyLabel(item.contribution_type);
+  const semanticScope = formatTaxonomyLabel(item.contribution_scope);
+  const semanticSignificance = formatSignificance(item.scholarly_significance);
+  const semanticEvidence = formatEvidenceQuality(item.evidence_quality);
+  const concepts = (item.concepts_introduced || []).slice(0, 3);
+  const claims = (item.claims_added || []).slice(0, 2);
+  const hasCreditRecord = Boolean(
+    semanticThesis ||
+    semanticType ||
+    semanticScope ||
+    semanticSignificance ||
+    semanticEvidence ||
+    concepts.length > 0 ||
+    claims.length > 0
+  );
+  const repLabel = status === 'accepted' ? `+${points} Rep` : `Eligible +${points} Rep`;
 
   const toggleDiff = async () => {
     if (isExpanded) { setIsExpanded(false); return; }
@@ -67,31 +111,57 @@ export default function RevisionCard({
 
   const handleAcknowledge = () => {
     if (!currentUser || isActionPending) return;
+    setActionError(null);
     startActionTransition(async () => {
       const res = await toggleAcknowledge(item.activity_id, item.node_slug || '');
-      if (res.action === 'added') setVoted(true);
-      else if (res.action === 'removed') setVoted(false);
+      if (res.error) {
+        setActionError(res.error);
+        return;
+      }
+      if (res.action === 'added') {
+        const awarded = typeof res.awardedPoints === 'number' ? res.awardedPoints : 0;
+        setVoted(true);
+        setJustActivatedAck(true);
+        setAckCreditText(awarded > 0 ? `Author +${awarded}` : 'Already credited');
+        setShowAckRep(true);
+        setTimeout(() => setJustActivatedAck(false), 500);
+        setTimeout(() => setShowAckRep(false), 2000);
+      } else if (res.action === 'removed') {
+        setVoted(false);
+      }
     });
   };
 
   const handleInsightful = () => {
     if (!currentUser || isActionPending) return;
+    setActionError(null);
     startActionTransition(async () => {
       const res = await toggleInsightful(item.activity_id, item.node_slug || '');
-      if (res.action === 'added') setEndorsed(true);
-      else if (res.action === 'removed') setEndorsed(false);
+      if (res.error) {
+        setActionError(res.error);
+        return;
+      }
+      if (res.action === 'added') {
+        const awarded = typeof res.awardedPoints === 'number' ? res.awardedPoints : 0;
+        setEndorsed(true);
+        setJustActivatedEnd(true);
+        setEndCreditText(awarded > 0 ? `Author +${awarded}` : 'Already credited');
+        setShowEndRep(true);
+        setTimeout(() => setJustActivatedEnd(false), 500);
+        setTimeout(() => setShowEndRep(false), 2000);
+      } else if (res.action === 'removed') {
+        setEndorsed(false);
+      }
     });
   };
 
   const renderDiffMarkup = () => {
     if (!diffContext?.current) return <p className="rc-detail">{item.detail_text}</p>;
-    const dmp = new diff_match_patch();
-    const diffs = dmp.diff_main(diffContext.previous?.content || '', diffContext.current.content);
-    dmp.diff_cleanupSemantic(diffs);
+    const diffs = computeWordDiff(diffContext.previous?.content || '', diffContext.current.content);
     return (
       <div className="feed-diff-content">
         {diffs.map(([op, text], i) => (
-          <span key={i} className={`diff-word ${op === 1 ? 'diff-plus' : op === -1 ? 'diff-minus' : ''}`}>
+          <span key={i} className={`diff-word ${op === 'insert' ? 'diff-plus' : op === 'delete' ? 'diff-minus' : ''}`}>
             {text}
           </span>
         ))}
@@ -143,6 +213,43 @@ export default function RevisionCard({
         {item.detail_text}
       </div>
 
+      {hasCreditRecord && (
+        <div className="rc-credit-record">
+          <div className="rc-credit-kicker">Credited contribution</div>
+          <p className="rc-credit-thesis">
+            {semanticThesis || impact}
+          </p>
+          {(semanticType || semanticScope || semanticSignificance || semanticEvidence) && (
+            <div className="rc-credit-taxonomy">
+              {semanticType && <span>{semanticType}</span>}
+              {semanticScope && <span>{semanticScope}</span>}
+              {semanticSignificance && <span>{semanticSignificance}</span>}
+              {semanticEvidence && <span>{semanticEvidence}</span>}
+            </div>
+          )}
+          {(concepts.length > 0 || claims.length > 0) && (
+            <div className="rc-credit-evidence">
+              {concepts.length > 0 && (
+                <div>
+                  <strong>Concepts</strong>
+                  <span>{concepts.join(', ')}</span>
+                </div>
+              )}
+              {claims.length > 0 && (
+                <div>
+                  <strong>Claims</strong>
+                  <span>{claims.join(' | ')}</span>
+                </div>
+              )}
+            </div>
+          )}
+          <div className="rc-credit-ledger">
+            Permanent revision record credited to {actorDisplayName}
+            {item.activity_id ? ` #${item.activity_id.slice(0, 8)}` : ''}
+          </div>
+        </div>
+      )}
+
       {/* Impact statement — ABOVE badges, prominent */}
       <div className="rc-impact">
         <span className="impact-statement-prominent">✦ {impact}</span>
@@ -157,7 +264,7 @@ export default function RevisionCard({
           {statusMeta.icon} {statusMeta.label}
         </span>
         <span className={`impact-badge impact-badge-primary ${status === 'accepted' ? 'impact-badge-green' : 'impact-badge-muted'}`}>
-          +{points} Rep
+          {repLabel}
         </span>
         {item.node_slug && (
           <Link href={`/topic/${item.node_slug}`} className="impact-badge impact-badge-link">
@@ -179,22 +286,24 @@ export default function RevisionCard({
         </div>
       )}
 
-      {/* Footer actions */}
+      {/* Footer actions — with visual feedback */}
       <div className="rc-footer">
         <div className="rc-actions">
           <button
-            className={`action-pill ${voted ? 'active' : ''}`}
+            className={`action-pill ${voted ? 'active' : ''} ${justActivatedAck ? 'just-activated' : ''}`}
             onClick={handleAcknowledge}
             disabled={isActionPending}
           >
-            👏 {voted ? 'Acknowledged' : 'Acknowledge'}
+            {isActionPending && !endorsed ? '⏳' : '👏'} {voted ? 'Acknowledged' : 'Acknowledge'}
+            {showAckRep && <span className="action-pill-rep">{ackCreditText}</span>}
           </button>
           <button
-            className={`action-pill ${endorsed ? 'active' : ''}`}
+            className={`action-pill ${endorsed ? 'active' : ''} ${justActivatedEnd ? 'just-activated' : ''}`}
             onClick={handleInsightful}
             disabled={isActionPending}
           >
-            💡 {endorsed ? 'Insightful' : 'Endorse'}
+            {isActionPending && !voted ? '⏳' : '💡'} {endorsed ? 'Insightful' : 'Endorse'}
+            {showEndRep && <span className="action-pill-rep">{endCreditText}</span>}
           </button>
         </div>
         <div className="rc-actions">
@@ -209,6 +318,13 @@ export default function RevisionCard({
           </button>
         </div>
       </div>
+
+      {/* Error feedback — inline below buttons */}
+      {actionError && (
+        <div className="action-pill-error">
+          ⚠ {actionError}
+        </div>
+      )}
 
       {showComments && (
         <div className="comments-drawer">

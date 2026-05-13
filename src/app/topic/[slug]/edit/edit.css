@@ -23,25 +23,24 @@
 /* --- MAIN CANVAS AREA --- */
 .authoring-canvas {
   background: var(--bg-surface);
-  padding: 80px;
+  padding: 40px 48px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-subtle);
   box-shadow: var(--card-shadow);
-  min-height: 85vh;
   display: flex;
   flex-direction: column;
 }
 
 /* Integrated Header Block */
 .canvas-header {
-  margin-bottom: 60px;
+  margin-bottom: 28px;
   border-bottom: 2px double var(--border-subtle);
-  padding-bottom: 40px;
+  padding-bottom: 20px;
 }
 
 .drafting-title-static {
   font-family: var(--font-serif);
-  font-size: 2.8rem;
+  font-size: 2rem;
   font-weight: 800;
   color: var(--text-primary);
   margin-bottom: 12px;
@@ -69,6 +68,14 @@
   gap: 8px;
 }
 
+.editor-draft-signals {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .slug-badge {
   background: var(--bg-panel);
   padding: 2px 10px;
@@ -78,9 +85,97 @@
   font-weight: 600;
 }
 
+.draft-scale-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.draft-scale-meta span {
+  padding: 3px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--bg-panel);
+}
+
 /* Drafting Area */
 .drafting-area {
   flex: 1;
+}
+
+/* Write / Preview Mode Toggle */
+.edit-container .editor-mode-toggle {
+  display: flex;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 24px;
+  width: fit-content;
+}
+
+.edit-container .mode-btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-container .mode-btn.active {
+  background: var(--color-gold);
+  color: #000;
+  box-shadow: 0 2px 8px rgba(197, 160, 89, 0.2);
+}
+
+.edit-container .mode-btn:not(.active):hover {
+  color: var(--text-primary);
+  background: var(--bg-surface);
+}
+
+/* Preview Header Bar */
+.edit-container .preview-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.edit-container .preview-header-label {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-gold);
+}
+
+.edit-container .preview-header-hint {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.edit-container .preview-pane {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  line-height: 1.9;
+  color: var(--text-primary);
+  min-height: 500px;
+  padding: 0;
 }
 
 .workbench-textarea {
@@ -193,23 +288,22 @@
   display: block;
 }
 
-/* --- ACTION FOOTER --- */
+/* --- EDITORIAL FOOTER --- */
 .drafting-footer {
-  margin-top: 60px;
-  padding-top: 40px;
-  border-top: 1px solid var(--border-subtle);
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .commit-box {
-  flex: 1;
-  max-width: 500px;
+  width: 100%;
 }
 
 .structured-commit-box {
-  max-width: 680px;
+  width: 100%;
 }
 
 .commit-label {
@@ -225,14 +319,15 @@
 
 .commit-input {
   width: 100%;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-medium);
-  border-radius: 8px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
   padding: 12px 16px;
   font-family: var(--font-sans);
   font-size: 0.9rem;
   color: var(--text-primary);
   outline: none;
+  transition: all var(--transition);
 }
 
 .commit-input:focus {
@@ -261,31 +356,32 @@
   display: flex;
   gap: 16px;
   align-items: center;
+  justify-content: flex-start;
 }
 
 .submit-revision-btn {
-  background: var(--color-gold);
-  color: white;
-  padding: 14px 32px;
-  border-radius: 8px;
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  padding: 12px 24px;
+  border-radius: 6px;
   font-family: var(--font-sans);
-  font-weight: 800;
+  font-size: 0.82rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   transition: all var(--transition);
-  border: none;
+  border: 1px solid var(--border-medium);
   cursor: pointer;
-  box-shadow: 0 4px 0 #b38e4a;
+  box-shadow: none;
 }
 
 .submit-revision-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 #b38e4a;
+  background: var(--bg-surface);
+  border-color: var(--color-gold);
 }
 
 .submit-revision-btn:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 #b38e4a;
+  transform: translateY(1px);
 }
 
 .cancel-btn {
@@ -300,7 +396,8 @@
 @media (max-width: 1024px) {
   .edit-container {
     grid-template-columns: 1fr;
-    padding: 24px;
+    padding: 0;
+    gap: 24px;
   }
   .guidance-sidebar {
     position: static;
@@ -319,5 +416,72 @@
   }
   .commit-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .edit-layout {
+    padding: 16px 0 calc(92px + env(safe-area-inset-bottom));
+  }
+
+  .edit-container {
+    width: calc(100% - 24px);
+  }
+
+  .authoring-canvas {
+    padding: 24px 18px;
+    border-radius: 14px;
+  }
+
+  .drafting-title-static {
+    font-size: 1.45rem;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  .editor-draft-signals,
+  .slug-meta,
+  .draft-scale-meta {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .slug-meta,
+  .draft-scale-meta {
+    flex-wrap: wrap;
+  }
+
+  .edit-container .editor-mode-toggle {
+    width: 100%;
+  }
+
+  .edit-container .mode-btn {
+    flex: 1;
+    justify-content: center;
+    padding-inline: 12px;
+  }
+
+  .workbench-textarea,
+  .edit-container .preview-pane {
+    min-height: 420px;
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+
+  .drafting-actions {
+    position: sticky;
+    bottom: calc(70px + env(safe-area-inset-bottom));
+    z-index: 30;
+    margin-inline: -18px;
+    padding: 12px 18px;
+    background: var(--glass-bg);
+    border-top: 1px solid var(--border-subtle);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .submit-revision-btn,
+  .cancel-btn {
+    min-height: 44px;
   }
 }

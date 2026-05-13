@@ -151,6 +151,7 @@
 
 html {
   background: var(--bg-base);
+  scroll-padding-top: 100px;
 }
 
 body {
@@ -263,8 +264,205 @@ a {
 .legal-content {
   font-family: var(--font-serif);
   color: var(--text-primary);
+  line-height: 1.75;
+  font-size: 1rem;
+}
+
+/* ===== RENDERED MARKDOWN — Shared styling for markdown-it output ===== */
+.rendered-markdown {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--text-primary);
+}
+
+.rendered-markdown h1 {
+  font-family: var(--font-serif);
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 1.8rem 0 0.6rem 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border-subtle);
+  letter-spacing: -0.01em;
+}
+
+.rendered-markdown h2 {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 1.5rem 0 0.5rem 0;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.rendered-markdown h3 {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 1.3rem 0 0.4rem 0;
+}
+
+.rendered-markdown h4 {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-gold);
+  margin: 1.5rem 0 0.5rem 0;
+}
+
+.rendered-markdown p {
+  margin: 0 0 0.7em 0;
+  line-height: 1.75;
+}
+
+.rendered-markdown strong {
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.rendered-markdown em {
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.rendered-markdown blockquote {
+  margin: 1.2rem 0;
+  padding: 16px 24px;
+  border-left: 3px solid var(--color-gold);
+  background: rgba(197, 160, 89, 0.04);
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.rendered-markdown blockquote p {
+  margin: 0;
+}
+
+.rendered-markdown ul,
+.rendered-markdown ol {
+  margin: 0.8rem 0 1rem 1.5rem;
   line-height: 1.85;
-  font-size: 1.1rem;
+}
+
+.rendered-markdown li {
+  margin-bottom: 0.3em;
+}
+
+.rendered-markdown a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rendered-markdown a:hover {
+  opacity: 0.8;
+}
+
+/* Phase 2: Lightweight Inline Node Linking */
+.rendered-markdown a.inline-node-link {
+  color: inherit !important;
+  text-decoration: underline !important;
+  text-decoration-style: dotted !important;
+  text-decoration-color: rgba(0,0,0,0.3) !important;
+  text-underline-offset: 3px !important;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.rendered-markdown a.inline-node-link:hover {
+  color: var(--color-gold);
+  border-bottom-color: var(--color-gold-glow);
+  opacity: 1;
+}
+
+.rendered-markdown code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.88em;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--text-primary);
+}
+
+.rendered-markdown pre {
+  margin: 1rem 0;
+  padding: 16px 20px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.rendered-markdown pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.rendered-markdown hr {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  margin: 2rem 0;
+}
+
+.rendered-markdown .preview-empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Scholarly citation highlights — used in both preview and published pages */
+.rendered-markdown .hl-citation,
+.hl-citation {
+  background: rgba(197, 160, 89, 0.12);
+  color: var(--color-gold);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  border-bottom: 2px solid rgba(197, 160, 89, 0.3);
+  font-style: normal;
+}
+
+.rendered-markdown .hl-section,
+.hl-section {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.rendered-markdown .hl-article,
+.hl-article {
+  background: rgba(14, 165, 233, 0.1);
+  color: #38bdf8;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.rendered-markdown .hl-case,
+.hl-case {
+  background: rgba(245, 158, 11, 0.08);
+  border-bottom: 1px dashed rgba(245, 158, 11, 0.4);
+  padding: 1px 2px;
+  font-style: normal;
+}
+
+.report-paragraph-block {
+  position: relative;
 }
 
 /* ===== PAGE LAYOUT ===== */

@@ -27,6 +27,8 @@ export async function addEdge(formData: FormData) {
   const relationship_type = formData.get('relationship_type') as string
   const description = (formData.get('description') as string)?.trim() || null
 
+  const target_section_id = (formData.get('target_section_id') as string) || null;
+
   // Resolve target slug to node id
   const { data: targetNode } = await supabase
     .from('nodes')
@@ -43,6 +45,7 @@ export async function addEdge(formData: FormData) {
   const { error } = await supabase.from('cross_references').insert({
     source_node_id,
     target_node_id: targetNode.id,
+    target_section_id,
     relationship_type,
     description,
     signal,

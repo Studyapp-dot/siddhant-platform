@@ -99,9 +99,9 @@ export async function revertRevision(
   //   2. Create the new revert revision as is_revert = true
   // Both are pre-marked acceptance_processed = true (excluded from 72h timer).
   //
-  // This bypasses the missing UPDATE policy on the revisions table.
-  // Without RPC, the direct .update() call was silently blocked by RLS,
-  // which is why the REVERTED badge was never appearing.
+  // NOTE: node_type_at_save is not yet included in the RPC call.
+  // To add it, the execute_revert stored procedure must be updated.
+  // This is a known limitation tracked for future migration.
   const { data: rpcResult, error: rpcError } = await supabase.rpc('execute_revert', {
     p_target_revision_id: revisionId,
     p_reverter_id: user.id,
@@ -171,6 +171,13 @@ export async function restoreToVersion(
     return { error: 'Revision not found' };
   }
 
+  // Fetch current node type for ontology snapshot
+  const { data: nodeData } = await supabase
+    .from('nodes')
+    .select('node_type')
+    .eq('id', targetRevision.node_id)
+    .single();
+
   const restoredContent = targetRevision.report_content || '';
   const restoredSize = restoredContent.length;
   const commitMessage = `Restore: ${reason.trim()}`;
@@ -188,6 +195,8 @@ export async function restoreToVersion(
       commit_message: commitMessage,
       is_revert: true, // Administrative action, not a contribution
       acceptance_processed: true,
+      revision_type: 'restore',
+      node_type_at_save: nodeData?.node_type || 'topic',
     });
 
   if (insertError) {

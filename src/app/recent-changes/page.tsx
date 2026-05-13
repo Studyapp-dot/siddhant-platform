@@ -2,6 +2,7 @@ import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import Link from 'next/link';
 import './recent-changes.css';
+import { toPublicRevisionText } from '@/utils/revision-presentation';
 
 // Contribution type labels
 const TYPE_LABELS: Record<string, string> = {
@@ -63,7 +64,11 @@ export default async function RecentChangesPage({
       .select('revision_id, contribution_thesis, contribution_type, significance, concepts_introduced')
       .in('revision_id', revisionIds);
     for (const s of semData || []) {
-      semanticsMap[s.revision_id] = s;
+      semanticsMap[s.revision_id] = {
+        ...s,
+        contribution_thesis: toPublicRevisionText(s.contribution_thesis),
+        concepts_introduced: (s.concepts_introduced || []).map((concept: string) => toPublicRevisionText(concept)).filter(Boolean),
+      };
     }
   }
 
@@ -126,7 +131,7 @@ export default async function RecentChangesPage({
     let s = c.action_summary || '';
     s = s.replace(/^↩ reverted: /, '').replace(/^✗ \[reverted\] /, '');
     s = s.replace(/^⚑ \[flagged\] /, '').replace(/^committed edit: /, '');
-    return s;
+    return toPublicRevisionText(s);
   }
 
   function isRevert(c: any) { return c.action_summary?.startsWith('↩ reverted:'); }

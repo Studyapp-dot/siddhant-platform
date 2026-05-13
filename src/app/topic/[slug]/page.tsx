@@ -8,11 +8,13 @@ import FlagIssuePanel from '@/app/components/FlagIssuePanel';
 import QualityAssessment from '@/app/components/QualityAssessment';
 import QualityVoting from '@/app/components/QualityVoting';
 import PeerReviewPanel from '@/app/components/PeerReviewPanel';
-import ContributorSpotlight from '@/app/components/ContributorSpotlight';
+import SidebarReviewTrigger from '@/app/components/SidebarReviewTrigger';
 import ArticleEndorsementBar from '@/app/components/ArticleEndorsementBar';
 import SystemTooltip from '@/app/components/SystemTooltip';
 import TrustBadge from '@/app/components/TrustBadge';
 import ReviewPipeline from '@/app/components/ReviewPipeline';
+import AuthorityDrawer from '@/app/components/AuthorityDrawer';
+import { getAuthorityAnchors } from '@/app/actions/authority-anchors';
 import { QUALITY_TIER_TOOLTIPS, ROLE_TOOLTIPS, getTopicTrustBadges } from '@/app/actions/trust-vocabulary';
 import { processEditAcceptance } from '@/app/actions/edit-acceptance';
 import { QUALITY_TIERS } from '@/app/actions/quality-constants';
@@ -69,8 +71,8 @@ const QUALITY_INLINE_DESCRIPTIONS: Record<string, string> = {
   start: 'Community-reviewed, open for improvement',
   c_class: 'Community-reviewed, useful foundation',
   b_class: 'Community-reviewed, mostly complete',
-  good_article: 'Independently reviewed, meets editorial standards',
-  featured: 'Definitive scholarly resource',
+  good_article: 'Independently reviewed, meets institutional standards',
+  featured: 'Definitive archival resource',
 };
 
 // Suggested section templates per node type (flexible guidance, not mandatory)
@@ -148,7 +150,7 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
     // Viewing a specific revision ("View State" from history page)
     const result = await supabase
       .from('revisions')
-      .select(`id, report_content, tier1_content, created_at, content_size, author_id, is_revert, is_reverted, profiles!revisions_author_id_fkey ( username, role )`)
+      .select(`id, report_content, tier1_content, created_at, content_size, author_id, is_revert, is_reverted, profiles!revisions_author_id_fkey ( username, full_display_name, role )`)
       .eq('id', viewRevisionId)
       .eq('node_id', node.id);
     revisionRows = result.data;
@@ -158,7 +160,7 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
     // Default: latest revision
     const result = await supabase
       .from('revisions')
-      .select(`id, report_content, tier1_content, created_at, content_size, author_id, is_revert, is_reverted, profiles!revisions_author_id_fkey ( username, role )`)
+      .select(`id, report_content, tier1_content, created_at, content_size, author_id, is_revert, is_reverted, profiles!revisions_author_id_fkey ( username, full_display_name, role )`)
       .eq('node_id', node.id)
       .order('created_at', { ascending: false })
       .limit(2); // Fetch 2 to get the previous one for diffing
@@ -195,7 +197,8 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
   const latestRevisionId = revData?.id || null;
   // Handle both object and array return formats from Supabase joins
   const profileData = Array.isArray(revData?.profiles) ? revData.profiles[0] : revData?.profiles;
-  const authorName = profileData?.username || 'Unknown';
+  const authorDisplayName = profileData?.full_display_name || profileData?.username || 'Unknown';
+  const authorHandle = profileData?.username || 'unknown';
   const authorRole = profileData?.role || 'contributor';
   const reportContent = revData?.report_content || revData?.tier1_content || 'No content written yet.';
   
@@ -336,6 +339,9 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
     .eq('parent_node_id', node.id)
     .order('title', { ascending: true });
 
+  // Fetch authority anchors for contextual attribution
+  const authorityAnchors = await getAuthorityAnchors(node.id);
+
   // 1. Fetch formal tier promotion history
   const { data: assessmentHistory } = await supabase
     .from('quality_assessments')
@@ -387,17 +393,17 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
           </ul>
         </div>
 
-        {/* Compact wiki stats */}
+        {/* Compact archival metadata — inline format */}
         <div className="sidebar-stats-bar">
-          <div className="sidebar-stat">
-            <span className="sidebar-stat-value">{revisionCount ?? 0}</span>
-            <span className="sidebar-stat-label">{(revisionCount ?? 0) === 1 ? 'Revision' : 'Revisions'}</span>
-          </div>
-          <div className="sidebar-stat-divider" />
-          <div className="sidebar-stat">
-            <span className="sidebar-stat-value">{uniqueContributors}</span>
-            <span className="sidebar-stat-label">{uniqueContributors === 1 ? 'Contributor' : 'Contributors'}</span>
-          </div>
+          <span className="sidebar-stat">
+            <span className="sidebar-stat-value">{revisionCount ?? 0}</span>{' '}
+            <span className="sidebar-stat-label">{(revisionCount ?? 0) === 1 ? 'revision' : 'revisions'}</span>
+          </span>
+          {' · '}
+          <span className="sidebar-stat">
+            <span className="sidebar-stat-value">{uniqueContributors}</span>{' '}
+            <span className="sidebar-stat-label">{uniqueContributors === 1 ? 'contributor' : 'contributors'}</span>
+          </span>
         </div>
         <div className="sidebar-section">
           <h3>Tools</h3>
@@ -414,7 +420,42 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
           )}
         </div>
 
-        {/* Unified Quality History Ledger */}
+        {/* Last Revised — compact scholarly metadata + Review & Endorse */}
+        {!isViewingOldRevision && (
+          <div className="sidebar-section sidebar-last-revised">
+            <h3>Last Revised</h3>
+            <div className="sidebar-revision-meta">
+              <div className="sidebar-revision-author">
+                <Link href={`/profile/${authorHandle}`} className="sidebar-revision-link">
+                  {authorDisplayName}
+                </Link>
+                <span className="sidebar-revision-role">
+                  {authorRole === 'recognized' ? 'Recognized'
+                    : authorRole === 'senior_scholar' ? 'Senior Scholar'
+                    : authorRole === 'steward' ? 'Steward'
+                    : authorRole === 'governance_council' ? 'Council'
+                    : 'Contributor'}
+                </span>
+              </div>
+              <span className="sidebar-revision-date">{editedTimeAgo || editedDate}</span>
+            </div>
+            <SidebarReviewTrigger
+              revision={revision}
+              previousRevision={previousRevision}
+              authorName={authorDisplayName}
+              slug={slug}
+              userId={user?.id}
+              allRevisionIds={allRevisionIds}
+              currentUserRole={currentUserRole}
+              sizeDelta={(revision?.content_size ?? 0) - (previousRevision?.content_size ?? 0)}
+            />
+            <Link href={`/topic/${slug}/history`} className="sidebar-history-link">
+              View full history →
+            </Link>
+          </div>
+        )}
+
+
         {unifiedHistory && unifiedHistory.length > 0 && (
           <div className="sidebar-section">
             <h3>Quality History</h3>
@@ -594,7 +635,7 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
           <div className="topic-meta-line">
             <span className="meta-text">
               Published {editedDate} · Written by{' '}
-              <Link href={`/profile/${authorName}`} className="meta-author-link">@{authorName}</Link>
+              <Link href={`/profile/${authorHandle}`} className="meta-author-link">{authorDisplayName}</Link>
               <SystemTooltip
                 title={ROLE_TOOLTIPS[authorRole]?.label || 'Contributor'}
                 text={ROLE_TOOLTIPS[authorRole]?.tooltip || 'Can edit content and participate in discussions.'}
@@ -611,35 +652,9 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
             <span className="meta-quality-context">
               {QUALITY_INLINE_DESCRIPTIONS[(node as any).quality_tier || 'stub'] || 'Community-reviewed, open for improvement'}
             </span>
-          </div>
-
-          {/* Actions — Edit and Follow at equal weight, Cite secondary */}
-          <div className="topic-actions">
-            {user ? (
-              <>
-                <Link href={`/topic/${slug}/edit`} className="btn-wiki-edit" style={{ textDecoration: 'none' }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                  Improve this page
-                </Link>
-                <FollowButton nodeId={node.id} slug={slug} isFollowing={isFollowing} />
-              </>
-            ) : (
-              <Link href="/login" className="btn-utility">Login to contribute</Link>
-            )}
-            <button className="btn-cite">Cite Node</button>
-          </div>
-
-          {/* Wiki collaboration signals */}
-          <div className="wiki-signals">
-            <span className="wiki-signal-item">📝 {revisionCount ?? 0} {(revisionCount ?? 0) === 1 ? 'revision' : 'revisions'}</span>
-            <span className="wiki-signal-sep">·</span>
-            <span className="wiki-signal-item">👥 {uniqueContributors} {uniqueContributors === 1 ? 'contributor' : 'contributors'}</span>
-            <span className="wiki-signal-sep">·</span>
-            <span className="wiki-signal-item">Open for improvement</span>
-            {/* Quality Voting — subtle inline, moved from badge row */}
             {!isViewingOldRevision && currentUserRole && !['good_article', 'featured'].includes((node as any).quality_tier || 'stub') && (
               <>
-                <span className="wiki-signal-sep">·</span>
+                <span style={{ color: 'var(--text-muted)' }}>·</span>
                 <QualityVoting
                   nodeId={node.id}
                   slug={slug}
@@ -651,33 +666,32 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
               </>
             )}
           </div>
+
+          {/* Actions — Compact inline toolbar */}
+          <div className="topic-actions-compact">
+            {user ? (
+              <>
+                <Link href={`/topic/${slug}/edit`} className="btn-wiki-edit">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                  Improve
+                </Link>
+                <FollowButton nodeId={node.id} slug={slug} isFollowing={isFollowing} />
+              </>
+            ) : (
+              <Link href="/login" className="btn-utility" style={{ textDecoration: 'none' }}>Login to contribute</Link>
+            )}
+            <button className="btn-cite">Cite Node</button>
+          </div>
         </header>
 
-        {/* Spotlight & Review Infrastructure */}
-        {!isViewingOldRevision && (
-          <ContributorSpotlight
-            revision={revision}
-            previousRevision={previousRevision}
-            slug={slug}
-            revisionCount={revisionCount ?? 0}
-            user={user}
-            allRevisionIds={allRevisionIds}
-            currentUserRole={currentUserRole}
-          />
-        )}
-
-        {!isViewingOldRevision && (
-          <ArticleEndorsementBar nodeId={node.id} slug={slug} />
-        )}
-
-        {/* Fallback legacy banner for old revisions */}
+        {/* Viewing old revision banner */}
         {isViewingOldRevision && (
           <div className="last-updated-banner" style={{ opacity: 0.7, background: 'rgba(0,0,0,0.1)' }}>
             <div className="last-updated-left">
               <svg className="last-updated-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
               <span className="last-updated-text">
                 This is a historical revision from <strong>{editedDate}</strong> by{' '}
-                <Link href={`/profile/${authorName}`} className="last-updated-author">@{authorName}</Link>
+                <Link href={`/profile/${authorHandle}`} className="last-updated-author">{authorDisplayName}</Link>
               </span>
             </div>
             <div className="last-updated-right">
@@ -688,7 +702,7 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
           </div>
         )}
 
-        {/* Child Nodes (sub-hierarchy) */}
+        {/* Child Nodes (sub-hierarchy) — before content for navigation */}
         {childNodes && childNodes.length > 0 && (
           <div className="children-section">
             <h3 className="children-heading">
@@ -709,10 +723,51 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
           </div>
         )}
 
-        {/* Report Content */}
+        {/* ══════════════════════════════════════════════════
+            CONTENT FIRST — Article appears immediately after title.
+            Institutional panels (spotlight, endorsements, pipeline)
+            are moved below content as compact, visible summaries.
+            ══════════════════════════════════════════════════ */}
         <div className="legal-content">
-          <ReportContent content={reportContent} />
+          <ReportContent content={reportContent} authorities={authorityAnchors} />
         </div>
+
+        {/* ══════════════════════════════════════════════════
+            INSTITUTIONAL SIGNALS — Below content, compact visible summaries.
+            Manager directive: "show label + 1-line summary, expand for details."
+            NOT fully hidden — institutional visibility matters.
+            ══════════════════════════════════════════════════ */}
+
+        {/* Endorsement Bar — compact inline signal */}
+        {!isViewingOldRevision && (
+          <ArticleEndorsementBar nodeId={node.id} slug={slug} />
+        )}
+
+
+        {/* Scholarly Standing — compact summary, expand for full pipeline */}
+        {!isViewingOldRevision && (
+          <details className="institutional-panel-compact">
+            <summary className="institutional-summary">
+              <span className="institutional-summary-icon">📊</span>
+              <span className="institutional-summary-label">Scholarly Standing</span>
+              <span className="institutional-summary-brief">
+                {qualityTierDisplay.icon} {qualityTierDisplay.label}
+                {' · '}{totalQualityVoteCount ?? 0} quality votes
+                {hasActiveReviewCycle && ' · Under review'}
+              </span>
+            </summary>
+            <div className="institutional-panel-body">
+              <ReviewPipeline
+                qualityTier={(node as any).quality_tier || 'stub'}
+                hasActiveReviewCycle={hasActiveReviewCycle}
+                totalQualityVotes={totalQualityVoteCount ?? 0}
+                lastTierChangeDate={lastAssessment?.created_at || null}
+                completedReviewCycles={completedReviewCycleCount ?? 0}
+              />
+            </div>
+          </details>
+        )}
+
 
         {/* Doctrinal cross-references */}
         <CrossReferences nodeId={node.id} />
@@ -726,16 +781,7 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
           userRole={currentUserRole}
         />
 
-        {/* Review Pipeline — Visual trust evolution (hidden on old revisions) */}
-        {!isViewingOldRevision && (
-          <ReviewPipeline
-            qualityTier={(node as any).quality_tier || 'stub'}
-            hasActiveReviewCycle={hasActiveReviewCycle}
-            totalQualityVotes={totalQualityVoteCount ?? 0}
-            lastTierChangeDate={lastAssessment?.created_at || null}
-            completedReviewCycles={completedReviewCycleCount ?? 0}
-          />
-        )}
+        {/* (Scholarly Standing was moved above, before content) */}
 
         {/* Peer Review Panel — For tiers eligible for advancement or challenge (hidden on old revisions) */}
         {!isViewingOldRevision && ((node as any).quality_tier === 'b_class' || (node as any).quality_tier === 'good_article' || (node as any).quality_tier === 'featured') && (
@@ -765,383 +811,469 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
 
       {/* Context Panel */}
       <aside className="context-panel">
+
+        {/* ========================================================
+            ZONE 1: SCHOLARLY GROUNDING
+            Meaning: "What grounds this knowledge?"
+            Tone: scholarly, archival, source-oriented
+            ======================================================== */}
+        <div className="sidebar-zone scholarly-grounding-zone">
+          <h3 className="zone-header">Scholarly Grounding</h3>
+          <AuthorityDrawer anchors={authorityAnchors} />
+        </div>
         
-        {/* Quick Reference — Moved to Sidebar to keep analysis above-the-fold */}
-        {nodeType !== 'topic' && (
-          <div className="sidebar-quick-ref">
-            <div className="sidebar-section-header">
-              <span className="ref-header">Quick Reference</span>
-              {metadata._extracted_at && <span className="ref-source-pill">AI-Derived</span>}
-            </div>
-
-            {/* Analyzing placeholder */}
-            {!metadata._extracted_at && Object.keys(metadata).length === 0 && (
-              <div className="analyzing-placeholder-sidebar">
-                <span className="analyzing-shimmer">◎</span>
-                <span>Extracting reference data...</span>
+        {/* ========================================================
+            ZONE 2: KNOWLEDGE INTELLIGENCE
+            Meaning: "How should this knowledge be interpreted?"
+            Tone: analytical, synthesized, semantic
+            ======================================================== */}
+        <div className="sidebar-zone knowledge-intelligence-zone">
+          <h3 className="zone-header">Knowledge Intelligence</h3>
+          
+          {/* Quick Reference — Sidebar reference cards for all node types */}
+          {(
+            <div className="sidebar-quick-ref">
+              <div className="sidebar-section-header">
+                <span className="ref-header">{nodeType === 'topic' ? 'Semantic Signals' : 'Quick Reference'}</span>
+                {metadata._extracted_at && <span className="ref-source-pill" style={{ fontSize: '0.52rem', fontWeight: 600, opacity: 0.7, letterSpacing: '0.04em' }}>AI Analysis</span>}
               </div>
-            )}
 
-            {/* ═══════════════════════════════════════════════════════════ */}
-            {/* JUDGMENT CARD — Most detailed, institutional authority     */}
-            {/* ═══════════════════════════════════════════════════════════ */}
-            {nodeType === 'judgment' && metadata._extracted_at && (
-              <div className="judgment-card-sidebar">
-                <div className="judgment-header-sidebar">⚖️ Case Summary</div>
-                <div className="judgment-grid-sidebar">
-                  {metadata.case_name && (
-                    <div className="judgment-field-sidebar">
-                      <span className="field-label">Case</span>
-                      <span className="field-value">{metadata.case_name}</span>
+              {/* Analyzing placeholder */}
+              {!metadata._extracted_at && Object.keys(metadata).length === 0 && (
+                <div className="analyzing-placeholder-sidebar">
+                  <span className="analyzing-shimmer">◎</span>
+                  <span>Extracting reference data...</span>
+                </div>
+              )}
+
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {/* TOPIC CARD — Knowledge signals: themes, level, edges      */}
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {nodeType === 'topic' && metadata._extracted_at && (
+                <div className="topic-knowledge-card-sidebar">
+                  {/* Learning Level */}
+                  {metadata.learning_level && (
+                    <div className="sidebar-meta-line">
+                      <span className="field-label">Difficulty</span>
+                      <span className="field-value" style={{ textTransform: 'capitalize' }}>{metadata.learning_level}</span>
                     </div>
                   )}
+                  {/* Key Themes */}
+                  {metadata.key_themes && Array.isArray(metadata.key_themes) && metadata.key_themes.length > 0 && (
+                    <div style={{ marginTop: '8px' }}>
+                      <span className="field-label" style={{ display: 'block', marginBottom: '6px' }}>Key Themes</span>
+                      <div className="card-chips-row">
+                        {metadata.key_themes.slice(0, 6).map((theme: string, i: number) => (
+                          <span key={i} className="theme-chip">{theme}</span>
+                        ))}
+                        {metadata.key_themes.length > 6 && (
+                          <span className="chip-overflow">+{metadata.key_themes.length - 6} more</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {/* Legal Essence */}
                   {metadata.legal_essence && (
-                    <div className="judgment-field-sidebar">
-                      <span className="legal-essence-text">{metadata.legal_essence}</span>
+                    <div className="legal-essence-text" style={{ marginTop: '10px' }}>{metadata.legal_essence}</div>
+                  )}
+                  {/* Related Statutes / Cases */}
+                  {metadata.related_statutes && Array.isArray(metadata.related_statutes) && metadata.related_statutes.length > 0 && (
+                    <div style={{ marginTop: '10px' }}>
+                      <span className="field-label" style={{ display: 'block', marginBottom: '4px' }}>Related Statutes</span>
+                      <div className="card-chips-row">
+                        {metadata.related_statutes.slice(0, 4).map((s: string, i: number) => (
+                          <span key={i} className="theme-chip" style={{ background: 'rgba(139, 92, 246, 0.08)', borderColor: 'rgba(139, 92, 246, 0.2)', color: '#a78bfa' }}>{s}</span>
+                        ))}
+                      </div>
                     </div>
                   )}
-                  {(metadata.citations || metadata.citation) && (
-                    <div className="judgment-field-sidebar">
-                      <span className="field-label">Citation</span>
-                      <span className="field-value">
-                        {Array.isArray(metadata.citations) ? metadata.citations.join(', ') : metadata.citation}
-                      </span>
-                    </div>
-                  )}
-                  {metadata.court && (
-                    <div className="judgment-field-sidebar">
-                      <span className="field-label">Court</span>
-                      <span className="field-value">{metadata.court}</span>
-                    </div>
-                  )}
-                  {(metadata.bench_type || metadata.bench) && (
-                    <div className="judgment-field-sidebar">
-                      <span className="field-label">Bench</span>
-                      <span className="field-value">
-                        {metadata.bench_type || metadata.bench}
-                        {metadata.bench_strength ? ` (${metadata.bench_strength} Judges)` : ''}
-                      </span>
-                    </div>
-                  )}
-                  {metadata.date_of_judgment && (
-                    <div className="judgment-field-sidebar">
-                      <span className="field-label">Date</span>
-                      <span className="field-value">{new Date(metadata.date_of_judgment).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                    </div>
-                  )}
-                  {metadata.case_status && CASE_STATUS_BADGES[metadata.case_status] && (
-                    <div className="judgment-field-sidebar">
-                      <span className="field-label">Status</span>
-                      <span 
-                        className="case-status-pill"
-                        style={{ color: CASE_STATUS_BADGES[metadata.case_status].color, background: CASE_STATUS_BADGES[metadata.case_status].bg }}
-                      >
-                        {CASE_STATUS_BADGES[metadata.case_status].label}
-                      </span>
+                  {metadata.related_cases && Array.isArray(metadata.related_cases) && metadata.related_cases.length > 0 && (
+                    <div style={{ marginTop: '10px' }}>
+                      <span className="field-label" style={{ display: 'block', marginBottom: '4px' }}>Related Cases</span>
+                      <div className="card-chips-row">
+                        {metadata.related_cases.slice(0, 4).map((c: string, i: number) => (
+                          <span key={i} className="theme-chip" style={{ background: 'rgba(245, 158, 11, 0.06)', borderColor: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}>{c}</span>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
-                {metadata.ratio_decidendi && (
-                  <div className="ratio-box-sidebar">
-                    <div className="ratio-label-sidebar">Ratio Decidendi</div>
-                    <div className="ratio-text-sidebar">{metadata.ratio_decidendi}</div>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
 
-            {/* ═══════════════════════════════════════════════════════════ */}
-            {/* STATUTE CARD — Identity + Status + Themes                 */}
-            {/* ═══════════════════════════════════════════════════════════ */}
-            {nodeType === 'statute' && metadata.short_title && (
-              <div className="statute-card-sidebar">
-                <div className="statute-header-sidebar">📜 Act Information</div>
-                <div className="statute-grid-sidebar">
-                  {/* L1: Identity */}
-                  <div className="statute-field-sidebar">
-                    <span className="field-label">Short Title</span>
-                    <span className="field-value">{metadata.short_title}</span>
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {/* JUDGMENT CARD — Most detailed, institutional authority     */}
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {nodeType === 'judgment' && metadata._extracted_at && (
+                <div className="judgment-card-sidebar">
+                  <div className="judgment-header-sidebar">⚖️ Case Summary</div>
+                  <div className="judgment-grid-sidebar">
+                    {metadata.case_name && (
+                      <div className="judgment-field-sidebar">
+                        <span className="field-label">Case</span>
+                        <span className="field-value">{metadata.case_name}</span>
+                      </div>
+                    )}
+                    {metadata.legal_essence && (
+                      <div className="judgment-field-sidebar">
+                        <span className="legal-essence-text">{metadata.legal_essence}</span>
+                      </div>
+                    )}
+                    {(metadata.citations || metadata.citation) && (
+                      <div className="judgment-field-sidebar">
+                        <span className="field-label">Citation</span>
+                        <span className="field-value">
+                          {Array.isArray(metadata.citations) ? metadata.citations.join(', ') : metadata.citation}
+                        </span>
+                      </div>
+                    )}
+                    {metadata.court && (
+                      <div className="judgment-field-sidebar">
+                        <span className="field-label">Court</span>
+                        <span className="field-value">{metadata.court}</span>
+                      </div>
+                    )}
+                    {(metadata.bench_type || metadata.bench) && (
+                      <div className="judgment-field-sidebar">
+                        <span className="field-label">Bench</span>
+                        <span className="field-value">
+                          {metadata.bench_type || metadata.bench}
+                          {metadata.bench_strength ? ` (${metadata.bench_strength} Judges)` : ''}
+                        </span>
+                      </div>
+                    )}
+                    {metadata.date_of_judgment && (
+                      <div className="judgment-field-sidebar">
+                        <span className="field-label">Date</span>
+                        <span className="field-value">{new Date(metadata.date_of_judgment).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                      </div>
+                    )}
+                    {metadata.case_status && CASE_STATUS_BADGES[metadata.case_status] && (
+                      <div className="judgment-field-sidebar">
+                        <span className="field-label">Status</span>
+                        <span 
+                          className="case-status-pill"
+                          style={{ color: CASE_STATUS_BADGES[metadata.case_status].color, background: CASE_STATUS_BADGES[metadata.case_status].bg }}
+                        >
+                          {CASE_STATUS_BADGES[metadata.case_status].label}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  {metadata.act_number && (
-                    <div className="statute-field-sidebar">
-                      <span className="field-label">Act No.</span>
-                      <span className="field-value">{metadata.act_number}</span>
+                  {metadata.ratio_decidendi && (
+                    <div className="ratio-box-sidebar">
+                      <div className="ratio-label-sidebar">Ratio Decidendi</div>
+                      <div className="ratio-text-sidebar">{metadata.ratio_decidendi}</div>
                     </div>
                   )}
-                  {/* L2: Status */}
-                  {metadata.status && (
+                </div>
+              )}
+
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {/* STATUTE CARD — Identity + Status + Themes                 */}
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {nodeType === 'statute' && metadata.short_title && (
+                <div className="statute-card-sidebar">
+                  <div className="statute-header-sidebar">📜 Act Information</div>
+                  <div className="statute-grid-sidebar">
+                    {/* L1: Identity */}
                     <div className="statute-field-sidebar">
-                      <span className="field-label">Status</span>
-                      <span className={`status-pill-sidebar ${metadata.status === 'in_force' ? 'status-active' : metadata.status === 'repealed' ? 'status-repealed' : 'status-partial'}`}>
-                        {metadata.status === 'in_force' ? '● In Force' : metadata.status === 'repealed' ? '○ Repealed' : '◐ Partially Repealed'}
-                      </span>
+                      <span className="field-label">Short Title</span>
+                      <span className="field-value">{metadata.short_title}</span>
                     </div>
+                    {metadata.act_number && (
+                      <div className="statute-field-sidebar">
+                        <span className="field-label">Act No.</span>
+                        <span className="field-value">{metadata.act_number}</span>
+                      </div>
+                    )}
+                    {/* L2: Status */}
+                    {metadata.status && (
+                      <div className="statute-field-sidebar">
+                        <span className="field-label">Status</span>
+                        <span className={`status-pill-sidebar ${metadata.status === 'in_force' ? 'status-active' : metadata.status === 'repealed' ? 'status-repealed' : 'status-partial'}`}>
+                          {metadata.status === 'in_force' ? '● In Force' : metadata.status === 'repealed' ? '○ Repealed' : '◐ Partially Repealed'}
+                        </span>
+                      </div>
+                    )}
+                    {/* L3: Details */}
+                    {metadata.legislative_list && (
+                      <div className="statute-field-sidebar">
+                        <span className="field-label">List</span>
+                        <span className="field-value" style={{textTransform:'capitalize'}}>{metadata.legislative_list}</span>
+                      </div>
+                    )}
+                    {metadata.date_of_enactment && (
+                      <div className="statute-field-sidebar">
+                        <span className="field-label">Enacted</span>
+                        <span className="field-value">{metadata.date_of_enactment}</span>
+                      </div>
+                    )}
+                    {metadata.replaces && (
+                      <div className="statute-field-sidebar">
+                        <span className="field-label">Replaces</span>
+                        <span className="field-value" style={{ fontSize: '0.72rem' }}>{metadata.replaces}</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* L4: Key Themes */}
+                  {metadata.key_themes && Array.isArray(metadata.key_themes) && metadata.key_themes.length > 0 && (
+                    <div className="card-chips-row">
+                      {metadata.key_themes.slice(0, 5).map((theme: string, i: number) => (
+                        <span key={i} className="theme-chip">{theme}</span>
+                      ))}
+                      {metadata.key_themes.length > 5 && (
+                        <span className="chip-overflow">+{metadata.key_themes.length - 5} more</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {/* SECTION CARD — Redesigned: No bare act text wall           */}
+              {/* Hierarchy: Identity → Essence → Classification → Essentials*/}
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {nodeType === 'section' && metadata._extracted_at && (
+                <div className="section-card-sidebar">
+                  <div className="section-header-sidebar">§ Provision</div>
+                  {/* L1: Identity */}
+                  <div className="section-identity">
+                    {metadata.section_number && (
+                      <span className="section-number-display">Section {metadata.section_number}</span>
+                    )}
+                    {metadata.parent_statute && (
+                      <span className="section-parent-statute">{metadata.parent_statute}</span>
+                    )}
+                  </div>
+                  {/* L2: Core Meaning */}
+                  {metadata.legal_essence && (
+                    <div className="legal-essence-text">{metadata.legal_essence}</div>
+                  )}
+                  {/* L3: Classification — subtle, secondary */}
+                  {(metadata.cognizable !== undefined || metadata.bailable !== undefined || metadata.compoundable !== undefined) && (
+                    <div className="classification-chips">
+                      {metadata.cognizable !== undefined && (
+                        <span className={`classification-chip ${metadata.cognizable ? 'chip-yes' : 'chip-no'}`}>
+                          {metadata.cognizable ? 'Cognizable' : 'Non-cognizable'}
+                        </span>
+                      )}
+                      {metadata.bailable !== undefined && (
+                        <span className={`classification-chip ${metadata.bailable ? 'chip-yes' : 'chip-no'}`}>
+                          {metadata.bailable ? 'Bailable' : 'Non-bailable'}
+                        </span>
+                      )}
+                      {metadata.compoundable !== undefined && (
+                        <span className={`classification-chip ${metadata.compoundable ? 'chip-yes' : 'chip-no'}`}>
+                          {metadata.compoundable ? 'Compoundable' : 'Non-compoundable'}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {/* L4: Essentials — compressed, max 5 */}
+                  {metadata.essentials && Array.isArray(metadata.essentials) && metadata.essentials.length > 0 && (
+                    <div className="essentials-section">
+                      <span className="essentials-label">Essentials</span>
+                      <ul className="essentials-list-sidebar">
+                        {metadata.essentials.slice(0, 5).map((item: string, i: number) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                        {metadata.essentials.length > 5 && (
+                          <li className="chip-overflow-inline">+{metadata.essentials.length - 5} more</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                  {/* Punishment */}
+                  {metadata.punishment && (
+                    <div className="section-punishment">
+                      <span className="field-label">Punishment</span>
+                      <span className="field-value">{metadata.punishment}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {/* CONSTITUTIONAL PROVISION CARD — Fixed schema               */}
+              {/* Reads article_number/bare_text (not section_number)        */}
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {nodeType === 'constitutional_provision' && metadata._extracted_at && (
+                <div className="constitutional-card-sidebar">
+                  <div className="constitutional-header-sidebar">🏛 Constitutional Provision</div>
+                  {/* L1: Identity */}
+                  <div className="section-identity">
+                    {(metadata.article_number || metadata.section_number) && (
+                      <span className="section-number-display">Article {metadata.article_number || metadata.section_number}</span>
+                    )}
+                    {metadata.part && (
+                      <span className="section-parent-statute">{metadata.part}</span>
+                    )}
+                  </div>
+                  {/* L2: Core Meaning */}
+                  {metadata.legal_essence && (
+                    <div className="legal-essence-text">{metadata.legal_essence}</div>
+                  )}
+                  {/* L3: Constitutional Principles */}
+                  {metadata.constitutional_principles && Array.isArray(metadata.constitutional_principles) && metadata.constitutional_principles.length > 0 && (
+                    <div className="card-chips-row">
+                      {metadata.constitutional_principles.slice(0, 3).map((principle: string, i: number) => (
+                        <span key={i} className="theme-chip constitutional-chip">{principle}</span>
+                      ))}
+                    </div>
+                  )}
+                  {/* Amendment info */}
+                  {metadata.amendment_details && (
+                    <div className="sidebar-meta-line" style={{ marginTop: '8px' }}>
+                      <span className="field-label">Amendment</span>
+                      <span className="field-value" style={{ fontSize: '0.72rem' }}>{metadata.amendment_details}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {/* CHAPTER CARD — New, minimal                                */}
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {nodeType === 'chapter' && metadata._extracted_at && (
+                <div className="chapter-card-sidebar">
+                  <div className="chapter-header-sidebar">📖 Chapter</div>
+                  {/* L1: Identity */}
+                  <div className="section-identity">
+                    {metadata.chapter_number && (
+                      <span className="section-number-display">Chapter {metadata.chapter_number}</span>
+                    )}
+                    {metadata.parent_statute && (
+                      <span className="section-parent-statute">{metadata.parent_statute}</span>
+                    )}
+                  </div>
+                  {/* L4: Key Themes */}
+                  {metadata.key_themes && Array.isArray(metadata.key_themes) && metadata.key_themes.length > 0 && (
+                    <div className="card-chips-row">
+                      {metadata.key_themes.slice(0, 3).map((theme: string, i: number) => (
+                        <span key={i} className="theme-chip">{theme}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {/* DOCTRINE CARD — Expanded: name, essence, origin, status   */}
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {nodeType === 'doctrine' && metadata._extracted_at && (
+                <div className="doctrine-card-sidebar">
+                  <div className="doctrine-header-sidebar">💡 Doctrine</div>
+                  {/* L1: Identity */}
+                  {metadata.doctrine_name && (
+                    <div className="doctrine-name-display">{metadata.doctrine_name}</div>
+                  )}
+                  {/* L2: Core Meaning */}
+                  {metadata.legal_essence && (
+                    <div className="legal-essence-text">{metadata.legal_essence}</div>
                   )}
                   {/* L3: Details */}
-                  {metadata.legislative_list && (
-                    <div className="statute-field-sidebar">
-                      <span className="field-label">List</span>
-                      <span className="field-value" style={{textTransform:'capitalize'}}>{metadata.legislative_list}</span>
-                    </div>
-                  )}
-                  {metadata.date_of_enactment && (
-                    <div className="statute-field-sidebar">
-                      <span className="field-label">Enacted</span>
-                      <span className="field-value">{metadata.date_of_enactment}</span>
-                    </div>
-                  )}
-                  {metadata.replaces && (
-                    <div className="statute-field-sidebar">
-                      <span className="field-label">Replaces</span>
-                      <span className="field-value" style={{ fontSize: '0.72rem' }}>{metadata.replaces}</span>
-                    </div>
-                  )}
-                </div>
-                {/* L4: Key Themes */}
-                {metadata.key_themes && Array.isArray(metadata.key_themes) && metadata.key_themes.length > 0 && (
-                  <div className="card-chips-row">
-                    {metadata.key_themes.slice(0, 5).map((theme: string, i: number) => (
-                      <span key={i} className="theme-chip">{theme}</span>
-                    ))}
-                    {metadata.key_themes.length > 5 && (
-                      <span className="chip-overflow">+{metadata.key_themes.length - 5} more</span>
+                  <div className="doctrine-grid-sidebar">
+                    {metadata.origin_case && (
+                      <div className="sidebar-meta-list">
+                        <span className="field-label">Origin Case</span>
+                        <span className="field-value">{metadata.origin_case}</span>
+                      </div>
+                    )}
+                    {metadata.current_status && (
+                      <div className="sidebar-meta-list">
+                        <span className="field-label">Status</span>
+                        <span className={`status-pill-sidebar ${metadata.current_status === 'Well-established' ? 'status-active' : 'status-partial'}`}>
+                          {metadata.current_status}
+                        </span>
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
-            )}
-
-            {/* ═══════════════════════════════════════════════════════════ */}
-            {/* SECTION CARD — Redesigned: No bare act text wall           */}
-            {/* Hierarchy: Identity → Essence → Classification → Essentials*/}
-            {/* ═══════════════════════════════════════════════════════════ */}
-            {nodeType === 'section' && metadata._extracted_at && (
-              <div className="section-card-sidebar">
-                <div className="section-header-sidebar">§ Provision</div>
-                {/* L1: Identity */}
-                <div className="section-identity">
-                  {metadata.section_number && (
-                    <span className="section-number-display">Section {metadata.section_number}</span>
-                  )}
-                  {metadata.parent_statute && (
-                    <span className="section-parent-statute">{metadata.parent_statute}</span>
-                  )}
-                </div>
-                {/* L2: Core Meaning */}
-                {metadata.legal_essence && (
-                  <div className="legal-essence-text">{metadata.legal_essence}</div>
-                )}
-                {/* L3: Classification — subtle, secondary */}
-                {(metadata.cognizable !== undefined || metadata.bailable !== undefined || metadata.compoundable !== undefined) && (
-                  <div className="classification-chips">
-                    {metadata.cognizable !== undefined && (
-                      <span className={`classification-chip ${metadata.cognizable ? 'chip-yes' : 'chip-no'}`}>
-                        {metadata.cognizable ? 'Cognizable' : 'Non-cognizable'}
-                      </span>
-                    )}
-                    {metadata.bailable !== undefined && (
-                      <span className={`classification-chip ${metadata.bailable ? 'chip-yes' : 'chip-no'}`}>
-                        {metadata.bailable ? 'Bailable' : 'Non-bailable'}
-                      </span>
-                    )}
-                    {metadata.compoundable !== undefined && (
-                      <span className={`classification-chip ${metadata.compoundable ? 'chip-yes' : 'chip-no'}`}>
-                        {metadata.compoundable ? 'Compoundable' : 'Non-compoundable'}
-                      </span>
-                    )}
-                  </div>
-                )}
-                {/* L4: Essentials — compressed, max 5 */}
-                {metadata.essentials && Array.isArray(metadata.essentials) && metadata.essentials.length > 0 && (
-                  <div className="essentials-section">
-                    <span className="essentials-label">Essentials</span>
-                    <ul className="essentials-list-sidebar">
-                      {metadata.essentials.slice(0, 5).map((item: string, i: number) => (
-                        <li key={i}>{item}</li>
-                      ))}
-                      {metadata.essentials.length > 5 && (
-                        <li className="chip-overflow-inline">+{metadata.essentials.length - 5} more</li>
-                      )}
-                    </ul>
-                  </div>
-                )}
-                {/* Punishment */}
-                {metadata.punishment && (
-                  <div className="section-punishment">
-                    <span className="field-label">Punishment</span>
-                    <span className="field-value">{metadata.punishment}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ═══════════════════════════════════════════════════════════ */}
-            {/* CONSTITUTIONAL PROVISION CARD — Fixed schema               */}
-            {/* Reads article_number/bare_text (not section_number)        */}
-            {/* ═══════════════════════════════════════════════════════════ */}
-            {nodeType === 'constitutional_provision' && metadata._extracted_at && (
-              <div className="constitutional-card-sidebar">
-                <div className="constitutional-header-sidebar">🏛 Constitutional Provision</div>
-                {/* L1: Identity */}
-                <div className="section-identity">
-                  {(metadata.article_number || metadata.section_number) && (
-                    <span className="section-number-display">Article {metadata.article_number || metadata.section_number}</span>
-                  )}
-                  {metadata.part && (
-                    <span className="section-parent-statute">{metadata.part}</span>
-                  )}
-                </div>
-                {/* L2: Core Meaning */}
-                {metadata.legal_essence && (
-                  <div className="legal-essence-text">{metadata.legal_essence}</div>
-                )}
-                {/* L3: Constitutional Principles */}
-                {metadata.constitutional_principles && Array.isArray(metadata.constitutional_principles) && metadata.constitutional_principles.length > 0 && (
-                  <div className="card-chips-row">
-                    {metadata.constitutional_principles.slice(0, 3).map((principle: string, i: number) => (
-                      <span key={i} className="theme-chip constitutional-chip">{principle}</span>
-                    ))}
-                  </div>
-                )}
-                {/* Amendment info */}
-                {metadata.amendment_details && (
-                  <div className="sidebar-meta-line" style={{ marginTop: '8px' }}>
-                    <span className="field-label">Amendment</span>
-                    <span className="field-value" style={{ fontSize: '0.72rem' }}>{metadata.amendment_details}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ═══════════════════════════════════════════════════════════ */}
-            {/* CHAPTER CARD — New, minimal                                */}
-            {/* ═══════════════════════════════════════════════════════════ */}
-            {nodeType === 'chapter' && metadata._extracted_at && (
-              <div className="chapter-card-sidebar">
-                <div className="chapter-header-sidebar">📖 Chapter</div>
-                {/* L1: Identity */}
-                <div className="section-identity">
-                  {metadata.chapter_number && (
-                    <span className="section-number-display">Chapter {metadata.chapter_number}</span>
-                  )}
-                  {metadata.parent_statute && (
-                    <span className="section-parent-statute">{metadata.parent_statute}</span>
-                  )}
-                </div>
-                {/* L4: Key Themes */}
-                {metadata.key_themes && Array.isArray(metadata.key_themes) && metadata.key_themes.length > 0 && (
-                  <div className="card-chips-row">
-                    {metadata.key_themes.slice(0, 3).map((theme: string, i: number) => (
-                      <span key={i} className="theme-chip">{theme}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ═══════════════════════════════════════════════════════════ */}
-            {/* DOCTRINE CARD — Expanded: name, essence, origin, status   */}
-            {/* ═══════════════════════════════════════════════════════════ */}
-            {nodeType === 'doctrine' && metadata._extracted_at && (
-              <div className="doctrine-card-sidebar">
-                <div className="doctrine-header-sidebar">💡 Doctrine</div>
-                {/* L1: Identity */}
-                {metadata.doctrine_name && (
-                  <div className="doctrine-name-display">{metadata.doctrine_name}</div>
-                )}
-                {/* L2: Core Meaning */}
-                {metadata.legal_essence && (
-                  <div className="legal-essence-text">{metadata.legal_essence}</div>
-                )}
-                {/* L3: Details */}
-                <div className="doctrine-grid-sidebar">
-                  {metadata.origin_case && (
-                    <div className="sidebar-meta-list">
-                      <span className="field-label">Origin Case</span>
-                      <span className="field-value">{metadata.origin_case}</span>
-                    </div>
-                  )}
-                  {metadata.current_status && (
-                    <div className="sidebar-meta-list">
-                      <span className="field-label">Status</span>
-                      <span className={`status-pill-sidebar ${metadata.current_status === 'Well-established' ? 'status-active' : 'status-partial'}`}>
-                        {metadata.current_status}
-                      </span>
+                  {/* L4: Key Elements */}
+                  {metadata.key_elements && Array.isArray(metadata.key_elements) && metadata.key_elements.length > 0 && (
+                    <div className="essentials-section">
+                      <span className="essentials-label">Key Elements</span>
+                      <ul className="essentials-list-sidebar">
+                        {metadata.key_elements.slice(0, 4).map((el: string, i: number) => (
+                          <li key={i}>{el}</li>
+                        ))}
+                        {metadata.key_elements.length > 4 && (
+                          <li className="chip-overflow-inline">+{metadata.key_elements.length - 4} more</li>
+                        )}
+                      </ul>
                     </div>
                   )}
                 </div>
-                {/* L4: Key Elements */}
-                {metadata.key_elements && Array.isArray(metadata.key_elements) && metadata.key_elements.length > 0 && (
-                  <div className="essentials-section">
-                    <span className="essentials-label">Key Elements</span>
-                    <ul className="essentials-list-sidebar">
-                      {metadata.key_elements.slice(0, 4).map((el: string, i: number) => (
-                        <li key={i}>{el}</li>
-                      ))}
-                      {metadata.key_elements.length > 4 && (
-                        <li className="chip-overflow-inline">+{metadata.key_elements.length - 4} more</li>
-                      )}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
 
-            {/* ═══════════════════════════════════════════════════════════ */}
-            {/* CONCEPT CARD — New: concept + translation + maxims        */}
-            {/* ═══════════════════════════════════════════════════════════ */}
-            {nodeType === 'concept' && metadata._extracted_at && (
-              <div className="concept-card-sidebar">
-                <div className="concept-header-sidebar">🧠 Concept</div>
-                {/* L1: Identity + Translation */}
-                {metadata.concept_name && (
-                  <div className="concept-name-display">{metadata.concept_name}</div>
-                )}
-                {metadata.translation && (
-                  <div className="concept-translation">"{metadata.translation}"</div>
-                )}
-                {/* L2: Core Meaning */}
-                {metadata.legal_essence && (
-                  <div className="legal-essence-text">{metadata.legal_essence}</div>
-                )}
-                {/* L3: Explanation */}
-                {metadata.explanation_summary && (
-                  <div className="concept-explanation">{metadata.explanation_summary}</div>
-                )}
-                {/* L4: Related Maxims */}
-                {metadata.related_maxims && Array.isArray(metadata.related_maxims) && metadata.related_maxims.length > 0 && (
-                  <div className="concept-maxims">
-                    <span className="essentials-label">Related Maxims</span>
-                    <div className="card-chips-row">
-                      {metadata.related_maxims.slice(0, 3).map((maxim: string, i: number) => (
-                        <span key={i} className="theme-chip maxim-chip">{maxim}</span>
-                      ))}
-                      {metadata.related_maxims.length > 3 && (
-                        <span className="chip-overflow">+{metadata.related_maxims.length - 3} more</span>
-                      )}
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {/* CONCEPT CARD — New: concept + translation + maxims        */}
+              {/* ═══════════════════════════════════════════════════════════ */}
+              {nodeType === 'concept' && metadata._extracted_at && (
+                <div className="concept-card-sidebar">
+                  <div className="concept-header-sidebar">🧠 Concept</div>
+                  {/* L1: Identity + Translation */}
+                  {metadata.concept_name && (
+                    <div className="concept-name-display">{metadata.concept_name}</div>
+                  )}
+                  {metadata.translation && (
+                    <div className="concept-translation">"{metadata.translation}"</div>
+                  )}
+                  {/* L2: Core Meaning */}
+                  {metadata.legal_essence && (
+                    <div className="legal-essence-text">{metadata.legal_essence}</div>
+                  )}
+                  {/* L3: Explanation */}
+                  {metadata.explanation_summary && (
+                    <div className="concept-explanation">{metadata.explanation_summary}</div>
+                  )}
+                  {/* L4: Related Maxims */}
+                  {metadata.related_maxims && Array.isArray(metadata.related_maxims) && metadata.related_maxims.length > 0 && (
+                    <div className="concept-maxims">
+                      <span className="essentials-label">Related Maxims</span>
+                      <div className="card-chips-row">
+                        {metadata.related_maxims.slice(0, 3).map((maxim: string, i: number) => (
+                          <span key={i} className="theme-chip maxim-chip">{maxim}</span>
+                        ))}
+                        {metadata.related_maxims.length > 3 && (
+                          <span className="chip-overflow">+{metadata.related_maxims.length - 3} more</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        <h3>Discussion</h3>
-        <p className="context-instructions">
-          Propose changes, cite primary sources, and discuss with the community before updating the article.
-        </p>
-        <Link
-          href={`/topic/${slug}/discussion`}
-          className="context-discussion-btn"
-        >
-          Open Discussion
-        </Link>
-        <div style={{ marginTop: '24px', padding: '16px', background: 'var(--bg-panel)', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-            Every edit is permanently recorded in the edit history. Transparency is our guarantee of quality.
-          </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
+        {/* ========================================================
+            ZONE 3: COMMUNITY LAYER
+            Meaning: "How is this knowledge evolving socially?"
+            Tone: collaborative, living archive
+            ======================================================== */}
+        <div className="sidebar-zone community-layer-zone">
+          <h3 className="zone-header">Community Layer</h3>
+          
+          <div className="community-layer-card">
+            <h4 style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>Scholarly Discussion</h4>
+            <p className="context-instructions" style={{ marginBottom: '16px' }}>
+              Propose changes, cite primary sources, and discuss with the community before updating the article.
+            </p>
+            <Link
+              href={`/topic/${slug}/discussion`}
+              className="context-discussion-btn"
+            >
+              Open Discussion
+            </Link>
+          </div>
+          
+          <div style={{ marginTop: '16px', padding: '12px 16px', background: 'transparent', borderRadius: '8px', border: '1px dashed var(--border-subtle)' }}>
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5, textAlign: 'center' }}>
+              Every edit is permanently recorded in the edit history.<br/>Transparency is our guarantee of quality.
+            </p>
+          </div>
+        </div>
+
       </aside>
     </div>
   );

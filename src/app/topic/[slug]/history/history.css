@@ -162,6 +162,9 @@
   background: var(--bg-panel);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
+  position: sticky;
+  top: 84px;
+  z-index: 20;
 }
 
 .filter-btn {
@@ -274,10 +277,22 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
   padding: 12px 0;
   cursor: pointer;
   position: relative;
   user-select: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.epoch-header:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 4px;
+  border-radius: 8px;
 }
 
 .epoch-header::before {
@@ -788,11 +803,15 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
   padding: 10px 16px;
   margin: 2px 0;
   background: var(--bg-panel);
   border: 1px dashed var(--border-subtle);
   border-radius: var(--radius-sm);
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
   transition: all 0.15s ease;
   position: relative;
@@ -816,10 +835,31 @@
   border-color: var(--text-muted);
 }
 
+.minor-group-toggle:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
 .minor-group-label {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.minor-group-credit {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.minor-group-impact {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
 }
 
 .minor-group-chevron {
@@ -983,5 +1023,6 @@
 
   .history-filter-bar {
     flex-wrap: wrap;
+    top: 78px;
   }
 }

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { diff_match_patch } from 'diff-match-patch';
+import { normalizePublicRevisionText, toPublicRevisionText } from '@/utils/revision-presentation';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -75,7 +76,7 @@ function getModel(): string {
 }
 
 function normalizeContent(revision: { report_content?: string | null; tier1_content?: string | null } | null): string {
-  return revision?.report_content || revision?.tier1_content || '';
+  return toPublicRevisionText(revision?.report_content || revision?.tier1_content || '');
 }
 
 function compactDiff(previous: string, current: string): string {
@@ -157,7 +158,7 @@ function sanitizeArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value
     .filter((item): item is string => typeof item === 'string')
-    .map(item => item.trim())
+    .map(item => toPublicRevisionText(item).trim())
     .filter(Boolean)
     .slice(0, 8);
 }
@@ -178,7 +179,7 @@ function sanitizeSemantics(value: Record<string, unknown>, fallbackThesis: strin
 
   return {
     contribution_thesis: typeof value.contribution_thesis === 'string' && value.contribution_thesis.trim()
-      ? value.contribution_thesis.trim().slice(0, 220)
+      ? toPublicRevisionText(value.contribution_thesis).slice(0, 220)
       : fallbackThesis,
     contribution_type: contributionType,
     contribution_scope: contributionScope,
@@ -187,7 +188,7 @@ function sanitizeSemantics(value: Record<string, unknown>, fallbackThesis: strin
     concepts_introduced: sanitizeArray(value.concepts_introduced),
     evidence_quality: evidenceQuality,
     reasoning: typeof value.reasoning === 'string'
-      ? value.reasoning.trim().slice(0, 500)
+      ? toPublicRevisionText(value.reasoning).slice(0, 500)
       : 'Derived from the textual difference between the previous and current revision.',
   };
 }
@@ -235,8 +236,38 @@ export async function extractRevisionSemantics(revisionId: string): Promise<{ su
       .maybeSingle();
 
     const previousContent = normalizeContent(previousRevision);
+
+    // ── MINIMUM DELTA GATE (Low-signal heuristic) ──
+    // Skip AI for trivial changes after translating storage/editor Markdown
+    // into public scholarly text.
+    // NOTE: This is a temporary heuristic, not semantic truth.
+    // Small edits CAN be highly meaningful (e.g., "shall" → "may").
+    const visiblePrev = normalizePublicRevisionText(previousContent);
+    const visibleCurr = normalizePublicRevisionText(currentContent);
+    const visibleDelta = Math.abs(visibleCurr.length - visiblePrev.length);
+
+    if (visibleDelta < 20 && previousContent.length > 0) {
+      console.log(`[revision-semantics] Low-signal change (${visibleDelta} chars) — auto-classifying as minor`);
+      const fallbackThesis = toPublicRevisionText(revisionRow.commit_message || 'Minor formatting or whitespace adjustment');
+      const autoSemantics = {
+        revision_id: revisionId,
+        contribution_thesis: fallbackThesis,
+        contribution_type: 'mixed' as const,
+        contribution_scope: 'local' as const,
+        significance: 'minor' as const,
+        claims_added: [] as string[],
+        concepts_introduced: [] as string[],
+        evidence_quality: 'mixed' as const,
+        reasoning: `Change below minimum threshold for AI analysis (${visibleDelta} visible chars).`,
+        extraction_model: 'auto-minor',
+        extracted_at: new Date().toISOString(),
+      };
+      await supabase.from('revision_semantics').upsert(autoSemantics, { onConflict: 'revision_id' });
+      return { success: true };
+    }
+
     const diff = compactDiff(previousContent, currentContent);
-    const fallbackThesis = (revisionRow.commit_message || `Updated ${nodeData?.title || 'article'}`).trim();
+    const fallbackThesis = toPublicRevisionText(revisionRow.commit_message || `Updated ${nodeData?.title || 'article'}`);
 
     const prompt = buildPrompt({
       nodeTitle: nodeData?.title || 'Untitled node',

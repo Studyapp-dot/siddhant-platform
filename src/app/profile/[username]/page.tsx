@@ -13,6 +13,7 @@ import {
   initialFor,
   interestLineFor,
 } from '@/app/utils/scholarlyIdentity';
+import { toPublicRevisionText } from '@/utils/revision-presentation';
 import '@/app/community-core.css';
 import '@/app/system-visibility.css';
 import '../../topic/[slug]/page.css';
@@ -34,6 +35,22 @@ const ROLE_CONFIG: Record<string, { label: string; level: number; color: string;
 };
 
 const PROFILE_SELECT = 'id, username, full_display_name, institution_name, scholarly_role, areas_of_interest, short_bio, profile_photo, linkedin_url, role, reputation_score, accepted_edits_count, total_edits_count, endorsements_received, peer_reviews_completed, scholar_stars_received, created_at';
+
+function formatContributionLabel(value?: string | null): string | null {
+  if (!value) return null;
+  return value
+    .split('_')
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function publicReputationDescription(description?: string | null): string {
+  if (!description) return '';
+  return description
+    .replace(/Acknowledgment from [0-9a-f-]{36}/gi, 'Acknowledged by another contributor')
+    .replace(/Insightful endorsement from [0-9a-f-]{36}/gi, 'Marked insightful by another contributor');
+}
 
 export default async function ProfilePage({ params, searchParams }: ProfilePageProps) {
   const { username } = await params;
@@ -136,6 +153,19 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
 
   // ── Phase 2: Topic Affinity Map ──
   // Aggregate revisions by node to find areas of expertise
+  const revisionIds = (revisions || []).map((rev: any) => rev.id);
+  const revisionSemanticsById: Record<string, any> = {};
+  if (revisionIds.length > 0) {
+    const { data: revisionSemantics } = await supabase
+      .from('revision_semantics')
+      .select('revision_id, contribution_thesis, contribution_type, contribution_scope, significance, evidence_quality, concepts_introduced')
+      .in('revision_id', revisionIds);
+
+    for (const sem of revisionSemantics || []) {
+      revisionSemanticsById[sem.revision_id] = sem;
+    }
+  }
+
   const topicAffinityMap: { slug: string; title: string; count: number; lastEdit: string }[] = [];
   if (revisions && revisions.length > 0) {
     const nodeCounts: Record<string, { slug: string; title: string; count: number; lastEdit: string }> = {};
@@ -810,6 +840,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     {reputationEvents.map((event: any) => {
                       const ctx = eventContexts[event.source_id];
+                      const publicDescription = publicReputationDescription(event.description);
                       return (
                         <div key={event.id} style={{
                           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -823,7 +854,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
                             </div>
                             {(event.description || ctx) && (
                               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                {event.description}
+                                {publicDescription}
                                 {ctx && (
                                   <Link href={`/topic/${ctx.slug}/compare?rev=${ctx.revId}`} style={{
                                     marginLeft: '8px', color: 'var(--color-gold)', textDecoration: 'none',
@@ -1003,6 +1034,14 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
                   const shortId = rev.id.substring(0, 8);
                   const nodeData = Array.isArray(rev.nodes) ? rev.nodes[0] : rev.nodes;
                   const nodeSlug = nodeData?.slug;
+                  const semantics = revisionSemanticsById[rev.id];
+                  const contributionType = formatContributionLabel(semantics?.contribution_type);
+                  const contributionScope = formatContributionLabel(semantics?.contribution_scope);
+                  const significance = formatContributionLabel(semantics?.significance);
+                  const evidenceQuality = formatContributionLabel(semantics?.evidence_quality);
+                  const contributionThesis = toPublicRevisionText(semantics?.contribution_thesis);
+                  const commitMessage = toPublicRevisionText(rev.commit_message);
+                  const concepts = (semantics?.concepts_introduced || []).map((concept: string) => toPublicRevisionText(concept)).filter(Boolean).slice(0, 2);
                   return (
                     <div key={rev.id} className="registry-entry" style={{ gridTemplateColumns: '80px 1fr 200px', padding: '1.5rem 2rem', borderRadius: '12px' }}>
                       <div className="registry-seal" style={{
@@ -1045,8 +1084,19 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
                               ✗ REVERTED
                             </span>
                           )}
-                          {rev.commit_message || 'Academic contribution'}
+                          {contributionThesis || commitMessage || 'Academic contribution'}
                         </p>
+                        {contributionThesis && commitMessage && contributionThesis !== commitMessage && (
+                          <p style={{
+                            margin: '-0.35rem 0 0.55rem',
+                            fontSize: '0.74rem',
+                            color: 'var(--text-muted)',
+                            fontStyle: 'italic',
+                            lineHeight: 1.45,
+                          }}>
+                            Submitted as: {commitMessage}
+                          </p>
+                        )}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '0.5rem' }}>
                           <span style={{
                             fontFamily: "'SF Mono', 'Cascadia Code', 'Consolas', monospace",
@@ -1062,6 +1112,39 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
                               padding: '2px 8px', borderRadius: '4px',
                             }}>{rev.content_size.toLocaleString()} chars</span>
                           )}
+                          {contributionType && (
+                            <span style={{
+                              fontSize: '0.68rem', fontWeight: 800,
+                              color: 'var(--primary)', background: 'rgba(37, 99, 235, 0.08)',
+                              border: '1px solid rgba(37, 99, 235, 0.14)',
+                              padding: '2px 8px', borderRadius: '999px',
+                            }}>{contributionType}</span>
+                          )}
+                          {significance && (
+                            <span style={{
+                              fontSize: '0.68rem', fontWeight: 800,
+                              color: significance === 'Foundational' ? 'var(--color-gold)' : 'var(--text-secondary)',
+                              background: significance === 'Foundational' ? 'var(--color-gold-soft)' : 'var(--bg-panel)',
+                              border: '1px solid var(--border-subtle)',
+                              padding: '2px 8px', borderRadius: '999px',
+                            }}>{significance}</span>
+                          )}
+                          {contributionScope && (
+                            <span style={{
+                              fontSize: '0.68rem', fontWeight: 700,
+                              color: 'var(--text-muted)', background: 'var(--bg-panel)',
+                              border: '1px solid var(--border-subtle)',
+                              padding: '2px 8px', borderRadius: '999px',
+                            }}>{contributionScope}</span>
+                          )}
+                          {evidenceQuality && (
+                            <span style={{
+                              fontSize: '0.68rem', fontWeight: 700,
+                              color: '#16a34a', background: 'rgba(34, 197, 94, 0.08)',
+                              border: '1px solid rgba(34, 197, 94, 0.14)',
+                              padding: '2px 8px', borderRadius: '999px',
+                            }}>{evidenceQuality}</span>
+                          )}
                           {nodeSlug && (
                             <Link href={`/topic/${nodeSlug}/compare?rev=${rev.id}`}
                               style={{ fontSize: '0.68rem', color: 'var(--color-gold)', textDecoration: 'none', fontWeight: 700 }}>
@@ -1069,6 +1152,27 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
                             </Link>
                           )}
                         </div>
+                        {concepts.length > 0 && (
+                          <div style={{
+                            marginTop: '0.65rem',
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '6px',
+                          }}>
+                            {concepts.map((concept: string) => (
+                              <span key={concept} style={{
+                                fontSize: '0.68rem',
+                                color: 'var(--text-secondary)',
+                                background: 'rgba(255,255,255,0.035)',
+                                border: '1px solid var(--border-subtle)',
+                                padding: '3px 8px',
+                                borderRadius: '6px',
+                              }}>
+                                {concept}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="registry-meta" style={{ paddingLeft: '2rem', borderLeft: '1px solid var(--border-subtle)' }}>
                         <div className="registry-stat" style={{ fontSize: '0.8rem', color: 'var(--text-primary)' }}>

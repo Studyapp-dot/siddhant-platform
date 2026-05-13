@@ -83,7 +83,7 @@ create table public.cross_references (
   id uuid default uuid_generate_v4() primary key,
   source_node_id uuid references public.nodes on delete cascade not null,
   target_node_id uuid references public.nodes on delete cascade not null,
-  relationship_type text check (relationship_type in ('prerequisite', 'related', 'distinguish', 'also_in')) not null,
+  relationship_type text check (relationship_type in ('related', 'distinguish', 'also_in')) not null,
   created_by uuid references public.profiles,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   unique(source_node_id, target_node_id, relationship_type)

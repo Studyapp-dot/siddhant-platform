@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { computeContentHash } from '@/utils/content-size'
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
@@ -54,7 +55,7 @@ ${getSchemaForType(nodeType)}
 
 Additionally, for ALL node types, include this field:
 "suggested_edges": [
-  { "target_title": "Name of related node", "relationship_type": "one of: interprets, establishes, codifies, prerequisite, distinguish_from, related_to, exception_to, governed_by, analogous_to, replaces, followed, applied, overruled, distinguished, explained, referred_to", "reason": "brief explanation" }
+  { "target_title": "Name of related node", "relationship_type": "one of: interprets, establishes, codifies, exception_to, governed_by, replaces, followed, applied, overruled, distinguished, explained, referred_to", "reason": "brief explanation" }
 ]
 
 RESPOND WITH ONLY VALID JSON. No markdown, no explanation, no code blocks.`
@@ -167,10 +168,10 @@ export async function extractMetadata(nodeId: string): Promise<{ success: boolea
   try {
     const supabase = getSupabaseClient()
 
-    // 1. Fetch the node and its latest revision
+    // 1. Fetch the node (including metadata for hash comparison)
     const { data: node, error: nodeErr } = await supabase
       .from('nodes')
-      .select('id, title, node_type')
+      .select('id, title, node_type, metadata')
       .eq('id', nodeId)
       .single()
 
@@ -197,6 +198,18 @@ export async function extractMetadata(nodeId: string): Promise<{ success: boolea
       return { success: false, error: 'Article content too short for extraction' }
     }
 
+    // ── CONTENT HASH GATE ──
+    // Skip re-extraction if the visible semantic content hasn't changed.
+    // Hash is computed on normalized visible text (no slugs, no markdown syntax)
+    // so formatting/infrastructure changes don't trigger unnecessary AI calls.
+    const contentHash = computeContentHash(content)
+    const existingHash = (node as any)?.metadata?._content_hash
+    if (existingHash === contentHash) {
+      console.log(`[extract-metadata] Content unchanged (hash match) — skipping extraction for "${node.title}"`)
+      return { success: true }
+    }
+
+    const extractionStartTime = new Date()
     const nodeType = node.node_type || 'topic'
     const prompt = buildPrompt(node.title, content, nodeType)
 
@@ -270,12 +283,27 @@ export async function extractMetadata(nodeId: string): Promise<{ success: boolea
     const suggestedEdges = extracted.suggested_edges || []
     delete extracted.suggested_edges
 
-    // 5. Mark metadata as AI-extracted with timestamp and system fields
+    // 5. Mark metadata as AI-extracted with timestamp, system fields, and content hash
     extracted._extracted_at = new Date().toISOString()
     extracted._extraction_model = model
     extracted._semantic_version = '1.0'
+    extracted._content_hash = contentHash
     if (suggestedEdges.length > 0) {
       extracted._suggested_edges = suggestedEdges
+    }
+
+    // ── RACE CONDITION PROTECTION ──
+    // If another extraction completed after ours started, don't overwrite.
+    const { data: currentNode } = await supabase
+      .from('nodes')
+      .select('metadata')
+      .eq('id', nodeId)
+      .single()
+
+    const currentExtractedAt = (currentNode as any)?.metadata?._extracted_at
+    if (currentExtractedAt && new Date(currentExtractedAt) > extractionStartTime) {
+      console.log(`[extract-metadata] Newer extraction exists — skipping write for "${node.title}"`)
+      return { success: true }
     }
 
     // 6. Update the node's metadata

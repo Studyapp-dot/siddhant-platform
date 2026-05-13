@@ -32,6 +32,10 @@ export default function EndorsementCard({
   const [showComments, setShowComments] = useState(false);
   const [endorsed, setEndorsed] = useState(initialEndorsed);
   const [isActionPending, startActionTransition] = useTransition();
+  // Visual feedback state
+  const [justActivated, setJustActivated] = useState(false);
+  const [showEndRep, setShowEndRep] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [diffResult, setDiffResult] = useState<{
     status: 'loading' | 'loaded';
     data: RevisionDiffContext | null;
@@ -72,11 +76,23 @@ export default function EndorsementCard({
 
   const handleEndorse = () => {
     if (!currentUser || isActionPending || !item.source_revision_id) return;
+    setActionError(null);
 
     startActionTransition(async () => {
       const res = await toggleInsightful(item.source_revision_id!, item.node_slug || '');
-      if (res.action === 'added') setEndorsed(true);
-      else if (res.action === 'removed') setEndorsed(false);
+      if (res.error) {
+        setActionError(res.error);
+        return;
+      }
+      if (res.action === 'added') {
+        setEndorsed(true);
+        setJustActivated(true);
+        setShowEndRep(true);
+        setTimeout(() => setJustActivated(false), 500);
+        setTimeout(() => setShowEndRep(false), 2000);
+      } else if (res.action === 'removed') {
+        setEndorsed(false);
+      }
     });
   };
 
@@ -276,20 +292,28 @@ export default function EndorsementCard({
             </Link>
           )}
           <button
-            className={`action-pill ${endorsed ? 'active' : ''}`}
+            className={`action-pill ${endorsed ? 'active' : ''} ${justActivated ? 'just-activated' : ''}`}
             onClick={handleEndorse}
             disabled={isActionPending || !item.source_revision_id}
           >
-            {endorsed ? 'Endorsed' : 'Endorse'}
+            {isActionPending ? '⏳' : '💡'} {endorsed ? 'Endorsed' : 'Endorse'}
+            {showEndRep && <span className="action-pill-rep">+10 Rep</span>}
           </button>
           <button
             className={`action-pill ${showComments ? 'active' : ''}`}
             onClick={() => setShowComments(!showComments)}
           >
-            Discuss record
+            💬 Discuss record
           </button>
         </div>
       </div>
+
+      {/* Error feedback */}
+      {actionError && (
+        <div className="action-pill-error">
+          ⚠ {actionError}
+        </div>
+      )}
 
       {showComments && (
         <div className="comments-drawer">
