@@ -15,10 +15,34 @@ interface ReportContentProps {
   authorities?: AuthorityAnchor[];
 }
 
+interface NodePreview {
+  title: string;
+  node_type: string;
+  excerpt: string | null;
+}
+
 // Helper: extract hostname from URL safely
 function getHostname(url: string): string {
   try { return new URL(url).hostname.replace(/^www\./, ''); }
   catch { return url; }
+}
+
+function escapeHtmlAttribute(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function getSafeHttpUrl(url?: string | null): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.toString() : null;
+  } catch {
+    return null;
+  }
 }
 
 export default function ReportContent({ content, authorities = [] }: ReportContentProps) {
@@ -30,7 +54,7 @@ export default function ReportContent({ content, authorities = [] }: ReportConte
   
   // Node Link Popover State
   const [hoveredNodeSlug, setHoveredNodeSlug] = useState<string | null>(null);
-  const [nodePreviews, setNodePreviews] = useState<Record<string, any>>({});
+  const [nodePreviews, setNodePreviews] = useState<Record<string, NodePreview>>({});
   
   // Shared Popover Positioning
   const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null);
@@ -48,9 +72,6 @@ export default function ReportContent({ content, authorities = [] }: ReportConte
     }
     return map;
   }, [authorities]);
-
-  // Track which authorities were successfully injected inline
-  const [injectedAnchorIds, setInjectedAnchorIds] = useState<Set<string>>(new Set());
 
   // Inject authority markers directly into the HTML string before React renders it.
   // This prevents React from overwriting our markers during state updates (like hover).
@@ -75,9 +96,9 @@ export default function ReportContent({ content, authorities = [] }: ReportConte
         if (textMatch && !matchedInThisParagraph) {
           matchedInThisParagraph = true;
           newlyInjected.add(anchor.id);
-          const isNavigable = !!(anchor.authority_node_slug || anchor.authority_url);
+          const isNavigable = !!(anchor.authority_node_slug || getSafeHttpUrl(anchor.authority_url));
           const navClass = isNavigable ? ' authority-navigable' : '';
-          return `<span class="authority-inline-marker${navClass}" data-authority-id="${anchor.id}" style="position: relative; transition: all 0.2s ease;">${textMatch}<span style="color: #c5a059; font-weight: 800; margin-left: 2px; vertical-align: super; font-size: 0.9em;">°</span></span>`;
+          return `<span class="authority-inline-marker${navClass}" data-authority-id="${escapeHtmlAttribute(anchor.id)}" style="position: relative; transition: all 0.2s ease;">${textMatch}<span style="color: #c5a059; font-weight: 800; margin-left: 2px; vertical-align: super; font-size: 0.9em;">°</span></span>`;
         }
         return match;
       });
@@ -200,8 +221,9 @@ export default function ReportContent({ content, authorities = [] }: ReportConte
           const anchor = authorities.find(a => a.id === authId);
           if (anchor?.authority_node_slug) {
             router.push(`/topic/${anchor.authority_node_slug}`);
-          } else if (anchor?.authority_url) {
-            window.open(anchor.authority_url, '_blank', 'noopener,noreferrer');
+          } else {
+            const safeUrl = getSafeHttpUrl(anchor?.authority_url);
+            if (safeUrl) window.open(safeUrl, '_blank', 'noopener,noreferrer');
           }
         }
         return;
@@ -217,7 +239,7 @@ export default function ReportContent({ content, authorities = [] }: ReportConte
       container.removeEventListener('mouseout', handleMouseOut);
       container.removeEventListener('click', handleClick);
     };
-  }, [authorities, router]);
+  }, [authorities, nodePreviews, router]);
 
   // Render Authority Popover
   const renderAuthorityPopover = () => {
@@ -227,6 +249,7 @@ export default function ReportContent({ content, authorities = [] }: ReportConte
     
     const meta = AUTHORITY_TYPE_META[anchor.authority_type];
     const isLinked = !!anchor.authority_node_slug;
+    const safeAuthorityUrl = getSafeHttpUrl(anchor.authority_url);
     
     const content = (
       <>
@@ -253,7 +276,7 @@ export default function ReportContent({ content, authorities = [] }: ReportConte
         style={{ 
           position: 'absolute', 
           top: `${popoverPos.top}px`, 
-          left: `${Math.min(popoverPos.left, containerRef.current?.offsetWidth ? containerRef.current.offsetWidth - 260 : popoverPos.left)}px`,
+          left: `${popoverPos.left}px`,
           zIndex: 1000 
         }}
         onMouseEnter={() => {
@@ -288,17 +311,17 @@ export default function ReportContent({ content, authorities = [] }: ReportConte
             </div>
           )}
           {/* External source link */}
-          {anchor.authority_url && (
+          {safeAuthorityUrl && (
             <a
-              href={anchor.authority_url}
+              href={safeAuthorityUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="authority-popover-external-link"
               onClick={(e) => e.stopPropagation()}
-              title={anchor.authority_url}
+              title={safeAuthorityUrl}
             >
               <svg className="authority-external-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              <span className="authority-popover-external-hostname">{getHostname(anchor.authority_url)}</span>
+              <span className="authority-popover-external-hostname">{getHostname(safeAuthorityUrl)}</span>
               <span className="authority-popover-external-label">Open Source</span>
             </a>
           )}
@@ -320,7 +343,7 @@ export default function ReportContent({ content, authorities = [] }: ReportConte
         style={{ 
           position: 'absolute', 
           top: `${popoverPos.top}px`, 
-          left: `${Math.min(popoverPos.left, containerRef.current?.offsetWidth ? containerRef.current.offsetWidth - 240 : popoverPos.left)}px`,
+          left: `${popoverPos.left}px`,
           zIndex: 1000,
           minWidth: '220px',
           padding: '8px 12px'

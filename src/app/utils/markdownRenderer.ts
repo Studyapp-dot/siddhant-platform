@@ -80,18 +80,21 @@ const md = new MarkdownIt({
 // Add scholarly highlighting classes to rendered output
 // Legal citations, section refs, article refs get subtle highlights
 
-function addScholarlyHighlights(html: string): string {
-  return html
-    // Highlight reporter-style citations (AIR 2024, SCC, SCR)
+function highlightTextSegment(text: string): string {
+  return text
     .replace(/\b(AIR|SCC|SCR)\s+(\d{4})\s+(\w+)\s+(\d+)/g, '<span class="hl-citation">$&</span>')
     .replace(/\((\d{4})\)\s*(\d+)\s*(SCC|SCR|Bom\s*CR)/g, '<span class="hl-citation">$&</span>')
-    // Highlight section references
     .replace(/\b(Section|S\.|Sec\.)\s*(\d+[A-Z]?)/gi, '<span class="hl-section">$&</span>')
-    // Highlight article references
     .replace(/\b(Article|Art\.)\s*(\d+[A-Z]?)/gi, '<span class="hl-article">$&</span>')
-    // Highlight case names (v. pattern)
     .replace(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(v\.?)\s+((?:State\s+of\s+)?[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g,
       '<span class="hl-case">$&</span>');
+}
+
+function addScholarlyHighlights(html: string): string {
+  return html
+    .split(/(<[^>]+>)/g)
+    .map(part => part.startsWith('<') ? part : highlightTextSegment(part))
+    .join('');
 }
 
 /**

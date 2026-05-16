@@ -7,6 +7,8 @@ import { redirect } from 'next/navigation'
 
 import MarkdownIt from 'markdown-it'
 import { computeVisibleTextSize, normalizeForComparison } from '@/utils/content-size'
+import { extractMetadata } from '@/utils/ai/extract-metadata'
+import { extractRevisionSemantics } from '@/utils/ai/extract-revision-semantics'
 
 const NODE_TYPES = new Set([
   'topic',
@@ -440,20 +442,12 @@ export async function submitRevision(formData: FormData): Promise<RevisionResult
   // This pattern has no retry or durability guarantees on serverless.
   // Phase 3 should replace this with a durable job queue (Inngest/pg-boss).
   // ========================================================================
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-
-  fetch(`${origin}/api/extract-metadata`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nodeId: node_id }),
-  }).catch(err => console.error('[edit-node] Metadata extraction dispatch failed:', err));
+  void extractMetadata(node_id)
+    .catch(err => console.error('[edit-node] Metadata extraction dispatch failed:', err));
 
   if (insertedRevision?.id) {
-    fetch(`${origin}/api/extract-revision-semantics`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ revisionId: insertedRevision.id }),
-    }).catch(err => console.error('[edit-node] Semantics extraction dispatch failed:', err));
+    void extractRevisionSemantics(insertedRevision.id)
+      .catch(err => console.error('[edit-node] Semantics extraction dispatch failed:', err));
   }
 
   // ========================================================================

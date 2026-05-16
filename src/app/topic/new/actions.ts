@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { computeVisibleTextSize } from '@/utils/content-size'
+import { extractMetadata } from '@/utils/ai/extract-metadata'
 
 function slugify(title: string): string {
   return title
@@ -95,12 +96,8 @@ export async function createNode(formData: FormData) {
 
   // AI extraction — non-blocking, fire-and-forget (TRANSITIONAL)
   // Phase 3 should replace with durable job queue.
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-  fetch(`${origin}/api/extract-metadata`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nodeId: newNode.id }),
-  }).catch(err => console.error('[create-node] Metadata extraction dispatch failed:', err));
+  void extractMetadata(newNode.id)
+    .catch(err => console.error('[create-node] Metadata extraction dispatch failed:', err));
 
   redirect(`/topic/${slug}`)
 }
