@@ -421,45 +421,7 @@ a {
   font-style: italic;
 }
 
-/* Scholarly citation highlights — used in both preview and published pages */
-.rendered-markdown .hl-citation,
-.hl-citation {
-  background: rgba(197, 160, 89, 0.12);
-  color: var(--color-gold);
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-weight: 600;
-  border-bottom: 2px solid rgba(197, 160, 89, 0.3);
-  font-style: normal;
-}
 
-.rendered-markdown .hl-section,
-.hl-section {
-  background: rgba(59, 130, 246, 0.1);
-  color: #60a5fa;
-  padding: 1px 4px;
-  border-radius: 4px;
-  font-weight: 600;
-  font-style: normal;
-}
-
-.rendered-markdown .hl-article,
-.hl-article {
-  background: rgba(14, 165, 233, 0.1);
-  color: #38bdf8;
-  padding: 1px 4px;
-  border-radius: 4px;
-  font-weight: 600;
-  font-style: normal;
-}
-
-.rendered-markdown .hl-case,
-.hl-case {
-  background: rgba(245, 158, 11, 0.08);
-  border-bottom: 1px dashed rgba(245, 158, 11, 0.4);
-  padding: 1px 2px;
-  font-style: normal;
-}
 
 .report-paragraph-block {
   position: relative;

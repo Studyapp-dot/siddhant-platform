@@ -76,6 +76,7 @@ export default function EditForm({
 }: EditFormProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [viewMode, setViewMode] = useState<'write' | 'preview'>('write');
+  const [helperExpanded, setHelperExpanded] = useState(false);
   const [content, setContent] = useState(currentReport);
   const [selectedNodeType, setSelectedNodeType] = useState(initialNodeType);
   const [showTypeSelector, setShowTypeSelector] = useState(false);
@@ -265,11 +266,49 @@ export default function EditForm({
         <div className="drafting-area" style={{ position: 'relative' }}>
           {viewMode === 'write' ? (
             <>
+              {/* ── Persistent Writing Helper ── */}
+              <div className="writing-helper compact">
+                <button
+                  type="button"
+                  className="helper-compact-toggle"
+                  onClick={() => setHelperExpanded(!helperExpanded)}
+                  aria-expanded={helperExpanded}
+                >
+                  <span className="helper-compact-label">Markup guide</span>
+                  <span className={`helper-compact-chevron ${helperExpanded ? 'open' : ''}`}>▸</span>
+                </button>
+                {helperExpanded && (
+                  <div className="helper-expanded-detail">
+                    <p className="helper-philosophy-compact">
+                      Connect cases, statutes, doctrines, and concepts as you write.
+                    </p>
+                    <div className="helper-detail-cols">
+                      <div className="helper-detail-col">
+                        <span className="helper-detail-title">Structure</span>
+                        <code># Heading</code>
+                        <code>## Sub-heading</code>
+                        <code>&gt; Quoted text</code>
+                      </div>
+                      <div className="helper-detail-col">
+                        <span className="helper-detail-title">Link knowledge</span>
+                        <code>[[topic-slug]]</code>
+                        <code>[[slug|Display Text]]</code>
+                      </div>
+                      <div className="helper-detail-col">
+                        <span className="helper-detail-title">Emphasis</span>
+                        <code>**Bold**</code>
+                        <code>*Italic*</code>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <textarea
                 ref={textareaRef}
                 name="report_content"
                 className="workbench-textarea"
-                placeholder={"Expand on this topic here...\n\nReview the Summary, refine the Detailed Analysis, or provide more legal commentary.\n\nUse:\n  # Main Heading\n  ## Sub-heading\n  > Quoted text\n  **Bold** for emphasis, *italic* for terms"}
+                placeholder="Expand on this topic here..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required

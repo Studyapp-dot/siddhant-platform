@@ -75,27 +75,12 @@ const md = new MarkdownIt({
 .use(sectionAnchorPlugin)
 .use(internalLinkPlugin);
 
+// Disable indented code blocks — legal writers frequently indent for structure,
+// not to write code. Fenced code blocks (```) still work if needed.
+md.disable('code');
+
 // ── Custom Rules ──
 
-// Add scholarly highlighting classes to rendered output
-// Legal citations, section refs, article refs get subtle highlights
-
-function highlightTextSegment(text: string): string {
-  return text
-    .replace(/\b(AIR|SCC|SCR)\s+(\d{4})\s+(\w+)\s+(\d+)/g, '<span class="hl-citation">$&</span>')
-    .replace(/\((\d{4})\)\s*(\d+)\s*(SCC|SCR|Bom\s*CR)/g, '<span class="hl-citation">$&</span>')
-    .replace(/\b(Section|S\.|Sec\.)\s*(\d+[A-Z]?)/gi, '<span class="hl-section">$&</span>')
-    .replace(/\b(Article|Art\.)\s*(\d+[A-Z]?)/gi, '<span class="hl-article">$&</span>')
-    .replace(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(v\.?)\s+((?:State\s+of\s+)?[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g,
-      '<span class="hl-case">$&</span>');
-}
-
-function addScholarlyHighlights(html: string): string {
-  return html
-    .split(/(<[^>]+>)/g)
-    .map(part => part.startsWith('<') ? part : highlightTextSegment(part))
-    .join('');
-}
 
 /**
  * Pre-processes text to expand custom syntaxes before parsing.
@@ -119,23 +104,13 @@ function preprocessMarkdown(content: string): string {
  * @param options - Optional rendering flags
  * @returns Sanitized HTML string
  */
-export function renderMarkdown(
-  content: string,
-  options?: { scholarlyHighlights?: boolean }
-): string {
+export function renderMarkdown(content: string): string {
   if (!content || !content.trim()) {
     return '<p class="preview-empty">No content written yet.</p>';
   }
 
   const processed = preprocessMarkdown(content);
-  let html = md.render(processed);
-
-  // Apply scholarly highlighting if requested (default: true)
-  if (options?.scholarlyHighlights !== false) {
-    html = addScholarlyHighlights(html);
-  }
-
-  return html;
+  return md.render(processed);
 }
 
 /**
@@ -158,7 +133,7 @@ export function renderMarkdownParagraphs(
   return paragraphs.map((para, index) => {
     const processed = preprocessMarkdown(para);
     let html = md.render(processed);
-    html = addScholarlyHighlights(html);
+
 
     return { html, originalIndex: index };
   });

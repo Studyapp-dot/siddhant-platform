@@ -141,6 +141,7 @@ function NewTopicPage() {
 
   // UI state
   const [viewMode, setViewMode] = useState<'write' | 'preview'>('write');
+  const [helperExpanded, setHelperExpanded] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     structure: false, howItWorks: false, ethics: false,
   });
@@ -335,20 +336,49 @@ function NewTopicPage() {
           <div className="drafting-area">
             {viewMode === 'write' ? (
               <>
+              {/* ── Persistent Writing Helper (collapsed by default) ── */}
+              <div className="writing-helper compact">
+                <button
+                  type="button"
+                  className="helper-compact-toggle"
+                  onClick={() => setHelperExpanded(!helperExpanded)}
+                  aria-expanded={helperExpanded}
+                >
+                  <span className="helper-compact-label">Markup guide</span>
+                  <span className={`helper-compact-chevron ${helperExpanded ? 'open' : ''}`}>▸</span>
+                </button>
+                {helperExpanded && (
+                  <div className="helper-expanded-detail">
+                    <p className="helper-philosophy-compact">
+                      Connect cases, statutes, doctrines, and concepts as you write.
+                    </p>
+                    <div className="helper-detail-cols">
+                      <div className="helper-detail-col">
+                        <span className="helper-detail-title">Structure</span>
+                        <code># Heading</code>
+                        <code>## Sub-heading</code>
+                        <code>&gt; Quoted text</code>
+                      </div>
+                      <div className="helper-detail-col">
+                        <span className="helper-detail-title">Link knowledge</span>
+                        <code>[[topic-slug]]</code>
+                        <code>[[slug|Display Text]]</code>
+                      </div>
+                      <div className="helper-detail-col">
+                        <span className="helper-detail-title">Emphasis</span>
+                        <code>**Bold**</code>
+                        <code>*Italic*</code>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <textarea 
                 ref={contentRef}
                 name="report_content"
                 className="report-textarea"
-                placeholder={`Begin your article here...
-
-Structure your article naturally using:
-  # Main Heading
-  ## Sub-heading
-  > Quoted statutory or judicial text
-  **Bold** for emphasis, *italic* for terms
-
-Include case names, section numbers, and statutory text.
-The platform will extract key facts into a Quick Reference card.`}
+                placeholder="Begin your article here..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required

@@ -358,6 +358,111 @@
 }
 
 /* ========================================
+   PERSISTENT WRITING HELPER
+   ======================================== */
+.writing-helper {
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.writing-helper code {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.68rem;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* ── Compact reference strip (after typing) ── */
+.helper-compact-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 2px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: opacity 0.15s;
+  opacity: 0.6;
+}
+
+.helper-compact-toggle:hover {
+  opacity: 1;
+}
+
+.helper-compact-label {
+  font-family: var(--font-sans);
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.helper-compact-chevron {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.helper-compact-chevron.open {
+  transform: rotate(90deg);
+}
+
+/* ── Expanded detail panel (clicked from compact) ── */
+.helper-expanded-detail {
+  padding: 10px 2px 6px;
+  animation: expandIn 0.2s ease;
+}
+
+.helper-philosophy-compact {
+  font-family: var(--font-serif);
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--text-muted);
+  margin: 0 0 10px 0;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+.helper-detail-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.helper-detail-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.helper-detail-title {
+  font-family: var(--font-sans);
+  font-size: 0.55rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  opacity: 0.6;
+  margin-bottom: 1px;
+}
+
+.helper-detail-col code {
+  font-size: 0.66rem;
+  display: block;
+  width: fit-content;
+  opacity: 0.8;
+}
+
+/* ========================================
    DRAFTING AREA & TEXTAREA
    ======================================== */
 .drafting-area {
