@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useRef, useState, useEffect, useActionState } from 'react';
+import React, { useRef, useState, useEffect, useActionState, useCallback } from 'react';
 import Link from 'next/link';
 import AuthorityAnchorEditor from '@/app/components/AuthorityAnchorEditor';
+import MarkupGuideDetails from '@/app/components/MarkupGuideDetails';
+import EditorToolbar from '@/app/components/EditorToolbar';
+import LinkInsertModal from '@/app/components/LinkInsertModal';
 import type { AuthorityAnchor } from '@/app/actions/authority-anchors';
 import { renderMarkdown } from '@/app/utils/markdownRenderer';
 import { submitRevision, type RevisionResult } from './actions';
@@ -86,6 +89,30 @@ export default function EditForm({
   // Autosave and Recovery state
   const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [showDraftRestore, setShowDraftRestore] = useState(false);
+
+  // Link modal state
+  const [showLinkModal, setShowLinkModal] = useState(false);
+
+  // Shared edit handler for toolbar and link modal
+  const applyEdit = useCallback((newContent: string, cursorStart?: number, cursorEnd?: number) => {
+    setContent(newContent);
+    if (cursorStart !== undefined) {
+      requestAnimationFrame(() => {
+        const ta = textareaRef.current;
+        if (ta) {
+          ta.focus();
+          ta.setSelectionRange(cursorStart, cursorEnd ?? cursorStart);
+        }
+      });
+    }
+  }, []);
+
+  const handleLinkInsert = useCallback((markdownLink: string) => {
+    const ta = textareaRef.current;
+    const pos = ta ? ta.selectionStart : content.length;
+    const newContent = content.slice(0, pos) + markdownLink + content.slice(pos);
+    applyEdit(newContent, pos + markdownLink.length);
+  }, [content, applyEdit]);
 
   // Server action result handling (no-op/low-signal gate feedback)
   const [actionResult, formAction, isPending] = useActionState<RevisionResult | null, FormData>(
@@ -278,31 +305,17 @@ export default function EditForm({
                   <span className={`helper-compact-chevron ${helperExpanded ? 'open' : ''}`}>▸</span>
                 </button>
                 {helperExpanded && (
-                  <div className="helper-expanded-detail">
-                    <p className="helper-philosophy-compact">
-                      Connect cases, statutes, doctrines, and concepts as you write.
-                    </p>
-                    <div className="helper-detail-cols">
-                      <div className="helper-detail-col">
-                        <span className="helper-detail-title">Structure</span>
-                        <code># Heading</code>
-                        <code>## Sub-heading</code>
-                        <code>&gt; Quoted text</code>
-                      </div>
-                      <div className="helper-detail-col">
-                        <span className="helper-detail-title">Link knowledge</span>
-                        <code>[[topic-slug]]</code>
-                        <code>[[slug|Display Text]]</code>
-                      </div>
-                      <div className="helper-detail-col">
-                        <span className="helper-detail-title">Emphasis</span>
-                        <code>**Bold**</code>
-                        <code>*Italic*</code>
-                      </div>
-                    </div>
-                  </div>
+                  <MarkupGuideDetails />
                 )}
               </div>
+
+              {/* ── Formatting Toolbar ── */}
+              <EditorToolbar
+                textareaRef={textareaRef}
+                content={content}
+                onContentChange={applyEdit}
+                onOpenLinkModal={() => setShowLinkModal(true)}
+              />
 
               <textarea
                 ref={textareaRef}
@@ -321,6 +334,14 @@ export default function EditForm({
                 revisionId={revisionId}
                 existingAnchors={existingAnchors}
                 textareaRef={textareaRef}
+              />
+
+              {/* Link Insert Modal */}
+              <LinkInsertModal
+                isOpen={showLinkModal}
+                onClose={() => setShowLinkModal(false)}
+                onInsert={handleLinkInsert}
+                defaultLabel={textareaRef.current ? content.slice(textareaRef.current.selectionStart, textareaRef.current.selectionEnd) : ''}
               />
             </>
           ) : (

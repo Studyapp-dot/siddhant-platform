@@ -23,6 +23,10 @@ export function toPublicRevisionText(content?: string | null): string {
   // Remove platform-owned section anchors before any Markdown processing.
   text = text.replace(/\s*\{#sec_[a-zA-Z0-9_-]+\}/g, '');
 
+  // Remove legal text block fences (content inside is preserved).
+  text = text.replace(/^:::legal\s*$/gm, '');
+  text = text.replace(/^:::\s*$/gm, '');
+
   // Custom authoring syntaxes.
   text = text.replace(/\[web_(\d+)\]\((https?:\/\/[^\s)]+)\)/g, 'Source $1');
   text = text.replace(/\[web_(\d+)\]/g, 'Source $1');

@@ -18,6 +18,7 @@ export default async function NodesIndexPage() {
   const { data: nodes } = await supabase
     .from('nodes')
     .select('id, slug, title, created_at, node_type')
+    .is('deleted_at', null)
     .order('title', { ascending: true });
 
   const allNodes = nodes ?? [];

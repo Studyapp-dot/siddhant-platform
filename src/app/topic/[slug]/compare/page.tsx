@@ -110,6 +110,7 @@ export default async function ComparePage({
     .from('nodes')
     .select('id, title, node_type')
     .eq('id', nodeId)
+    .is('deleted_at', null)
     .single();
 
   const nodeTitle = node?.title || 'Untitled';

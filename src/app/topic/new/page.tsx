@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { createNode } from './actions';
 import DraftAuthorityEditor from '@/app/components/DraftAuthorityEditor';
+import MarkupGuideDetails from '@/app/components/MarkupGuideDetails';
+import EditorToolbar from '@/app/components/EditorToolbar';
+import LinkInsertModal from '@/app/components/LinkInsertModal';
+import StructureTemplateOffer from '@/app/components/StructureTemplateOffer';
 import type { PendingAuthorityAnchor } from '@/app/components/DraftAuthorityEditor';
 import './new-topic.css';
 
@@ -135,9 +139,13 @@ function NewTopicPage() {
   // Core form state
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [marginalNote, setMarginalNote] = useState('');
   const [nodeType, setNodeType] = useState('topic');
   const [commitMessage, setCommitMessage] = useState('Initial article creation');
   const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  // Authoring mode: paragraph-native (default) or legacy article
+  const [editorMode, setEditorMode] = useState<'paragraph' | 'legacy'>('paragraph');
 
   // UI state
   const [viewMode, setViewMode] = useState<'write' | 'preview'>('write');
@@ -155,8 +163,32 @@ function NewTopicPage() {
   // Authority anchoring — collected locally during drafting, saved after node creation
   const [pendingAnchors, setPendingAnchors] = useState<PendingAuthorityAnchor[]>([]);
 
+  // Link modal state
+  const [showLinkModal, setShowLinkModal] = useState(false);
+
   const contentRef = useRef<HTMLTextAreaElement>(null);
-  const hasUnsavedWork = title.length > 0 || content.length > 0;
+  const hasUnsavedWork = title.length > 0 || content.length > 0 || marginalNote.length > 0;
+
+  // Shared edit handler for toolbar, template, and link modal
+  const applyEdit = useCallback((newContent: string, cursorStart?: number, cursorEnd?: number) => {
+    setContent(newContent);
+    if (cursorStart !== undefined) {
+      requestAnimationFrame(() => {
+        const ta = contentRef.current;
+        if (ta) {
+          ta.focus();
+          ta.setSelectionRange(cursorStart, cursorEnd ?? cursorStart);
+        }
+      });
+    }
+  }, []);
+
+  const handleLinkInsert = useCallback((markdownLink: string) => {
+    const ta = contentRef.current;
+    const pos = ta ? ta.selectionStart : content.length;
+    const newContent = content.slice(0, pos) + markdownLink + content.slice(pos);
+    applyEdit(newContent, pos + markdownLink.length);
+  }, [content, applyEdit]);
 
   // Live scholarly intelligence
   const signals = useMemo(() => detectScholarlySignals(content), [content]);
@@ -314,112 +346,217 @@ function NewTopicPage() {
             </div>
           </div>
 
-          {/* ── Write / Preview Toggle ── */}
+          {/* ── Authoring Mode Toggle ── */}
           <div className="editor-mode-toggle">
             <button
               type="button"
-              className={`mode-btn ${viewMode === 'write' ? 'active' : ''}`}
-              onClick={() => setViewMode('write')}
+              className={`mode-btn ${editorMode === 'paragraph' ? 'active' : ''}`}
+              onClick={() => setEditorMode('paragraph')}
             >
-              ✏️ Write
+              ¶ Paragraph
             </button>
             <button
               type="button"
-              className={`mode-btn ${viewMode === 'preview' ? 'active' : ''}`}
-              onClick={() => setViewMode('preview')}
+              className={`mode-btn ${editorMode === 'legacy' ? 'active' : ''}`}
+              onClick={() => setEditorMode('legacy')}
+              title="Full article editor for imports and bulk content"
             >
-              👁 Preview
+              📄 Full Article
             </button>
           </div>
 
           {/* ── Content Area ── */}
           <div className="drafting-area">
-            {viewMode === 'write' ? (
+            {editorMode === 'paragraph' ? (
               <>
-              {/* ── Persistent Writing Helper (collapsed by default) ── */}
-              <div className="writing-helper compact">
-                <button
-                  type="button"
-                  className="helper-compact-toggle"
-                  onClick={() => setHelperExpanded(!helperExpanded)}
-                  aria-expanded={helperExpanded}
-                >
-                  <span className="helper-compact-label">Markup guide</span>
-                  <span className={`helper-compact-chevron ${helperExpanded ? 'open' : ''}`}>▸</span>
-                </button>
-                {helperExpanded && (
-                  <div className="helper-expanded-detail">
-                    <p className="helper-philosophy-compact">
-                      Connect cases, statutes, doctrines, and concepts as you write.
-                    </p>
-                    <div className="helper-detail-cols">
-                      <div className="helper-detail-col">
-                        <span className="helper-detail-title">Structure</span>
-                        <code># Heading</code>
-                        <code>## Sub-heading</code>
-                        <code>&gt; Quoted text</code>
-                      </div>
-                      <div className="helper-detail-col">
-                        <span className="helper-detail-title">Link knowledge</span>
-                        <code>[[topic-slug]]</code>
-                        <code>[[slug|Display Text]]</code>
-                      </div>
-                      <div className="helper-detail-col">
-                        <span className="helper-detail-title">Emphasis</span>
-                        <code>**Bold**</code>
-                        <code>*Italic*</code>
-                      </div>
+                {/* ── Paragraph-native authoring ── */}
+                <div className="para-creation-intro">
+                  <span className="para-creation-icon">¶</span>
+                  <div>
+                    <strong>Create your first knowledge unit</strong>
+                    <p>Each paragraph becomes an addressable, editable, citable unit. You can add more after publishing.</p>
+                  </div>
+                </div>
+
+                <div className="para-creation-fields">
+                  <div className="para-field-group">
+                    <label className="para-field-label" htmlFor="marginal_note">
+                      Marginal Note
+                      <span className="para-field-hint">A short topical label shown in the margin (e.g., "Equality guarantee", "Classification test")</span>
+                    </label>
+                    <input
+                      id="marginal_note"
+                      name="marginal_note"
+                      type="text"
+                      className="para-marginal-input"
+                      placeholder="e.g., Equality guarantee"
+                      value={marginalNote}
+                      onChange={(e) => setMarginalNote(e.target.value)}
+                      maxLength={120}
+                    />
+                  </div>
+
+                  <div className="para-field-group">
+                    <label className="para-field-label" htmlFor="paragraph_content">
+                      Content
+                      <span className="para-field-hint">Markdown supported. Write one focused idea — not the whole article.</span>
+                    </label>
+
+                    {/* Formatting Toolbar */}
+                    <EditorToolbar
+                      textareaRef={contentRef}
+                      content={content}
+                      onContentChange={applyEdit}
+                      onOpenLinkModal={() => setShowLinkModal(true)}
+                    />
+
+                    <textarea
+                      ref={contentRef}
+                      id="paragraph_content"
+                      name="paragraph_content"
+                      className="para-content-textarea"
+                      placeholder="Article 14 guarantees equality before the law and equal protection of the laws within the territory of India..."
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      required
+                      rows={8}
+                    />
+                  </div>
+
+                  {/* Link Insert Modal */}
+                  <LinkInsertModal
+                    isOpen={showLinkModal}
+                    onClose={() => setShowLinkModal(false)}
+                    onInsert={handleLinkInsert}
+                    defaultLabel={contentRef.current ? content.slice(contentRef.current.selectionStart, contentRef.current.selectionEnd) : ''}
+                  />
+                </div>
+
+                {/* Preview of the paragraph */}
+                {content.trim() && (
+                  <div className="para-creation-preview">
+                    <div className="para-creation-preview-label">Preview</div>
+                    <div className="para-creation-preview-body">
+                      <span className="para-creation-preview-number">¶1</span>
+                      {marginalNote && <span className="para-creation-preview-note">{marginalNote}</span>}
+                      <div
+                        className="rendered-markdown"
+                        dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
+                      />
                     </div>
                   </div>
                 )}
-              </div>
-
-              <textarea 
-                ref={contentRef}
-                name="report_content"
-                className="report-textarea"
-                placeholder="Begin your article here..."
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                required
-              />
-
-              {/* Authority Anchor Editor — appears on text selection */}
-              <DraftAuthorityEditor
-                textareaRef={contentRef}
-                pendingAnchors={pendingAnchors}
-                onAnchorsChange={setPendingAnchors}
-              />
-
-              {/* Serialized pending anchors — saved after node creation */}
-              <input
-                type="hidden"
-                name="pending_authority_anchors"
-                value={JSON.stringify(pendingAnchors.map(a => ({
-                  anchor_text: a.anchor_text,
-                  context_before: a.context_before,
-                  context_after: a.context_after,
-                  paragraph_index: a.paragraph_index,
-                  authority_type: a.authority_type,
-                  authority_title: a.authority_title,
-                  authority_citation: a.authority_citation,
-                  authority_url: a.authority_url,
-                  authority_node_id: a.authority_node_id,
-                })))}
-              />
               </>
             ) : (
               <>
-                <div className="preview-header-bar">
-                <span className="preview-header-label">📄 Article Preview</span>
-                  <span className="preview-header-hint">Headings, blockquotes, and references are rendered below</span>
+                {/* ── Legacy full article editor — unchanged ── */}
+                {viewMode === 'write' ? (
+                  <>
+                  {/* Persistent Writing Helper */}
+                  <div className="writing-helper compact">
+                    <button
+                      type="button"
+                      className="helper-compact-toggle"
+                      onClick={() => setHelperExpanded(!helperExpanded)}
+                      aria-expanded={helperExpanded}
+                    >
+                      <span className="helper-compact-label">Markup guide</span>
+                      <span className={`helper-compact-chevron ${helperExpanded ? 'open' : ''}`}>▸</span>
+                    </button>
+                    {helperExpanded && (
+                      <MarkupGuideDetails />
+                    )}
+                  </div>
+
+                  {/* Structure Template Offer */}
+                  <StructureTemplateOffer
+                    nodeType={nodeType}
+                    contentLength={content.length}
+                    onInsert={(template) => applyEdit(template, template.indexOf(':::legal\n') !== -1 ? template.indexOf(':::legal\n') + ':::legal\n'.length : template.indexOf('\n\n') + 2)}
+                  />
+
+                  {/* Formatting Toolbar */}
+                  <EditorToolbar
+                    textareaRef={contentRef}
+                    content={content}
+                    onContentChange={applyEdit}
+                    onOpenLinkModal={() => setShowLinkModal(true)}
+                  />
+
+                  <textarea
+                    ref={contentRef}
+                    name="report_content"
+                    className="report-textarea"
+                    placeholder="Begin your article here..."
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    required
+                  />
+
+                  {/* Authority Anchor Editor */}
+                  <DraftAuthorityEditor
+                    textareaRef={contentRef}
+                    pendingAnchors={pendingAnchors}
+                    onAnchorsChange={setPendingAnchors}
+                  />
+
+                  {/* Link Insert Modal */}
+                  <LinkInsertModal
+                    isOpen={showLinkModal}
+                    onClose={() => setShowLinkModal(false)}
+                    onInsert={handleLinkInsert}
+                    defaultLabel={contentRef.current ? content.slice(contentRef.current.selectionStart, contentRef.current.selectionEnd) : ''}
+                  />
+
+                  {/* Serialized pending anchors */}
+                  <input
+                    type="hidden"
+                    name="pending_authority_anchors"
+                    value={JSON.stringify(pendingAnchors.map(a => ({
+                      anchor_text: a.anchor_text,
+                      context_before: a.context_before,
+                      context_after: a.context_after,
+                      paragraph_index: a.paragraph_index,
+                      authority_type: a.authority_type,
+                      authority_title: a.authority_title,
+                      authority_citation: a.authority_citation,
+                      authority_url: a.authority_url,
+                      authority_node_id: a.authority_node_id,
+                    })))}
+                  />
+                  </>
+                ) : (
+                  <>
+                    <div className="preview-header-bar">
+                    <span className="preview-header-label">📄 Article Preview</span>
+                      <span className="preview-header-hint">Headings, blockquotes, and references are rendered below</span>
+                    </div>
+                    <div
+                      className="preview-pane rendered-markdown"
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
+                    />
+                    {/* Hidden textarea to keep form data */}
+                    <textarea name="report_content" value={content} readOnly hidden required />
+                  </>
+                )}
+
+                {/* Write/Preview sub-toggle (legacy mode only) */}
+                <div className="editor-mode-toggle" style={{ marginTop: '8px' }}>
+                  <button
+                    type="button"
+                    className={`mode-btn ${viewMode === 'write' ? 'active' : ''}`}
+                    onClick={() => setViewMode('write')}
+                  >
+                    ✏️ Write
+                  </button>
+                  <button
+                    type="button"
+                    className={`mode-btn ${viewMode === 'preview' ? 'active' : ''}`}
+                    onClick={() => setViewMode('preview')}
+                  >
+                    👁 Preview
+                  </button>
                 </div>
-                <div 
-                  className="preview-pane rendered-markdown"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
-                />
-                {/* Hidden textarea to keep form data */}
-                <textarea name="report_content" value={content} readOnly hidden required />
               </>
             )}
           </div>

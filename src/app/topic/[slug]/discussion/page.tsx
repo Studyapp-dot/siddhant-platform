@@ -10,7 +10,7 @@ export default async function DiscussionPage({ params }: { params: Promise<{ slu
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: node } = await supabase.from('nodes').select('id, title').eq('slug', slug).single();
+  const { data: node } = await supabase.from('nodes').select('id, title').eq('slug', slug).is('deleted_at', null).single();
   if (!node) {
     return <div style={{padding: '40px', color: 'white'}}>Topic not found for discussion.</div>;
   }

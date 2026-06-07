@@ -33,6 +33,7 @@ export default async function FirstExplorationPage() {
   const { data: article21Matches } = await supabase
     .from('nodes')
     .select('id, slug, title, node_type')
+    .is('deleted_at', null)
     .ilike('title', '%Article 21%')
     .limit(1);
 

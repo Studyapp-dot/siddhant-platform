@@ -182,7 +182,7 @@
 
 .edit-container .helper-detail-cols {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
 }
 
@@ -208,6 +208,266 @@
   display: block;
   width: fit-content;
   opacity: 0.8;
+}
+
+/* ========================================
+   EDITOR TOOLBAR — Compact formatting buttons
+   ======================================== */
+.edit-container .editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  margin-bottom: 16px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.edit-container .toolbar-group {
+  display: flex;
+  gap: 2px;
+}
+
+.edit-container .toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.edit-container .toolbar-btn:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.edit-container .toolbar-btn:active {
+  transform: scale(0.95);
+}
+
+.edit-container .toolbar-btn-bold { font-weight: 900; }
+.edit-container .toolbar-btn-italic { font-style: italic; font-family: var(--font-serif); }
+.edit-container .toolbar-btn-legal { font-size: 0.9rem; }
+.edit-container .toolbar-btn-legal:hover { color: var(--color-gold); }
+
+.edit-container .toolbar-separator {
+  width: 1px;
+  height: 20px;
+  background: var(--border-subtle);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* ========================================
+   LINK INSERT MODAL (Edit page)
+   ======================================== */
+.link-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: editLinkFadeIn 0.2s ease;
+}
+
+@keyframes editLinkFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes editLinkModalIn {
+  from { opacity: 0; transform: scale(0.92) translateY(16px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.link-modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  animation: editLinkModalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.link-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.link-modal-title {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.link-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.link-modal-close:hover { color: var(--text-primary); }
+
+.link-modal-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.link-tab {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  border-bottom: 2px solid transparent;
+}
+
+.link-tab.active {
+  color: var(--color-gold);
+  border-bottom-color: var(--color-gold);
+}
+
+.link-tab:not(.active):hover { color: var(--text-primary); }
+
+.link-modal-body { padding: 16px 20px 20px; }
+
+.link-field-label {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.link-search-input {
+  width: 100%;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.link-search-input:focus { border-color: var(--color-gold); }
+
+.link-search-results {
+  margin-top: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.link-search-status {
+  padding: 12px 0;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.link-search-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.link-search-result:hover { background: var(--bg-panel); }
+
+.link-result-icon { font-size: 1rem; flex-shrink: 0; }
+
+.link-result-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.link-result-title {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.link-result-slug {
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.link-insert-btn {
+  margin-top: 16px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-gold);
+  color: #000;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.link-insert-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3);
+}
+
+.link-insert-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* Drafting Area */
@@ -568,6 +828,10 @@
     flex: 1;
     justify-content: center;
     padding-inline: 12px;
+  }
+
+  .edit-container .helper-detail-cols {
+    grid-template-columns: 1fr;
   }
 
   .workbench-textarea,

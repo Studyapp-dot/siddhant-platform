@@ -65,6 +65,68 @@ function internalLinkPlugin(md: MarkdownIt) {
   };
 }
 
+// Plugin to parse :::legal ... ::: fenced containers as legal text blocks.
+// These represent primary source material (statutes, provisions, rules,
+// treaty text, judgment extracts) — distinct from contributor commentary.
+function legalTextPlugin(md: MarkdownIt) {
+  md.block.ruler.before('fence', 'legal_text', function (state, startLine, endLine, silent) {
+    const pos = state.bMarks[startLine] + state.tShift[startLine];
+    const max = state.eMarks[startLine];
+    const lineText = state.src.slice(pos, max).trim();
+
+    if (lineText !== ':::legal') return false;
+    if (silent) return true;
+
+    // Find the closing :::
+    let nextLine = startLine;
+    let hasEnding = false;
+
+    while (nextLine < endLine) {
+      nextLine++;
+      if (nextLine >= endLine) break;
+      const npos = state.bMarks[nextLine] + state.tShift[nextLine];
+      const nmax = state.eMarks[nextLine];
+      const nline = state.src.slice(npos, nmax).trim();
+
+      if (nline === ':::') {
+        hasEnding = true;
+        break;
+      }
+    }
+
+    if (!hasEnding) return false;
+
+    // Emit opening token
+    const tokenOpen = state.push('legal_text_open', 'div', 1);
+    tokenOpen.attrSet('class', 'legal-text-block');
+    tokenOpen.map = [startLine, nextLine];
+    tokenOpen.markup = ':::legal';
+
+    // Parse inner content as regular markdown
+    const oldParent = state.parentType;
+    const oldLineMax = state.lineMax;
+    state.parentType = 'blockquote' as any; // Reuse blockquote nesting rules
+    state.lineMax = nextLine;
+    state.md.block.tokenize(state, startLine + 1, nextLine);
+    state.parentType = oldParent;
+    state.lineMax = oldLineMax;
+
+    // Emit closing token
+    state.push('legal_text_close', 'div', -1);
+    state.line = nextLine + 1;
+
+    return true;
+  }, { alt: ['paragraph', 'reference', 'blockquote', 'list'] });
+
+  // Custom renderer adds the label inside the block
+  md.renderer.rules.legal_text_open = function () {
+    return '<div class="legal-text-block"><span class="legal-text-label">Legal Text</span>\n';
+  };
+  md.renderer.rules.legal_text_close = function () {
+    return '</div>\n';
+  };
+}
+
 // Initialize markdown-it with safe defaults
 const md = new MarkdownIt({
   html: false,        // Disable raw HTML for security
@@ -73,7 +135,8 @@ const md = new MarkdownIt({
   typographer: true,  // Smart quotes, dashes
 })
 .use(sectionAnchorPlugin)
-.use(internalLinkPlugin);
+.use(internalLinkPlugin)
+.use(legalTextPlugin);
 
 // Disable indented code blocks — legal writers frequently indent for structure,
 // not to write code. Fenced code blocks (```) still work if needed.

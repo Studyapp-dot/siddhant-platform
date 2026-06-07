@@ -7,6 +7,7 @@ export async function GET() {
   const { data: nodes } = await supabase
     .from('nodes')
     .select('id, title, slug, node_type')
+    .is('deleted_at', null)
     .order('title', { ascending: true })
 
   return NextResponse.json(nodes ?? [])

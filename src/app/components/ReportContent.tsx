@@ -13,6 +13,7 @@ import './authority-anchors.css';
 interface ReportContentProps {
   content: string;
   authorities?: AuthorityAnchor[];
+  slug?: string;
 }
 
 interface NodePreview {
@@ -45,7 +46,7 @@ function getSafeHttpUrl(url?: string | null): string | null {
   }
 }
 
-export default function ReportContent({ content, authorities = [] }: ReportContentProps) {
+export default function ReportContent({ content, authorities = [], slug = '' }: ReportContentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   
@@ -377,14 +378,32 @@ export default function ReportContent({ content, authorities = [] }: ReportConte
   };
 
   const hasAuthorities = authorities.length > 0;
-  
+
+  // ============================================================================
+  // PARAGRAPH BLOCK WRAPPER — Used by the authority anchor rendering path
+  // to wrap each markdown paragraph for marker injection.
+  // ============================================================================
+  const renderParagraphBlock = (
+    paraHtml: string,
+    paraIndex: number,
+    children?: React.ReactNode,
+  ) => {
+    return (
+      <div key={paraIndex} className="report-paragraph-block">
+        <div dangerouslySetInnerHTML={{ __html: paraHtml }} />
+        {children}
+      </div>
+    );
+  };
+
+  // ── Path A: Content with authorities — split into paragraphs for marker injection ──
   if (hasAuthorities) {
     const paragraphs = renderMarkdownParagraphs(content);
     
     // We compute the injected HTML and collect all injected IDs
     const processedParagraphs = paragraphs.map(para => {
       const paraAuthorities = authorityByParagraph[para.originalIndex] || [];
-      const { html, injected } = injectAuthorityMarkers(para.html, authorities); // We match against all authorities, not just paragraph ones, to be safe.
+      const { html, injected } = injectAuthorityMarkers(para.html, authorities);
       return {
         ...para,
         html,
@@ -401,20 +420,18 @@ export default function ReportContent({ content, authorities = [] }: ReportConte
     return (
       <div className="report-body rendered-markdown" ref={containerRef} style={{ position: 'relative' }}>
         {processedParagraphs.map((para, i) => {
-          // Only show fallback marker for authorities that weren't injected inline anywhere
           const unmatchedAuthorities = para.paraAuthorities.filter(a => !allInjectedIds.has(a.id));
           
-          return (
-            <div key={i} className="report-paragraph-block">
-              <div dangerouslySetInnerHTML={{ __html: para.html }} />
-              {unmatchedAuthorities.length > 0 && (
-                <AuthorityMarker anchors={unmatchedAuthorities} />
-              )}
-            </div>
+          return renderParagraphBlock(
+            para.html,
+            i,
+            unmatchedAuthorities.length > 0 ? (
+              <AuthorityMarker anchors={unmatchedAuthorities} />
+            ) : undefined,
           );
         })}
         
-        {/* Catch-all for any authorities that didn't get assigned to a rendered paragraph */}
+        {/* Catch-all for orphaned authorities */}
         {(() => {
           const orphanedAuthorities = authorities.filter(
             a => (!allInjectedIds.has(a.id)) && (typeof a.paragraph_index !== 'number' || a.paragraph_index >= paragraphs.length)
@@ -435,7 +452,7 @@ export default function ReportContent({ content, authorities = [] }: ReportConte
     );
   }
 
-  // Fallback if no authorities, but we still need the container ref for Node Links
+  // ── Path B: No authorities — simple markdown render ──
   const html = renderMarkdown(content);
 
   return (

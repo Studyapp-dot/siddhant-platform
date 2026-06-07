@@ -38,13 +38,15 @@ export default async function Home() {
   // Live node count
   const { count } = await supabase
     .from('nodes')
-    .select('id', { count: 'estimated', head: true });
+    .select('id', { count: 'estimated', head: true })
+    .is('deleted_at', null);
   const totalCount = count ?? 0;
 
   // Fetch featured archive nodes — real data, not fake
   const { data: featuredNodes } = await supabase
     .from('nodes')
     .select('id, title, slug, node_type')
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .limit(6);
 

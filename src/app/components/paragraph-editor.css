@@ -1,0 +1,497 @@
+/* ========================================
+   PARAGRAPH EDITOR — Modal styles
+   ======================================== */
+
+/* ── Overlay ── */
+.para-editor-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  animation: para-overlay-in 0.15s ease-out;
+}
+
+@keyframes para-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Modal ── */
+.para-editor-modal {
+  width: 95%;
+  max-width: 680px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg-panel, #111122);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 16px;
+  padding: 28px 32px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  animation: para-modal-in 0.2s ease-out;
+}
+
+@keyframes para-modal-in {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Header ── */
+.para-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.para-editor-title {
+  font-family: var(--font-sans, system-ui);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary, #e8e6e3);
+  margin: 0;
+}
+
+.para-editor-number {
+  color: var(--color-gold, #c5a059);
+}
+
+.para-editor-close {
+  background: none;
+  border: none;
+  color: var(--text-muted, #888);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.para-editor-close:hover {
+  color: var(--text-primary, #e8e6e3);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Field ── */
+.para-editor-field {
+  margin-bottom: 16px;
+}
+
+.para-editor-content-field {
+  flex: 1;
+}
+
+.para-editor-label {
+  display: block;
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.para-editor-label-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-muted, #666);
+  margin-left: 8px;
+}
+
+.para-editor-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-input, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  color: var(--text-primary, #e8e6e3);
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.88rem;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.para-editor-input:focus {
+  outline: none;
+  border-color: var(--color-gold, #c5a059);
+}
+
+.para-editor-input::placeholder {
+  color: var(--text-muted, #555);
+}
+
+/* ── Textarea ── */
+.para-editor-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 12px 14px;
+  background: var(--bg-input, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  color: var(--text-primary, #e8e6e3);
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1rem;
+  line-height: 1.8;
+  resize: vertical;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.para-editor-textarea:focus {
+  outline: none;
+  border-color: var(--color-gold, #c5a059);
+}
+
+.para-editor-textarea::placeholder {
+  color: var(--text-muted, #555);
+  font-style: italic;
+}
+
+/* ── Quality Warnings ── */
+.para-editor-warnings {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: rgba(255, 191, 0, 0.04);
+  border: 1px solid rgba(255, 191, 0, 0.1);
+  border-radius: 8px;
+}
+
+.para-editor-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.75rem;
+  color: var(--text-secondary, #aaa);
+  line-height: 1.5;
+}
+
+.para-editor-warning-icon {
+  flex-shrink: 0;
+  font-size: 0.82rem;
+}
+
+.para-editor-warning-text {
+  flex: 1;
+}
+
+/* ── Error ── */
+.para-editor-error {
+  padding: 8px 14px;
+  margin-bottom: 16px;
+  background: rgba(255, 80, 80, 0.08);
+  border: 1px solid rgba(255, 80, 80, 0.2);
+  border-radius: 8px;
+  color: #ff6b6b;
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.82rem;
+}
+
+/* ── Actions ── */
+.para-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.para-editor-btn-cancel {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  background: transparent;
+  color: var(--text-muted, #888);
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.para-editor-btn-cancel:hover {
+  color: var(--text-primary, #e8e6e3);
+  border-color: var(--text-muted, #888);
+}
+
+.para-editor-btn-save {
+  padding: 8px 22px;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-gold, #c5a059);
+  color: #111;
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.para-editor-btn-save:hover {
+  opacity: 0.9;
+}
+
+.para-editor-btn-save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Insert Button (between paragraphs) ── */
+.para-insert-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 2px 0;
+  margin: -8px 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.para-insert-btn:hover,
+.para-insert-btn:focus-visible {
+  opacity: 1;
+}
+
+.para-insert-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  background: rgba(197, 160, 89, 0.06);
+  border: 1px dashed rgba(197, 160, 89, 0.2);
+  color: var(--color-gold, #c5a059);
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.para-insert-btn:hover .para-insert-line {
+  background: rgba(197, 160, 89, 0.1);
+  border-color: rgba(197, 160, 89, 0.35);
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .para-editor-modal {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    padding: 20px 16px;
+  }
+}
+
+/* ========================================
+   PARAGRAPH HISTORY — Revision list styles
+   ======================================== */
+
+.para-history-modal {
+  max-width: 720px;
+}
+
+.para-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.para-history-loading,
+.para-history-empty {
+  text-align: center;
+  color: var(--text-muted, #888);
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.85rem;
+  padding: 32px 0;
+}
+
+.para-history-item {
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.para-history-item:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.para-history-item.current {
+  border-color: rgba(197, 160, 89, 0.2);
+}
+
+.para-history-item-header {
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.para-history-item-header:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.para-history-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 3px;
+}
+
+.para-history-type {
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-secondary, #aaa);
+}
+
+.para-history-date {
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.65rem;
+  color: var(--text-muted, #666);
+}
+
+.para-history-current-badge {
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-gold, #c5a059);
+  background: rgba(197, 160, 89, 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.para-history-commit {
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.78rem;
+  color: var(--text-primary, #e8e6e3);
+  line-height: 1.4;
+}
+
+.para-history-item-body {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.para-history-content-label {
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #666);
+  margin-bottom: 8px;
+}
+
+.para-history-content-preview {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.04));
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 0.88rem;
+}
+
+.para-history-note {
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.75rem;
+  color: var(--text-muted, #888);
+  margin-top: 8px;
+}
+
+.para-history-revert-btn {
+  margin-top: 12px;
+  font-size: 0.75rem;
+  padding: 6px 16px;
+}
+
+/* ========================================
+   WRITE / PREVIEW TOGGLE + PREVIEW PANE
+   ======================================== */
+
+.para-editor-content-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.para-editor-view-toggle {
+  display: flex;
+  background: var(--bg-panel, #1a1a1a);
+  border: 1px solid var(--border-subtle, #2a2a2a);
+  border-radius: 8px;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.para-view-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #888);
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.para-view-btn.active {
+  background: var(--color-gold, #c5a059);
+  color: #000;
+}
+
+.para-view-btn:not(.active):hover {
+  color: var(--text-primary, #eee);
+}
+
+/* Preview pane */
+.para-editor-preview {
+  min-height: 200px;
+  padding: 20px;
+  background: var(--bg-panel, #1a1a1a);
+  border: 1px solid var(--border-subtle, #2a2a2a);
+  border-radius: 8px;
+}
+
+.para-editor-preview .rendered-markdown {
+  font-family: var(--font-serif, 'Libre Baskerville', serif);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--text-primary, #eee);
+}
+
+.para-editor-preview-empty {
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.82rem;
+  color: var(--text-muted, #888);
+  font-style: italic;
+  text-align: center;
+  padding: 40px 0;
+}
+
+/* Toolbar inside editor modal — inherit new-topic styles */
+.para-editor-content-field .editor-toolbar {
+  margin-bottom: 8px;
+}

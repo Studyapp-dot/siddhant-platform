@@ -33,6 +33,7 @@ export default async function EdgeManagerPage({
     .from('nodes')
     .select('id, title, node_type')
     .eq('slug', slug)
+    .is('deleted_at', null)
     .single();
   if (!node) redirect('/');
 
@@ -41,10 +42,11 @@ export default async function EdgeManagerPage({
     .from('cross_references')
     .select(`
       id, relationship_type, description, signal, created_at, created_by, target_section_id,
-      nodes!cross_references_target_node_id_fkey ( slug, title, node_type ),
+      nodes!cross_references_target_node_id_fkey ( slug, title, node_type, deleted_at ),
       article_sections ( slug, title, deleted_at )
     `)
     .eq('source_node_id', node.id)
+    .is('nodes.deleted_at', null)
     .order('relationship_type');
 
   // Fetch INCOMING edges
@@ -52,10 +54,11 @@ export default async function EdgeManagerPage({
     .from('cross_references')
     .select(`
       id, relationship_type, description, signal, created_at, created_by, target_section_id,
-      nodes!cross_references_source_node_id_fkey ( slug, title, node_type ),
+      nodes!cross_references_source_node_id_fkey ( slug, title, node_type, deleted_at ),
       article_sections ( slug, title, deleted_at )
     `)
     .eq('target_node_id', node.id)
+    .is('nodes.deleted_at', null)
     .order('relationship_type');
 
   // Resolve creator usernames from created_by IDs (resilient — no FK dependency)
@@ -76,6 +79,7 @@ export default async function EdgeManagerPage({
     .from('nodes')
     .select('id, slug, title')
     .neq('id', node.id)
+    .is('deleted_at', null)
     .order('title');
 
   // Helpers

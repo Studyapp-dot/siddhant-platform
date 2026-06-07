@@ -2,6 +2,8 @@ import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import Link from 'next/link';
 import ReportContent from '@/app/components/ReportContent';
+import ParagraphList from '@/app/components/ParagraphList';
+import { getParagraphs, resolveStableId } from '@/app/actions/paragraphs';
 import CrossReferences from '@/app/components/CrossReferences';
 import FollowButton from '@/app/components/FollowButton';
 import FlagIssuePanel from '@/app/components/FlagIssuePanel';
@@ -14,6 +16,7 @@ import SystemTooltip from '@/app/components/SystemTooltip';
 import TrustBadge from '@/app/components/TrustBadge';
 import ReviewPipeline from '@/app/components/ReviewPipeline';
 import AuthorityDrawer from '@/app/components/AuthorityDrawer';
+import NodeDeleteZone from '@/app/components/NodeDeleteZone';
 import { getAuthorityAnchors } from '@/app/actions/authority-anchors';
 import { QUALITY_TIER_TOOLTIPS, ROLE_TOOLTIPS, getTopicTrustBadges } from '@/app/actions/trust-vocabulary';
 import { processEditAcceptance } from '@/app/actions/edit-acceptance';
@@ -87,9 +90,10 @@ const SECTION_TEMPLATES: Record<string, string[]> = {
   topic: ['Overview', 'Key Concepts', 'Analysis', 'References'],
 };
 
-export default async function TopicPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ revision?: string }> }) {
+export default async function TopicPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ revision?: string; pid?: string }> }) {
   const { slug } = await params;
-  const { revision: viewRevisionId } = await searchParams;
+  const { revision: viewRevisionId, pid } = await searchParams;
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -98,8 +102,9 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
 
   const { data: node } = await supabase
     .from('nodes')
-    .select('id, title, node_type, metadata, parent_node_id, quality_tier, quality_reviewed_revision_id')
+    .select('id, title, node_type, metadata, parent_node_id, quality_tier, quality_reviewed_revision_id, created_by')
     .eq('slug', slug)
+    .is('deleted_at', null)
     .single();
 
   if (!node) {
@@ -120,6 +125,18 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
   }
 
   const nodeType = (node as any).node_type || 'topic';
+
+  // ── Paragraph-native rendering ──
+  // Fetch paragraphs for this node. If any exist, render ParagraphList.
+  // If none exist, fall through to legacy report_content rendering.
+  const paragraphs = await getParagraphs(node.id);
+  const hasParagraphs = paragraphs.length > 0;
+
+  // Resolve ?pid= stable_id to current display_number for scroll targeting
+  let pidScrollTarget: number | null = null;
+  if (pid && hasParagraphs) {
+    pidScrollTarget = await resolveStableId(node.id, pid);
+  }
   const metadata = (node as any).metadata || {};
   const typeMeta = NODE_TYPE_META[nodeType] || NODE_TYPE_META.topic;
 
@@ -729,7 +746,24 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
             are moved below content as compact, visible summaries.
             ══════════════════════════════════════════════════ */}
         <div className="legal-content">
-          <ReportContent content={reportContent} authorities={authorityAnchors} />
+          {hasParagraphs ? (
+            <ParagraphList
+              paragraphs={paragraphs.map(p => ({
+                id: p.id,
+                stable_id: p.stable_id,
+                display_number: p.display_number,
+                marginal_note: p.marginal_note,
+                content: p.content,
+                group_label: p.group_label,
+                order_index: p.order_index,
+                node_id: p.node_id,
+              }))}
+              slug={slug}
+              scrollToNumber={pidScrollTarget}
+            />
+          ) : (
+            <ReportContent content={reportContent} authorities={authorityAnchors} slug={slug} />
+          )}
         </div>
 
         {/* ══════════════════════════════════════════════════
@@ -806,6 +840,11 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
             <span style={{ fontSize: '1rem' }}>📋</span>
             <span>You are viewing a <strong>historical revision</strong>. Quality assessment and peer review are only available on the <Link href={`/topic/${slug}`} style={{ color: 'var(--color-gold)', fontWeight: 600 }}>current version</Link>.</span>
           </div>
+        )}
+
+        {/* Owner-only node deletion — hidden danger zone */}
+        {user && (node as any).created_by === user.id && (
+          <NodeDeleteZone nodeId={node.id} nodeTitle={node.title} />
         )}
       </main>
 

@@ -72,6 +72,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     const { data } = await supabase
       .from('nodes')
       .select('id, slug, title')
+      .is('deleted_at', null)
       .ilike('title', `%${q.trim()}%`)
       .order('title')
       .limit(20);

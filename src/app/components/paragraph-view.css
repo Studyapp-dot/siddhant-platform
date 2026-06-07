@@ -1,0 +1,331 @@
+/* ========================================
+   PARAGRAPH VIEW — Styles for paragraph-native rendering
+   
+   Covers: paragraph blocks, margin numbers,
+   marginal notes, group separators, hover
+   action bar, and URL hash scroll targets.
+   ======================================== */
+
+/* ── Container ── */
+.paragraph-list {
+  counter-reset: paragraph-counter;
+}
+
+/* ── Group Separator ──
+   Rendered between paragraphs when group_label changes.
+   Lightweight visual break, not a structural heading. */
+.paragraph-group-separator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 2.5rem 0 1.5rem 0;
+  padding: 0 0 0 4px;
+  user-select: none;
+}
+
+.paragraph-group-separator:first-child {
+  margin-top: 0.5rem;
+}
+
+.paragraph-group-label {
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold, #c5a059);
+  white-space: nowrap;
+}
+
+.paragraph-group-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, var(--color-gold-soft, rgba(197, 160, 89, 0.2)), transparent);
+}
+
+/* ── Paragraph Block ──
+   Each paragraph is a distinct intellectual object. */
+.paragraph-block {
+  position: relative;
+  padding-left: 60px;
+  margin-bottom: 1.8rem;
+  border-left: 2px solid transparent;
+  transition: border-color 0.25s ease, background 0.25s ease;
+  border-radius: 0 6px 6px 0;
+  scroll-margin-top: 80px; /* offset for sticky headers on hash navigation */
+}
+
+.paragraph-block:hover {
+  border-left-color: var(--color-gold, #c5a059);
+  background: rgba(197, 160, 89, 0.015);
+}
+
+/* Hash target highlight — brief gold flash when navigated to via #p-N */
+.paragraph-block:target {
+  border-left-color: var(--color-gold, #c5a059);
+  background: rgba(197, 160, 89, 0.04);
+  animation: paragraph-flash 2s ease-out;
+}
+
+@keyframes paragraph-flash {
+  0% { background: rgba(197, 160, 89, 0.08); }
+  100% { background: rgba(197, 160, 89, 0.015); }
+}
+
+/* ── Margin: Number ── */
+.paragraph-number {
+  position: absolute;
+  left: 8px;
+  top: 5px;
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted, #888);
+  opacity: 0.35;
+  user-select: none;
+  letter-spacing: -0.01em;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  line-height: 1;
+}
+
+.paragraph-block:hover .paragraph-number {
+  opacity: 1;
+  color: var(--color-gold, #c5a059);
+}
+
+/* ── Margin: Marginal Note ── */
+.paragraph-marginal-note {
+  position: absolute;
+  left: 4px;
+  top: 22px;
+  width: 50px;
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.5rem;
+  font-weight: 600;
+  color: var(--text-muted, #888);
+  opacity: 0.3;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  user-select: none;
+  letter-spacing: 0.01em;
+  transition: opacity 0.2s ease;
+}
+
+.paragraph-block:hover .paragraph-marginal-note {
+  opacity: 0.7;
+}
+
+/* ── Content Area ── */
+.paragraph-content {
+  min-height: 1.4em;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.08rem;
+  line-height: 1.9;
+  color: var(--text-primary, #e8e6e3);
+}
+
+.paragraph-content p {
+  margin: 0 0 0.8rem 0;
+}
+
+.paragraph-content p:last-child {
+  margin-bottom: 0;
+}
+
+.paragraph-content blockquote {
+  margin: 1rem 0;
+  padding: 12px 20px;
+  border-left: 3px solid var(--color-gold, #c5a059);
+  background: var(--color-gold-soft, rgba(197, 160, 89, 0.04));
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  color: var(--text-secondary, #aaa);
+}
+
+.paragraph-content ol,
+.paragraph-content ul {
+  margin: 0.8rem 0;
+  padding-left: 1.5rem;
+}
+
+.paragraph-content li {
+  margin-bottom: 0.4rem;
+  line-height: 1.8;
+}
+
+.paragraph-content strong {
+  color: var(--text-primary, #e8e6e3);
+  font-weight: 700;
+}
+
+.paragraph-content a {
+  color: var(--color-gold, #c5a059);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(197, 160, 89, 0.3);
+  transition: border-color 0.15s ease;
+}
+
+.paragraph-content a:hover {
+  border-bottom-color: var(--color-gold, #c5a059);
+}
+
+/* ── Hover Action Bar ── */
+.paragraph-action-bar {
+  position: absolute;
+  bottom: -1px;
+  left: 60px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  background: var(--bg-panel, #0d0d1a);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+  border-top: 1px solid rgba(197, 160, 89, 0.12);
+  border-radius: 0 0 8px 8px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(100%);
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 10;
+}
+
+.paragraph-block:hover .paragraph-action-bar {
+  opacity: 1;
+  visibility: visible;
+}
+
+.paragraph-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 5px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #888);
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.63rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+}
+
+.paragraph-action-btn:hover {
+  color: var(--color-gold, #c5a059);
+  background: rgba(197, 160, 89, 0.08);
+}
+
+/* Copied confirmation — brief flash */
+.paragraph-action-btn.copied {
+  color: #4ade80;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .paragraph-block {
+    padding-left: 38px;
+  }
+
+  .paragraph-number {
+    left: 4px;
+    font-size: 0.62rem;
+  }
+
+  .paragraph-marginal-note {
+    display: none;
+  }
+
+  .paragraph-action-bar {
+    left: 38px;
+  }
+}
+
+/* ── Delete Button ── */
+.paragraph-action-btn-delete:hover {
+  color: #f87171 !important;
+  background: rgba(248, 113, 113, 0.08) !important;
+}
+
+/* ── Delete Confirmation Dialog ── */
+.para-delete-confirm {
+  background: var(--bg-panel, #141420);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  padding: 28px 32px;
+  max-width: 380px;
+  width: 90vw;
+  animation: para-modal-in 0.15s ease-out;
+}
+
+.para-delete-title {
+  font-family: var(--font-sans, system-ui);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f87171;
+  margin: 0 0 12px 0;
+}
+
+.para-delete-desc {
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.82rem;
+  color: var(--text-muted, #888);
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
+.para-delete-desc strong {
+  color: var(--text-primary, #eee);
+  font-weight: 700;
+}
+
+.para-delete-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-surface, #0a0a14);
+  border: 1px solid var(--border-subtle, #2a2a2a);
+  border-radius: 6px;
+  color: var(--text-primary, #eee);
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.85rem;
+  margin: 8px 0 16px 0;
+  outline: none;
+}
+
+.para-delete-input:focus {
+  border-color: #f87171;
+}
+
+.para-delete-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.para-delete-btn-confirm {
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: none;
+  background: #dc2626;
+  color: #fff;
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.para-delete-btn-confirm:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.para-delete-btn-confirm:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
