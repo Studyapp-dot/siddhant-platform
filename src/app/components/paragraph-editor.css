@@ -195,6 +195,37 @@
   font-size: 0.82rem;
 }
 
+.para-draft-restore {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: 8px;
+  color: #fbbf24;
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.8rem;
+}
+
+.para-draft-restore button {
+  padding: 5px 9px;
+  border: 1px solid rgba(245, 158, 11, 0.38);
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.45);
+  color: #fde68a;
+  cursor: pointer;
+}
+
+.para-editor-autosave {
+  margin: -4px 0 12px;
+  color: #34d399;
+  font-family: var(--font-sans, system-ui);
+  font-size: 0.78rem;
+}
+
 /* ── Actions ── */
 .para-editor-actions {
   display: flex;

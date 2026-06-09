@@ -18,7 +18,9 @@ export type AuthorityType =
 export interface AuthorityAnchor {
   id: string
   node_id: string
-  revision_id: string
+  revision_id: string | null
+  paragraph_id?: string | null
+  paragraph_revision_id?: string | null
   author_id: string
   anchor_text: string
   context_before: string
@@ -130,6 +132,7 @@ export async function getAuthorityAnchors(nodeId: string): Promise<AuthorityAnch
     .from('authority_anchors')
     .select(`
       id, node_id, revision_id, author_id,
+      paragraph_id, paragraph_revision_id,
       anchor_text, context_before, context_after, paragraph_index,
       authority_type, authority_title, authority_citation, authority_url, authority_node_id,
       source_tier, created_at,

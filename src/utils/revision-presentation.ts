@@ -72,3 +72,43 @@ export function normalizePublicRevisionText(content?: string | null): string {
     .replace(/\s+/g, ' ')
     .trim();
 }
+
+export function extractReferenceTargets(content?: string | null): string[] {
+  if (!content) return [];
+
+  const targets: string[] = [];
+
+  for (const match of content.matchAll(/!\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
+    targets.push(`image:${match[1]}`);
+  }
+
+  for (const match of content.matchAll(/\[[^\]]+\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
+    targets.push(`link:${match[1]}`);
+  }
+
+  for (const match of content.matchAll(/\[([^\]]+)\]\[([^\]]*)\]/g)) {
+    targets.push(`ref:${match[2] || match[1]}`);
+  }
+
+  for (const match of content.matchAll(/^\s*\[([^\]]+)\]:\s*(\S+)/gm)) {
+    targets.push(`def:${match[1]}=${match[2]}`);
+  }
+
+  for (const match of content.matchAll(/\[\[([^|\]]+)(?:\|[^\]]+)?\]\]/g)) {
+    targets.push(`wiki:${match[1]}`);
+  }
+
+  for (const match of content.matchAll(/\[web_(\d+)\]\((https?:\/\/[^\s)]+)\)/g)) {
+    targets.push(`web:${match[1]}=${match[2]}`);
+  }
+
+  return targets.map(target => target.trim()).filter(Boolean).sort();
+}
+
+export function hasReferenceTargetChanges(
+  previousContent?: string | null,
+  nextContent?: string | null
+): boolean {
+  return JSON.stringify(extractReferenceTargets(previousContent)) !==
+    JSON.stringify(extractReferenceTargets(nextContent));
+}

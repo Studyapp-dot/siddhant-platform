@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import type { AuthorityAnchor } from '@/app/actions/authority-anchors';
 import ParagraphView from './ParagraphView';
 import ParagraphEditor from './ParagraphEditor';
 import './paragraph-view.css';
@@ -30,9 +31,10 @@ interface ParagraphListProps {
   paragraphs: ParagraphData[];
   slug: string;
   scrollToNumber?: number | null;
+  authorityAnchors?: AuthorityAnchor[];
 }
 
-export default function ParagraphList({ paragraphs, slug, scrollToNumber }: ParagraphListProps) {
+export default function ParagraphList({ paragraphs, slug, scrollToNumber, authorityAnchors = [] }: ParagraphListProps) {
   const router = useRouter();
   const [insertingAfter, setInsertingAfter] = useState<number | null>(null);
 
@@ -64,8 +66,6 @@ export default function ParagraphList({ paragraphs, slug, scrollToNumber }: Para
   if (paragraphs.length === 0) return null;
 
   const nodeId = paragraphs[0].node_id;
-  let currentGroup: string | null = null;
-
   return (
     <div className="paragraph-list report-body rendered-markdown">
       {/* Insert at top */}
@@ -78,12 +78,12 @@ export default function ParagraphList({ paragraphs, slug, scrollToNumber }: Para
         <span className="para-insert-line">+ Add paragraph</span>
       </button>
 
-      {paragraphs.map((para) => {
+      {paragraphs.map((para, paraIndex) => {
         const elements: React.ReactNode[] = [];
+        const previousGroup = paraIndex > 0 ? paragraphs[paraIndex - 1].group_label : null;
 
         // Group separator
-        if (para.group_label && para.group_label !== currentGroup) {
-          currentGroup = para.group_label;
+        if (para.group_label && para.group_label !== previousGroup) {
           elements.push(
             <div
               key={`group-${para.display_number}`}
@@ -95,8 +95,6 @@ export default function ParagraphList({ paragraphs, slug, scrollToNumber }: Para
               <span className="paragraph-group-line" aria-hidden="true" />
             </div>
           );
-        } else if (!para.group_label && currentGroup !== null) {
-          currentGroup = null;
         }
 
         // Paragraph
@@ -111,6 +109,7 @@ export default function ParagraphList({ paragraphs, slug, scrollToNumber }: Para
             groupLabel={para.group_label}
             nodeId={nodeId}
             slug={slug}
+            authorityAnchors={authorityAnchors.filter(anchor => anchor.paragraph_id === para.id)}
             onEdited={handleEdited}
           />
         );

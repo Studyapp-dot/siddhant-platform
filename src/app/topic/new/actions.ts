@@ -74,7 +74,7 @@ export async function createNode(formData: FormData) {
       .single()
 
     if (newParagraph) {
-      await supabase.from('paragraph_revisions').insert({
+      const { data: newParagraphRevision } = await supabase.from('paragraph_revisions').insert({
         paragraph_id: newParagraph.id,
         node_id: newNode.id,
         author_id: user.id,
@@ -83,7 +83,40 @@ export async function createNode(formData: FormData) {
         commit_message: commit_message || 'Initial paragraph created',
         revision_type: 'creation',
         content_size: paragraphContent.length,
-      })
+      }).select('id').single()
+
+      const pendingAnchorsJson = formData.get('pending_authority_anchors') as string
+      if (pendingAnchorsJson && newParagraphRevision) {
+        try {
+          const pendingAnchors = JSON.parse(pendingAnchorsJson) as Array<{
+            anchor_text: string; context_before: string; context_after: string;
+            paragraph_index: number; authority_type: string; authority_title: string;
+            authority_citation?: string; authority_url?: string; authority_node_id?: string;
+          }>
+          if (pendingAnchors.length > 0) {
+            const rows = pendingAnchors.map(a => ({
+              node_id: newNode.id,
+              revision_id: null,
+              paragraph_id: newParagraph.id,
+              paragraph_revision_id: newParagraphRevision.id,
+              author_id: user.id,
+              anchor_text: a.anchor_text,
+              context_before: a.context_before || '',
+              context_after: a.context_after || '',
+              paragraph_index: 0,
+              authority_type: a.authority_type,
+              authority_title: a.authority_title,
+              authority_citation: a.authority_citation || null,
+              authority_url: a.authority_url || null,
+              authority_node_id: a.authority_node_id || null,
+              source_tier: 'primary',
+            }))
+            await supabase.from('authority_anchors').insert(rows)
+          }
+        } catch (err) {
+          console.error('[create-node] Paragraph authority anchors save failed:', err)
+        }
+      }
     }
 
     // Create a minimal node-level revision as a creation marker.
@@ -162,4 +195,3 @@ function generateStableId(): string {
   }
   return result;
 }
-

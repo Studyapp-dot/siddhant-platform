@@ -3,6 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { renderMarkdown } from '@/app/utils/markdownRenderer';
 import { deleteParagraph } from '@/app/actions/paragraphs';
+import type { AuthorityAnchor } from '@/app/actions/authority-anchors';
 import ParagraphEditor from './ParagraphEditor';
 import ParagraphHistory from './ParagraphHistory';
 
@@ -22,7 +23,38 @@ interface ParagraphViewProps {
   groupLabel: string | null;
   nodeId: string;
   slug: string;
+  authorityAnchors?: AuthorityAnchor[];
   onEdited: () => void;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function injectAuthorityMarkers(html: string, anchors: AuthorityAnchor[]): string {
+  let processed = html;
+
+  for (const anchor of anchors.filter(a => a.anchor_text).sort((a, b) => b.anchor_text.length - a.anchor_text.length)) {
+    const escapedText = escapeHtml(anchor.anchor_text);
+    if (!escapedText || !processed.includes(escapedText)) continue;
+
+    const title = escapeHtml([
+      anchor.authority_title,
+      anchor.authority_citation,
+      anchor.authority_url,
+    ].filter(Boolean).join(' | '));
+
+    processed = processed.replace(
+      escapedText,
+      `<span class="authority-inline-marker paragraph-authority-marker" title="${title}" data-authority-id="${anchor.id}">${escapedText}</span>`
+    );
+  }
+
+  return processed;
 }
 
 export default function ParagraphView({
@@ -34,6 +66,7 @@ export default function ParagraphView({
   groupLabel,
   nodeId,
   slug,
+  authorityAnchors = [],
   onEdited,
 }: ParagraphViewProps) {
   const [copied, setCopied] = useState(false);
@@ -78,7 +111,7 @@ export default function ParagraphView({
   }, [id, slug, onEdited]);
 
   // Render paragraph content as HTML
-  const html = renderMarkdown(content);
+  const html = injectAuthorityMarkers(renderMarkdown(content), authorityAnchors);
 
   return (
     <>

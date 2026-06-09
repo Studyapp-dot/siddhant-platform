@@ -165,6 +165,7 @@ function NewTopicPage() {
 
   // Link modal state
   const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkDefaultLabel, setLinkDefaultLabel] = useState('');
 
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const hasUnsavedWork = title.length > 0 || content.length > 0 || marginalNote.length > 0;
@@ -190,6 +191,12 @@ function NewTopicPage() {
     applyEdit(newContent, pos + markdownLink.length);
   }, [content, applyEdit]);
 
+  const openLinkModal = useCallback(() => {
+    const ta = contentRef.current;
+    setLinkDefaultLabel(ta ? content.slice(ta.selectionStart, ta.selectionEnd) : '');
+    setShowLinkModal(true);
+  }, [content]);
+
   // Live scholarly intelligence
   const signals = useMemo(() => detectScholarlySignals(content), [content]);
   const totalDetections = signals.citations.length + signals.sections.length + signals.articles.length + signals.acts.length + signals.cases.length;
@@ -199,8 +206,10 @@ function NewTopicPage() {
   useEffect(() => {
     const draft = loadDraft();
     if (draft && (draft.title || draft.content)) {
-      setRestoredDraft(draft);
-      setShowDraftRestore(true);
+      window.setTimeout(() => {
+        setRestoredDraft(draft);
+        setShowDraftRestore(true);
+      }, 0);
     }
   }, []);
 
@@ -382,7 +391,7 @@ function NewTopicPage() {
                   <div className="para-field-group">
                     <label className="para-field-label" htmlFor="marginal_note">
                       Marginal Note
-                      <span className="para-field-hint">A short topical label shown in the margin (e.g., "Equality guarantee", "Classification test")</span>
+                      <span className="para-field-hint">A short topical label shown in the margin (e.g., &quot;Equality guarantee&quot;, &quot;Classification test&quot;)</span>
                     </label>
                     <input
                       id="marginal_note"
@@ -407,7 +416,7 @@ function NewTopicPage() {
                       textareaRef={contentRef}
                       content={content}
                       onContentChange={applyEdit}
-                      onOpenLinkModal={() => setShowLinkModal(true)}
+                      onOpenLinkModal={openLinkModal}
                     />
 
                     <textarea
@@ -421,6 +430,12 @@ function NewTopicPage() {
                       required
                       rows={8}
                     />
+
+                    <DraftAuthorityEditor
+                      textareaRef={contentRef}
+                      pendingAnchors={pendingAnchors}
+                      onAnchorsChange={setPendingAnchors}
+                    />
                   </div>
 
                   {/* Link Insert Modal */}
@@ -428,7 +443,23 @@ function NewTopicPage() {
                     isOpen={showLinkModal}
                     onClose={() => setShowLinkModal(false)}
                     onInsert={handleLinkInsert}
-                    defaultLabel={contentRef.current ? content.slice(contentRef.current.selectionStart, contentRef.current.selectionEnd) : ''}
+                    defaultLabel={linkDefaultLabel}
+                  />
+
+                  <input
+                    type="hidden"
+                    name="pending_authority_anchors"
+                    value={JSON.stringify(pendingAnchors.map(a => ({
+                      anchor_text: a.anchor_text,
+                      context_before: a.context_before,
+                      context_after: a.context_after,
+                      paragraph_index: 0,
+                      authority_type: a.authority_type,
+                      authority_title: a.authority_title,
+                      authority_citation: a.authority_citation,
+                      authority_url: a.authority_url,
+                      authority_node_id: a.authority_node_id,
+                    })))}
                   />
                 </div>
 
@@ -480,7 +511,7 @@ function NewTopicPage() {
                     textareaRef={contentRef}
                     content={content}
                     onContentChange={applyEdit}
-                    onOpenLinkModal={() => setShowLinkModal(true)}
+                    onOpenLinkModal={openLinkModal}
                   />
 
                   <textarea
@@ -505,7 +536,7 @@ function NewTopicPage() {
                     isOpen={showLinkModal}
                     onClose={() => setShowLinkModal(false)}
                     onInsert={handleLinkInsert}
-                    defaultLabel={contentRef.current ? content.slice(contentRef.current.selectionStart, contentRef.current.selectionEnd) : ''}
+                    defaultLabel={linkDefaultLabel}
                   />
 
                   {/* Serialized pending anchors */}

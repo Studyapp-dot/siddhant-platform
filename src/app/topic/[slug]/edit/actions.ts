@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation'
 
 import MarkdownIt from 'markdown-it'
 import { computeVisibleTextSize, normalizeForComparison } from '@/utils/content-size'
+import { hasReferenceTargetChanges } from '@/utils/revision-presentation'
 import { extractMetadata } from '@/utils/ai/extract-metadata'
 import { extractRevisionSemantics } from '@/utils/ai/extract-revision-semantics'
 
@@ -322,9 +323,10 @@ export async function submitRevision(formData: FormData): Promise<RevisionResult
     if (prevRevision) {
       const prevNormalized = normalizeForComparison(prevRevision.report_content || '');
       const currNormalized = normalizeForComparison(report_content);
+      const referencesChanged = hasReferenceTargetChanges(prevRevision.report_content || '', report_content);
 
       // Gate 1: Identical visible content → no-op
-      if (prevNormalized === currNormalized) {
+      if (prevNormalized === currNormalized && !referencesChanged) {
         logBlockedSave('no_visible_change', node_id, user.id, 0);
         return {
           error: 'No meaningful visible-text changes detected. '
@@ -350,7 +352,7 @@ export async function submitRevision(formData: FormData): Promise<RevisionResult
           report_content,
         );
 
-        if (!hasCitationBypass) {
+        if (!hasCitationBypass && !referencesChanged) {
           logBlockedSave('low_signal_change', node_id, user.id, visibleDelta);
           return {
             error: 'This edit contains very few visible-text changes (< 20 characters). '

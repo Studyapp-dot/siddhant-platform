@@ -746,7 +746,15 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
             are moved below content as compact, visible summaries.
             ══════════════════════════════════════════════════ */}
         <div className="legal-content">
-          {hasParagraphs ? (
+          {isViewingOldRevision && hasParagraphs ? (
+            <div className="historical-paragraph-warning">
+              <strong>Historical paragraph view unavailable</strong>
+              <p>
+                This article now uses paragraph-native storage. The current system cannot reconstruct the exact paragraph state for this node-level historical revision, so current paragraphs are not shown as if they were historical.
+              </p>
+              <Link href={`/topic/${slug}`}>Return to current version</Link>
+            </div>
+          ) : hasParagraphs ? (
             <ParagraphList
               paragraphs={paragraphs.map(p => ({
                 id: p.id,
@@ -760,6 +768,7 @@ export default async function TopicPage({ params, searchParams }: { params: Prom
               }))}
               slug={slug}
               scrollToNumber={pidScrollTarget}
+              authorityAnchors={authorityAnchors}
             />
           ) : (
             <ReportContent content={reportContent} authorities={authorityAnchors} slug={slug} />

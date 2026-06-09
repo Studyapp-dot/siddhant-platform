@@ -4,6 +4,8 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { saveParagraph, insertParagraph } from '@/app/actions/paragraphs';
 import EditorToolbar from './EditorToolbar';
 import LinkInsertModal from './LinkInsertModal';
+import DraftAuthorityEditor from './DraftAuthorityEditor';
+import type { PendingAuthorityAnchor } from './DraftAuthorityEditor';
 import { renderMarkdown } from '@/app/utils/markdownRenderer';
 import './paragraph-editor.css';
 
@@ -39,6 +41,42 @@ interface ParagraphEditorProps {
 interface QualityWarning {
   icon: string;
   message: string;
+}
+
+interface ParagraphDraftData {
+  content: string;
+  marginalNote: string;
+  groupLabel: string;
+  commitMessage: string;
+  pendingAnchors: PendingAuthorityAnchor[];
+  savedAt: string;
+}
+
+const AUTOSAVE_DELAY = 1500;
+
+function draftKey(slug: string, nodeId: string, paragraphId: string | null, insertAfterOrder: number) {
+  return `siddhant_paragraph_draft:${slug}:${nodeId}:${paragraphId || `new-${insertAfterOrder}`}`;
+}
+
+function loadDraft(key: string): ParagraphDraftData | null {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) as ParagraphDraftData : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(key: string, data: ParagraphDraftData) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch {}
+}
+
+function clearDraft(key: string) {
+  try {
+    localStorage.removeItem(key);
+  } catch {}
 }
 
 function getQualityWarnings(content: string, marginalNote: string): QualityWarning[] {
@@ -103,7 +141,20 @@ export default function ParagraphEditor({
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'write' | 'preview'>('write');
   const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkDefaultLabel, setLinkDefaultLabel] = useState('');
+  const [pendingAnchors, setPendingAnchors] = useState<PendingAuthorityAnchor[]>([]);
+  const [restorableDraft, setRestorableDraft] = useState<ParagraphDraftData | null>(null);
+  const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saved'>('idle');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const storageKey = useMemo(
+    () => draftKey(slug, nodeId, paragraphId, insertAfterOrder),
+    [slug, nodeId, paragraphId, insertAfterOrder]
+  );
+  const hasDirtyWork = content !== initialContent ||
+    marginalNote !== initialMarginalNote ||
+    groupLabel !== initialGroupLabel ||
+    commitMessage.length > 0 ||
+    pendingAnchors.length > 0;
 
   // Auto-focus textarea on mount
   useEffect(() => {
@@ -111,6 +162,40 @@ export default function ParagraphEditor({
       textareaRef.current.focus();
     }
   }, []);
+
+  useEffect(() => {
+    const draft = loadDraft(storageKey);
+    if (draft && (draft.content || draft.marginalNote || draft.groupLabel || draft.commitMessage || draft.pendingAnchors?.length)) {
+      window.setTimeout(() => setRestorableDraft(draft), 0);
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (!hasDirtyWork || saving) return;
+    const timer = window.setTimeout(() => {
+      saveDraft(storageKey, {
+        content,
+        marginalNote,
+        groupLabel,
+        commitMessage,
+        pendingAnchors,
+        savedAt: new Date().toISOString(),
+      });
+      setAutosaveStatus('saved');
+      window.setTimeout(() => setAutosaveStatus('idle'), 2000);
+    }, AUTOSAVE_DELAY);
+    return () => window.clearTimeout(timer);
+  }, [content, marginalNote, groupLabel, commitMessage, pendingAnchors, hasDirtyWork, saving, storageKey]);
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (!hasDirtyWork || saving) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [hasDirtyWork, saving]);
 
   const warnings = useMemo(
     () => getQualityWarnings(content, marginalNote),
@@ -143,6 +228,35 @@ export default function ParagraphEditor({
     applyEdit(newContent, pos + markdownLink.length);
   }, [content, applyEdit]);
 
+  const openLinkModal = useCallback(() => {
+    const ta = textareaRef.current;
+    setLinkDefaultLabel(ta ? content.slice(ta.selectionStart, ta.selectionEnd) : '');
+    setShowLinkModal(true);
+  }, [content]);
+
+  const attemptClose = useCallback(() => {
+    if (hasDirtyWork && !saving) {
+      const ok = window.confirm('Close editor? Your local draft will be kept and can be restored when you reopen this paragraph.');
+      if (!ok) return;
+    }
+    onClose();
+  }, [hasDirtyWork, saving, onClose]);
+
+  const handleRestoreDraft = useCallback(() => {
+    if (!restorableDraft) return;
+    setContent(restorableDraft.content || '');
+    setMarginalNote(restorableDraft.marginalNote || '');
+    setGroupLabel(restorableDraft.groupLabel || '');
+    setCommitMessage(restorableDraft.commitMessage || '');
+    setPendingAnchors(restorableDraft.pendingAnchors || []);
+    setRestorableDraft(null);
+  }, [restorableDraft]);
+
+  const handleDiscardDraft = useCallback(() => {
+    clearDraft(storageKey);
+    setRestorableDraft(null);
+  }, [storageKey]);
+
   const handleSave = useCallback(async () => {
     setError(null);
     setSaving(true);
@@ -158,6 +272,7 @@ export default function ParagraphEditor({
           marginalNote || null,
           groupLabel || null,
           slug,
+          pendingAnchors,
         );
       } else {
         if (!commitMessage.trim()) {
@@ -171,6 +286,7 @@ export default function ParagraphEditor({
           marginalNote || null,
           commitMessage,
           slug,
+          pendingAnchors,
         );
       }
 
@@ -178,25 +294,26 @@ export default function ParagraphEditor({
         setError(result.error);
         setSaving(false);
       } else {
+        clearDraft(storageKey);
         onSaved();
       }
-    } catch (e) {
+    } catch {
       setError('Unexpected error. Please try again.');
       setSaving(false);
     }
-  }, [content, marginalNote, groupLabel, commitMessage, paragraphId, nodeId, slug, insertAfterOrder, isNewParagraph, onSaved]);
+  }, [content, marginalNote, groupLabel, commitMessage, paragraphId, nodeId, slug, insertAfterOrder, isNewParagraph, onSaved, pendingAnchors, storageKey]);
 
   // Close on Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') attemptClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [attemptClose]);
 
   return (
-    <div className="para-editor-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="para-editor-overlay" onClick={(e) => { if (e.target === e.currentTarget) attemptClose(); }}>
       <div className="para-editor-modal" role="dialog" aria-label={isNewParagraph ? 'Add paragraph' : `Edit ¶${displayNumber}`}>
 
         {/* Header */}
@@ -208,10 +325,20 @@ export default function ParagraphEditor({
               <>Edit <span className="para-editor-number">¶{displayNumber}</span></>
             )}
           </h2>
-          <button type="button" className="para-editor-close" onClick={onClose} aria-label="Close">
+          <button type="button" className="para-editor-close" onClick={attemptClose} aria-label="Close">
             ✕
           </button>
         </div>
+
+        {restorableDraft && (
+          <div className="para-draft-restore">
+            <span>
+              Local draft saved {new Date(restorableDraft.savedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+            </span>
+            <button type="button" onClick={handleRestoreDraft}>Restore</button>
+            <button type="button" onClick={handleDiscardDraft}>Dismiss</button>
+          </div>
+        )}
 
         {/* Marginal note */}
         <div className="para-editor-field">
@@ -280,7 +407,7 @@ export default function ParagraphEditor({
                 textareaRef={textareaRef}
                 content={content}
                 onContentChange={applyEdit}
-                onOpenLinkModal={() => setShowLinkModal(true)}
+                onOpenLinkModal={openLinkModal}
               />
               <textarea
                 ref={textareaRef}
@@ -290,6 +417,11 @@ export default function ParagraphEditor({
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Write one idea per paragraph..."
                 rows={12}
+              />
+              <DraftAuthorityEditor
+                textareaRef={textareaRef}
+                pendingAnchors={pendingAnchors}
+                onAnchorsChange={setPendingAnchors}
               />
             </>
           ) : (
@@ -310,7 +442,7 @@ export default function ParagraphEditor({
             isOpen={showLinkModal}
             onClose={() => setShowLinkModal(false)}
             onInsert={handleLinkInsert}
-            defaultLabel={textareaRef.current ? content.slice(textareaRef.current.selectionStart, textareaRef.current.selectionEnd) : ''}
+            defaultLabel={linkDefaultLabel}
           />
         </div>
 
@@ -350,9 +482,13 @@ export default function ParagraphEditor({
           <div className="para-editor-error">{error}</div>
         )}
 
+        {autosaveStatus === 'saved' && (
+          <div className="para-editor-autosave">Draft saved locally</div>
+        )}
+
         {/* Actions */}
         <div className="para-editor-actions">
-          <button type="button" className="para-editor-btn-cancel" onClick={onClose}>
+          <button type="button" className="para-editor-btn-cancel" onClick={attemptClose}>
             Cancel
           </button>
           <button
