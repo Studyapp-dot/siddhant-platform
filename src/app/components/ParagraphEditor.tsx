@@ -133,12 +133,16 @@ export default function ParagraphEditor({
   onSaved,
 }: ParagraphEditorProps) {
   const isNewParagraph = !paragraphId;
+  const startsInDraftMode = isNewParagraph && !initialContent.trim();
   const [content, setContent] = useState(initialContent);
   const [marginalNote, setMarginalNote] = useState(initialMarginalNote);
   const [groupLabel, setGroupLabel] = useState(initialGroupLabel);
   const [commitMessage, setCommitMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editorPhase, setEditorPhase] = useState<'draft' | 'refine'>(startsInDraftMode ? 'draft' : 'refine');
+  const [typewriterMode, setTypewriterMode] = useState(true);
+  const [fadeEarlierText, setFadeEarlierText] = useState(true);
   const [viewMode, setViewMode] = useState<'write' | 'preview'>('write');
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkDefaultLabel, setLinkDefaultLabel] = useState('');
@@ -155,6 +159,7 @@ export default function ParagraphEditor({
     groupLabel !== initialGroupLabel ||
     commitMessage.length > 0 ||
     pendingAnchors.length > 0;
+  const isDraftPhase = editorPhase === 'draft';
 
   // Auto-focus textarea on mount
   useEffect(() => {
@@ -207,6 +212,24 @@ export default function ParagraphEditor({
     return plain ? plain.split(/\s+/).length : 0;
   }, [content]);
 
+  const keepCurrentLineCentered = useCallback(() => {
+    if (!typewriterMode) return;
+
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const styles = window.getComputedStyle(textarea);
+    const lineHeight = Number.parseFloat(styles.lineHeight) || 32;
+    const charsPerLine = Math.max(42, Math.floor(textarea.clientWidth / 11));
+    const textBeforeCursor = textarea.value.slice(0, textarea.selectionStart);
+    const visualRowsBeforeCursor = textBeforeCursor.split('\n').reduce((rows, line) => {
+      return rows + Math.max(1, Math.ceil(line.length / charsPerLine));
+    }, 0);
+
+    const desiredTop = (visualRowsBeforeCursor * lineHeight) - (textarea.clientHeight * 0.45);
+    textarea.scrollTop = Math.max(0, desiredTop);
+  }, [typewriterMode]);
+
   // ── Toolbar integration ──
   const applyEdit = useCallback((newContent: string, cursorStart?: number, cursorEnd?: number) => {
     setContent(newContent);
@@ -256,6 +279,35 @@ export default function ParagraphEditor({
     clearDraft(storageKey);
     setRestorableDraft(null);
   }, [storageKey]);
+
+  const moveToRefine = useCallback(() => {
+    setEditorPhase('refine');
+    setViewMode('write');
+    requestAnimationFrame(() => textareaRef.current?.focus());
+  }, []);
+
+  const moveToDraft = useCallback(() => {
+    setEditorPhase('draft');
+    setViewMode('write');
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+      keepCurrentLineCentered();
+    });
+  }, [keepCurrentLineCentered]);
+
+  const handleTypewriterToggle = useCallback((enabled: boolean) => {
+    setTypewriterMode(enabled);
+    requestAnimationFrame(() => {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+
+      if (enabled) {
+        keepCurrentLineCentered();
+      } else {
+        textarea.scrollTop = 0;
+      }
+    });
+  }, [keepCurrentLineCentered]);
 
   const handleSave = useCallback(async () => {
     setError(null);
@@ -314,17 +366,29 @@ export default function ParagraphEditor({
 
   return (
     <div className="para-editor-overlay" onClick={(e) => { if (e.target === e.currentTarget) attemptClose(); }}>
-      <div className="para-editor-modal" role="dialog" aria-label={isNewParagraph ? 'Add paragraph' : `Edit ¶${displayNumber}`}>
+      <div className={`para-editor-modal ${isDraftPhase ? 'para-editor-modal-draft' : ''}`} role="dialog" aria-label={isNewParagraph ? 'Add paragraph' : `Edit paragraph ${displayNumber}`}>
 
         {/* Header */}
         <div className="para-editor-header">
           <h2 className="para-editor-title">
-            {isNewParagraph ? (
-              <>+ New paragraph</>
+            {isDraftPhase ? (
+              <>Draft paragraph</>
+            ) : isNewParagraph ? (
+              <>Refine paragraph</>
             ) : (
               <>Edit <span className="para-editor-number">¶{displayNumber}</span></>
             )}
           </h2>
+          {!isDraftPhase && (
+            <button type="button" className="para-editor-phase-btn" onClick={moveToDraft}>
+              Focus draft
+            </button>
+          )}
+          {isDraftPhase && content.trim() && (
+            <button type="button" className="para-editor-phase-btn" onClick={moveToRefine}>
+              Refine
+            </button>
+          )}
           <button type="button" className="para-editor-close" onClick={attemptClose} aria-label="Close">
             ✕
           </button>
@@ -339,6 +403,68 @@ export default function ParagraphEditor({
             <button type="button" onClick={handleDiscardDraft}>Dismiss</button>
           </div>
         )}
+
+        {isDraftPhase ? (
+          <div className="para-focus-draft">
+            <div className="para-focus-draft-controls" aria-label="Draft mode settings">
+              <label className="para-focus-toggle">
+                <input
+                  type="checkbox"
+                  checked={typewriterMode}
+                  onChange={(e) => handleTypewriterToggle(e.target.checked)}
+                />
+                Typewriter
+              </label>
+              <label className="para-focus-toggle">
+                <input
+                  type="checkbox"
+                  checked={fadeEarlierText}
+                  onChange={(e) => setFadeEarlierText(e.target.checked)}
+                />
+                Fade edges
+              </label>
+              <span className="para-focus-count">{wordCount} words</span>
+            </div>
+
+            <div className={`para-focus-draft-shell ${typewriterMode ? 'typewriter-mode' : 'standard-mode'} ${fadeEarlierText ? 'fade-history' : ''}`}>
+              <textarea
+                ref={textareaRef}
+                id="para-content"
+                className="para-editor-textarea para-focus-textarea"
+                value={content}
+                onChange={(e) => {
+                  setContent(e.target.value);
+                  requestAnimationFrame(keepCurrentLineCentered);
+                }}
+                onKeyUp={keepCurrentLineCentered}
+                onClick={keepCurrentLineCentered}
+                onSelect={keepCurrentLineCentered}
+                placeholder="Just write the idea..."
+                rows={14}
+                spellCheck={false}
+              />
+            </div>
+
+            {autosaveStatus === 'saved' && (
+              <div className="para-editor-autosave">Draft saved locally</div>
+            )}
+
+            <div className="para-focus-draft-footer">
+              <button type="button" className="para-editor-btn-cancel" onClick={attemptClose}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="para-editor-btn-save"
+                onClick={moveToRefine}
+                disabled={!content.trim()}
+              >
+                Refine paragraph
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
 
         {/* Marginal note */}
         <div className="para-editor-field">
@@ -500,6 +626,8 @@ export default function ParagraphEditor({
             {saving ? 'Saving...' : isNewParagraph ? 'Add paragraph' : `Save ¶${displayNumber}`}
           </button>
         </div>
+          </>
+        )}
       </div>
     </div>
   );
