@@ -142,7 +142,6 @@ export default function ParagraphEditor({
   const [error, setError] = useState<string | null>(null);
   const [editorPhase, setEditorPhase] = useState<'draft' | 'refine'>(startsInDraftMode ? 'draft' : 'refine');
   const [typewriterMode, setTypewriterMode] = useState(true);
-  const [fadeEarlierText, setFadeEarlierText] = useState(true);
   const [viewMode, setViewMode] = useState<'write' | 'preview'>('write');
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkDefaultLabel, setLinkDefaultLabel] = useState('');
@@ -166,6 +165,14 @@ export default function ParagraphEditor({
     if (textareaRef.current) {
       textareaRef.current.focus();
     }
+  }, []);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
   }, []);
 
   useEffect(() => {
@@ -406,27 +413,7 @@ export default function ParagraphEditor({
 
         {isDraftPhase ? (
           <div className="para-focus-draft">
-            <div className="para-focus-draft-controls" aria-label="Draft mode settings">
-              <label className="para-focus-toggle">
-                <input
-                  type="checkbox"
-                  checked={typewriterMode}
-                  onChange={(e) => handleTypewriterToggle(e.target.checked)}
-                />
-                Typewriter
-              </label>
-              <label className="para-focus-toggle">
-                <input
-                  type="checkbox"
-                  checked={fadeEarlierText}
-                  onChange={(e) => setFadeEarlierText(e.target.checked)}
-                />
-                Fade edges
-              </label>
-              <span className="para-focus-count">{wordCount} words</span>
-            </div>
-
-            <div className={`para-focus-draft-shell ${typewriterMode ? 'typewriter-mode' : 'standard-mode'} ${fadeEarlierText ? 'fade-history' : ''}`}>
+            <div className={`para-focus-draft-shell ${typewriterMode ? 'typewriter-mode' : 'standard-mode'}`}>
               <textarea
                 ref={textareaRef}
                 id="para-content"
@@ -450,6 +437,14 @@ export default function ParagraphEditor({
             )}
 
             <div className="para-focus-draft-footer">
+              <span className="para-focus-count">{wordCount} words</span>
+              <button
+                type="button"
+                className="para-editor-btn-cancel"
+                onClick={() => handleTypewriterToggle(!typewriterMode)}
+              >
+                {typewriterMode ? 'Standard view' : 'Focus band'}
+              </button>
               <button type="button" className="para-editor-btn-cancel" onClick={attemptClose}>
                 Cancel
               </button>
