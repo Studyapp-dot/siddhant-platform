@@ -227,13 +227,18 @@ export default function ParagraphEditor({
 
     const styles = window.getComputedStyle(textarea);
     const lineHeight = Number.parseFloat(styles.lineHeight) || 32;
-    const charsPerLine = Math.max(42, Math.floor(textarea.clientWidth / 11));
+    const paddingTop = Number.parseFloat(styles.paddingTop) || 0;
+    const paddingLeft = Number.parseFloat(styles.paddingLeft) || 0;
+    const paddingRight = Number.parseFloat(styles.paddingRight) || 0;
+    const usableWidth = Math.max(320, textarea.clientWidth - paddingLeft - paddingRight);
+    const charsPerLine = Math.max(36, Math.floor(usableWidth / 11));
     const textBeforeCursor = textarea.value.slice(0, textarea.selectionStart);
     const visualRowsBeforeCursor = textBeforeCursor.split('\n').reduce((rows, line) => {
       return rows + Math.max(1, Math.ceil(line.length / charsPerLine));
     }, 0);
 
-    const desiredTop = (visualRowsBeforeCursor * lineHeight) - (textarea.clientHeight * 0.45);
+    const currentRowTop = paddingTop + ((visualRowsBeforeCursor - 1) * lineHeight);
+    const desiredTop = currentRowTop - (textarea.clientHeight * 0.45);
     textarea.scrollTop = Math.max(0, desiredTop);
   }, [typewriterMode]);
 
@@ -423,9 +428,6 @@ export default function ParagraphEditor({
                   setContent(e.target.value);
                   requestAnimationFrame(keepCurrentLineCentered);
                 }}
-                onKeyUp={keepCurrentLineCentered}
-                onClick={keepCurrentLineCentered}
-                onSelect={keepCurrentLineCentered}
                 placeholder="Just write the idea..."
                 rows={14}
                 spellCheck={false}

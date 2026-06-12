@@ -137,10 +137,10 @@
     linear-gradient(
       to bottom,
       transparent 0,
-      transparent calc(45% - 46px),
-      color-mix(in srgb, var(--color-gold, #c5a059) 9%, transparent) calc(45% - 46px),
-      color-mix(in srgb, var(--color-gold, #c5a059) 9%, transparent) calc(45% + 46px),
-      transparent calc(45% + 46px)
+      transparent calc(45% - 58px),
+      color-mix(in srgb, var(--color-gold, #c5a059) 7%, transparent) calc(45% - 58px),
+      color-mix(in srgb, var(--color-gold, #c5a059) 7%, transparent) calc(45% + 58px),
+      transparent calc(45% + 58px)
     ),
     var(--bg-base, #f5f3ef);
 }
@@ -157,15 +157,15 @@
 
 .para-focus-draft-shell.typewriter-mode::before {
   top: 0;
-  height: calc(45% - 48px);
-  background: color-mix(in srgb, var(--bg-base, #f5f3ef) 96%, transparent);
+  height: calc(45% - 60px);
+  background: color-mix(in srgb, var(--bg-base, #f5f3ef) 94%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--color-gold, #c5a059) 14%, transparent);
 }
 
 .para-focus-draft-shell.typewriter-mode::after {
   bottom: 0;
-  height: calc(55% - 48px);
-  background: color-mix(in srgb, var(--bg-base, #f5f3ef) 96%, transparent);
+  height: calc(55% - 60px);
+  background: color-mix(in srgb, var(--bg-base, #f5f3ef) 94%, transparent);
   border-top: 1px solid color-mix(in srgb, var(--color-gold, #c5a059) 14%, transparent);
 }
 
